@@ -1,0 +1,14 @@
+{application, aebytecode,
+ [{description, "Bytecode definitions for AEthernity VM shared with compiler."},
+  {vsn, "1.0.0"},
+  {registered, []},
+  {applications,
+   [kernel,
+    stdlib
+   ]},
+  {env,[]},
+  {modules, []},
+  {maintainers, []},
+  {licenses, []},
+  {links, []}
+ ]}.

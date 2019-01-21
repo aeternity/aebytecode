@@ -179,3 +179,5 @@
 -define(PRIM_CALL_MAP_SIZE,   304).
 -define(PRIM_CALL_MAP_TOLIST, 305).
 
+-define(PRIM_CALL_IN_CRYPTO_RANGE(__TTYPE__), (((__TTYPE__) > 399) andalso ((__TTYPE__) < 500))).
+-define(PRIM_CALL_CRYPTO_ECVERIFY, 400).

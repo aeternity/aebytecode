@@ -14,8 +14,9 @@
 
 -include("aeb_opcodes.hrl").
 
-is_local_primop_op(Op) when ?PRIM_CALL_IN_MAP_RANGE(Op) -> true;
-is_local_primop_op(Op) when is_integer(Op) -> false.
+is_local_primop_op(Op) when ?PRIM_CALL_IN_MAP_RANGE(Op)    -> true;
+is_local_primop_op(Op) when ?PRIM_CALL_IN_CRYPTO_RANGE(Op) -> true;
+is_local_primop_op(Op) when is_integer(Op)                 -> false.
 
 op_needs_type_check(Op) ->
     (not is_local_primop_op(Op)) andalso op_has_dynamic_type(Op).

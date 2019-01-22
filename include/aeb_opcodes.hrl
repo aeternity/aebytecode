@@ -24,6 +24,9 @@
 -define(            'XOR', 16#18).
 -define(            'NOT', 16#19).
 -define(           'BYTE', 16#1a).
+-define(            'SHL', 16#1b).
+-define(            'SHR', 16#1c).
+-define(            'SAR', 16#1d).
 
 -define(           'SHA3', 16#20).
 

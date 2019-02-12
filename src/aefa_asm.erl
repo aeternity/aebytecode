@@ -33,7 +33,7 @@
 %%%          <000>
 %%%          <1010>
 %%%          <>
-%%%          !<> 
+%%%          !<>
 %%%       9. Tuples
 %%%          ()
 %%%          (1, "foo")
@@ -60,7 +60,7 @@ format(Asm) -> format(Asm, 0).
 format([{comment, Comment} | Rest], Address) ->
     ";; " ++ Comment ++ "\n" ++ format(Rest, Address);
 format([Mnemonic | Rest], Address) ->
-    _Op = aefa_opcodes:m_to_op(Mnemonic),
+    _Op = aefa_opcode:m_to_op(Mnemonic),
     "        " ++ atom_to_list(Mnemonic) ++ "\n"
         ++ format(Rest, Address + 1);
 format([],_) -> [].
@@ -79,7 +79,9 @@ file(Filename, Options) ->
             ok
     end,
 
-    ByteList = to_bytecode(Tokens, 0, #{}, [], Options),
+    Env = to_bytecode(Tokens, none, #{}, [], Options),
+
+    ByteList = serialize(Env),
 
     case proplists:lookup(pp_hex_string, Options) of
         {pp_hex_string, true} ->
@@ -88,19 +90,27 @@ file(Filename, Options) ->
             ok
     end,
 
+    {Env, list_to_binary(ByteList)}.
 
-    list_to_binary(ByteList).
+serialize(Env) ->
+    %% TODO: add serialization of immediates
+    %% TODO: add serialization of function definitions
+    Code = [C || {_Name, {_Sig, C}} <- maps:to_list(Env)],
+    Code.
 
 to_hexstring(ByteList) ->
     "0x" ++ lists:flatten(
               [io_lib:format("~2.16.0b", [X])
                || X <- ByteList]).
 
-
+to_bytecode([{function,_line, 'FUNCTION'}|Rest], Address, Env, Code, Opts) ->
+    Env2 = insert_fun(Address, Code, Env),
+    {Fun, Rest2} = to_fun_def(Rest),
+    to_bytecode(Rest2, Fun, Env2, [], Opts);
 to_bytecode([{mnemonic,_line, Op}|Rest], Address, Env, Code, Opts) ->
-    OpCode = aefa_opcodes:m_to_op(Op),
-    OpSize = aefa_opcodes:op_size(OpCode),
-    to_bytecode(Rest, Address + OpSize, Env, [OpCode|Code], Opts);
+    OpCode = aefa_opcode:m_to_op(Op),
+    %% TODO: arguments
+    to_bytecode(Rest, Address, Env, [OpCode|Code], Opts);
 to_bytecode([{int,_line, Int}|Rest], Address, Env, Code, Opts) ->
     to_bytecode(Rest, Address, Env, [Int|Code], Opts);
 to_bytecode([{hash,_line, Hash}|Rest], Address, Env, Code, Opts) ->
@@ -109,23 +119,63 @@ to_bytecode([{id,_line, ID}|Rest], Address, Env, Code, Opts) ->
     to_bytecode(Rest, Address, Env, [{ref, ID}|Code], Opts);
 to_bytecode([{label,_line, Label}|Rest], Address, Env, Code, Opts) ->
     to_bytecode(Rest, Address, Env#{Label => Address}, Code, Opts);
-to_bytecode([], _Address, Env, Code, Opts) ->
+to_bytecode([], Address, Env, Code, Opts) ->
+    Env2 = insert_fun(Address, Code, Env),
     case proplists:lookup(pp_opcodes, Opts) of
         {pp_opcodes, true} ->
-            io:format("opcodes ~p~n", [lists:reverse(Code)]);
+            Ops = [C || {_Name, {_Sig, C}} <- maps:to_list(Env2)],
+            io:format("opcodes ~p~n", [Ops]);
         none ->
             ok
     end,
+    Env2.
 
-    PatchedCode = resolve_refs(Code, Env, []),
-    case proplists:lookup(pp_patched_code, Opts) of
-        {pp_patched_code, true} ->
-            io:format("Patched Code: ~p~n", [PatchedCode]);
-        none ->
-            ok
-    end,
 
-    expand_args(PatchedCode).
+to_fun_def([{id, _, Name}, {'(', _} | Rest]) ->
+    {ArgsType, [{'->', _} | Rest2]} = to_arg_types(Rest),
+    {RetType, Rest3} = to_type(Rest2),
+    {{Name, ArgsType, RetType}, Rest3}.
+
+to_arg_types([{')', _} | Rest]) -> {[], Rest};
+to_arg_types(Tokens) ->
+    case to_type(Tokens) of
+        {Type, [{',', _} |  Rest]} ->
+            {MoreTypes, Rest2} = to_arg_types(Rest),
+            {[Type|MoreTypes], Rest2};
+        {Type, [{')', _} |  Rest]} ->
+            {[Type], Rest}
+    end.
+
+to_type([{id, _, "integer"} | Rest]) -> {integer, Rest};
+to_type([{id, _, "boolean"} | Rest]) -> {boolean, Rest};
+to_type([{id, _, "string"}  | Rest]) -> {string, Rest};
+to_type([{id, _, "address"} | Rest]) -> {address, Rest};
+to_type([{id, _, "bits"}    | Rest]) -> {bits, Rest};
+to_type([{'{', _}, {id, _, "list"}, {',', _} | Rest]) ->
+    %% TODO: Error handling
+    {ListType, [{'}', _}| Rest2]} = to_type(Rest),
+    {{list, ListType}, Rest2};
+to_type([{'{', _}, {id, _, "tuple"}, {',', _}, {'[', _} | Rest]) ->
+    %% TODO: Error handling
+    {ElementTypes, [{'}', _}| Rest2]} = to_list_of_types(Rest),
+    {{tuple, ElementTypes}, Rest2};
+to_type([{'{', _}, {id, _, "map"}, {',', _} | Rest]) ->
+    %% TODO: Error handling
+    {KeyType, [{',', _}| Rest2]} = to_type(Rest),
+    {ValueType, [{'}', _}| Rest3]} = to_type(Rest2),
+    {{map, KeyType, ValueType}, Rest3}.
+
+to_list_of_types([{']', _} | Rest]) -> {[], Rest};
+to_list_of_types(Tokens) ->
+    case to_type(Tokens) of
+        {Type, [{',', _} |  Rest]} ->
+            {MoreTypes, Rest2} = to_list_of_types(Rest),
+            {[Type|MoreTypes], Rest2};
+        {Type, [{']', _} |  Rest]} ->
+            {[Type], Rest}
+    end.
+
+
 
 %% Also reverses the code (back to unreversed state).
 resolve_refs([{ref, ID} | Rest], Env, Code) ->
@@ -138,3 +188,7 @@ resolve_refs([],_Env, Code) -> Code.
 expand_args([OP | Rest]) ->
     [OP | expand_args(Rest)];
 expand_args([]) -> [].
+
+insert_fun(none, [], Env) -> Env;
+insert_fun({Name, Type, RetType}, Code, Env) ->
+    Env#{Name => {{Type, RetType}, lists:reverse(Code)}}.

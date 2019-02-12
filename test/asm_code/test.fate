@@ -1,0 +1,23 @@
+;; CONTRACT: Test
+FUNCTION id(integer) -> integer
+  RETURN
+
+FUNCTION jumps() -> integer
+  PUSH 0
+  JUMP 3
+  NOP
+  JUMP 2
+  NOP
+  RETURN
+  NOP
+  JUMP 1
+
+FUNCTION inc(integer) -> integer
+  INC arg0
+  INC
+  RETURN
+
+;; Test the code from the shell
+;; _build/default/rel/aessembler/bin/aessembler console
+
+;; aeb_aefa:file("../../../../test/asm_code/test.fate", []).

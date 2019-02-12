@@ -22,11 +22,13 @@
 opcode(X) when X >= 0, X =< 255 -> X;
 opcode({comment,X}) -> ?COMMENT(X).
 
-mnemonic(?NOP)           -> 'NOP'           ;
-mnemonic({comment,_})     -> 'COMMENT'        .
+mnemonic(?NOP)         -> 'NOP'        ;
+mnemonic({comment,_})  -> 'COMMENT'    .
 
-m_to_op('NOP')             -> ?NOP           ;
-m_to_op('COMMENT')        -> ?COMMENT("")    ;
-m_to_op(Data) when 0=<Data, Data=<255
-                          -> Data            .
+m_to_op('NOP')         -> ?NOP         ;
+m_to_op('COMMENT')     -> ?COMMENT("") ;
+m_to_op('RETURN')      -> ?RETURN      ;
+m_to_op('PUSH')        -> ?PUSH        ;
+m_to_op('JUMP')        -> ?JUMP        ;
+m_to_op(Data) when 0=<Data, Data=<255 -> Data.
 

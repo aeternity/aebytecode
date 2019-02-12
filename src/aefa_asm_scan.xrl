@@ -18,13 +18,15 @@ HASH     = #{HEXDIGIT}+
 WS       = [\000-\s]
 ID       = {LOWER}[a-zA-Z0-9_]*
 
-Rules.
-{ID}           : {token, {id, TokenLine, TokenChars }}.
 
-NOP            : {token, {mnemonic, TokenLine, 'NOP'}}.
+Rules.
+%%{ID}           : {token, {id, TokenLine, TokenChars }}.
 
 RETURN         : {token, {mnemonic, TokenLine, 'RETURN'}}.
 CALL           : {token, {mnemonic, TokenLine, 'CALL'}}.
+FUNCTION       : {token, {function, TokenLine, 'FUNCTION' }}.
+NOP            : {token, {mnemonic, TokenLine, 'NOP'}}.
+
 CALL_R         : {token, {mnemonic, TokenLine, 'CALL_R'}}.
 CALL_T         : {token, {mnemonic, TokenLine, 'CALL_T'}}.
 CALL_TR        : {token, {mnemonic, TokenLine, 'CALL_TR'}}.
@@ -127,14 +129,15 @@ COMMENT        : {token, {mnemonic, TokenLine, 'COMMENT'}}.
 
 
 %% Symbols
+\-\>  : {token, {'->', TokenLine}}.
 ,   : {token, {',', TokenLine}}.
 \.  : {token, {'.', TokenLine}}.
 \(  : {token, {'(', TokenLine}}.
 \)  : {token, {')', TokenLine}}.
 \[  : {token, {'[', TokenLine}}.
 \]  : {token, {']', TokenLine}}.
-{   : {token, {'{', TokenLine}}.
-}   : {token, {'}', TokenLine}}.
+\{  : {token, {'{', TokenLine}}.
+\}  : {token, {'}', TokenLine}}.
 
 
 %% Whitespace ignore
@@ -153,7 +156,7 @@ Erlang code.
 
 -ignore_xref([format_error/1, string/2, token/2, token/3, tokens/2, tokens/3]).
 
--include_lib("aebytecode/include/aeb_opcodes.hrl").
+-include_lib("aebytecode/include/aefa_opcodes.hrl").
 
 
 parse_hex("0x" ++ Chars) -> list_to_integer(Chars, 16).

@@ -132,7 +132,8 @@ COMMENT        : {token, {mnemonic, TokenLine, 'COMMENT'}}.
 
 
 %% Symbols
-\-\>  : {token, {'->', TokenLine}}.
+\-\>  : {token, {'to', TokenLine}}.
+\:  : {token, {'to', TokenLine}}.
 ,   : {token, {',', TokenLine}}.
 \.  : {token, {'.', TokenLine}}.
 \(  : {token, {'(', TokenLine}}.

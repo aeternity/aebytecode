@@ -269,7 +269,7 @@ to_bytecode([], Address, Env, Code, Opts) ->
 
 
 to_fun_def([{id, _, Name}, {'(', _} | Rest]) ->
-    {ArgsType, [{'->', _} | Rest2]} = to_arg_types(Rest),
+    {ArgsType, [{'to', _} | Rest2]} = to_arg_types(Rest),
     {RetType, Rest3} = to_type(Rest2),
     {{Name, ArgsType, RetType}, Rest3}.
 

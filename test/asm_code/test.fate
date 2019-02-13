@@ -13,7 +13,13 @@ FUNCTION jumps() -> integer
   JUMP 1
 
 FUNCTION inc(integer) -> integer
-  INC arg0
+  INC
+  INC
+  RETURN
+
+FUNCTION call(integer) -> integer
+  INC
+  CALL inc
   INC
   RETURN
 
@@ -21,3 +27,4 @@ FUNCTION inc(integer) -> integer
 ;; _build/default/rel/aessembler/bin/aessembler console
 
 ;; aeb_aefa:file("../../../../test/asm_code/test.fate", []).
+;; f(Asm), f(Env), f(BC), Asm = aefa_asm:read_file("../../../../test/asm_code/test.fate"), {Env, BC} = aefa_asm:asm_to_bytecode(Asm, []), aefa_asm:bytecode_to_fate_code(BC, []).

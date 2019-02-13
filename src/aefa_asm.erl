@@ -43,12 +43,15 @@
 
 -module(aefa_asm).
 
--export([ file/2
+-export([ asm_to_bytecode/2
+        , bytecode_to_fate_code/2
         , pp/1
+        , read_file/1
         , to_hexstring/1
         ]).
 
 -include_lib("aebytecode/include/aefa_opcodes.hrl").
+-define(HASH_BYTES, 32).
 
 
 pp(Asm) ->
@@ -60,17 +63,18 @@ format(Asm) -> format(Asm, 0).
 format([{comment, Comment} | Rest], Address) ->
     ";; " ++ Comment ++ "\n" ++ format(Rest, Address);
 format([Mnemonic | Rest], Address) ->
-    _Op = aefa_opcode:m_to_op(Mnemonic),
+    _Op = aefa_opcodes:m_to_op(Mnemonic),
     "        " ++ atom_to_list(Mnemonic) ++ "\n"
         ++ format(Rest, Address + 1);
 format([],_) -> [].
 
 
-
-
-file(Filename, Options) ->
+read_file(Filename) ->
     {ok, File} = file:read_file(Filename),
-    {ok, Tokens, _} = aefa_asm_scan:scan(binary_to_list(File)),
+    binary_to_list(File).
+
+asm_to_bytecode(AssemblerCode, Options) ->
+    {ok, Tokens, _} = aefa_asm_scan:scan(AssemblerCode),
 
     case proplists:lookup(pp_tokens, Options) of
         {pp_tokens, true} ->
@@ -79,7 +83,9 @@ file(Filename, Options) ->
             ok
     end,
 
-    Env = to_bytecode(Tokens, none, #{}, [], Options),
+    Env = to_bytecode(Tokens, none, #{ functions => #{}
+                                     , symbols => #{}
+                                     }, [], Options),
 
     ByteList = serialize(Env),
 
@@ -92,11 +98,141 @@ file(Filename, Options) ->
 
     {Env, list_to_binary(ByteList)}.
 
-serialize(Env) ->
+bytecode_to_fate_code(ByteCode,_Options) ->
+    deserialize(ByteCode, #{ function => none
+                           , bb => 0
+                           , current_bb_code => []
+                           , functions => #{}
+                           , code => #{}
+                           }).
+
+deserialize(<<?FUNCTION:8, A, B, C, D, Rest/binary>>,
+            #{ function := none
+             , bb := 0
+             , current_bb_code := []
+             } = Env) ->
+    {Sig, Rest2} = deserialize_signature(Rest),
+    Env2 = Env#{function => {<<A,B,C,D>>, Sig}},
+    deserialize(Rest2, Env2);
+deserialize(<<?FUNCTION:8, A, B, C, D, Rest/binary>>,
+            #{ function := F
+             , bb := BB
+             , current_bb_code := Code
+             , code := Program
+             , functions := Funs} = Env) ->
+    {Sig, Rest2} = deserialize_signature(Rest),
+    case Code of
+        [] ->
+            Env2 = Env#{ bb => 0
+                       , current_bb_code => []
+                       , function => {<<A,B,C,D>>, Sig}
+                       , code => #{}
+                       , functions => Funs#{F => Program}},
+            deserialize(Rest2, Env2);
+        _ ->
+            Env2 = Env#{ bb => 0
+                       , current_bb_code => []
+                       , function => {<<A,B,C,D>>, Sig}
+                       , code => #{}
+                       , functions =>
+                             Funs#{F => Program#{ BB => lists:reverse(Code)}}},
+            deserialize(Rest2, Env2)
+    end;
+deserialize(<<Op:8, Rest/binary>>,
+            #{ bb := BB
+             , current_bb_code := Code
+             , code := Program} = Env) ->
+    {Rest2, OpCode} = deserialize_op(Op, Rest, Code),
+    case aefa_opcodes:end_bb(Op) of
+        true ->
+            deserialize(Rest2, Env#{ bb => BB+1
+                                   , current_bb_code => []
+                                   , code => Program#{BB =>
+                                                          lists:reverse(OpCode)}});
+        false ->
+            deserialize(Rest2, Env#{ current_bb_code => OpCode})
+    end;
+deserialize(<<>>, #{ function := F
+                   , bb := BB
+                   , current_bb_code := Code
+                   , code := Program
+                   , functions := Funs} = Env) ->
+    FunctionCode =
+        case Code of
+            [] -> Program;
+            _ -> Program#{ BB => lists:reverse(Code)}
+        end,
+    Env#{ bb => 0
+        , current_bb_code => []
+        , function => none
+        , code => #{}
+        , functions => Funs#{F => FunctionCode}}.
+
+deserialize_op(Op, Rest, Code) ->
+    OpName = aefa_opcodes:mnemonic(Op),
+    case aefa_opcodes:args(Op) of
+        0 -> {Rest, [OpName | Code]};
+        1 -> %% TODO: use rlp encoded int.
+            <<Arg:8, Rest2/binary>> = Rest,
+            {Rest2, [Arg, OpName | Code]};
+        hash ->
+            <<A, B, C, D, Rest2/binary>> = Rest,
+            Code2 = [<<A,B,C,D>>, OpName | Code],
+            {Rest2, Code2}
+    end.
+
+
+
+serialize(#{functions := Functions} = Env) ->
     %% TODO: add serialization of immediates
     %% TODO: add serialization of function definitions
-    Code = [C || {_Name, {_Sig, C}} <- maps:to_list(Env)],
-    Code.
+    Code = [[?FUNCTION, Name, serialize_signature(Sig), C]  ||
+               {Name, {Sig, C}} <- maps:to_list(Functions)],
+    lists:flatten(Code).
+
+serialize_signature({Args, RetType}) ->
+    [serialize_type({tuple, Args}) |
+     serialize_type(RetType)].
+
+serialize_type(integer) -> [0];
+serialize_type(boolean) -> [1];
+serialize_type({list, T}) -> [2 | serialize_type(T)];
+serialize_type({tuple, Ts}) ->
+    case length(Ts) of
+        N when N =< 255 ->
+            [3, N | [serialize_type(T) || T <- Ts]]
+    end;
+serialize_type(address) -> 4;
+serialize_type(bits) -> 5;
+serialize_type({map, K, V}) -> [6 | serialize_type(K) ++ serialize_type(V)].
+
+
+deserialize_signature(Binary) ->
+    {{tuple, Args}, Rest}  = deserialize_type(Binary),
+    {RetType, Rest2} = deserialize_type(Rest),
+    {{Args, RetType}, Rest2}.
+
+deserialize_type(<<0, Rest/binary>>) -> {integer, Rest};
+deserialize_type(<<1, Rest/binary>>) -> {boolean, Rest};
+deserialize_type(<<2, Rest/binary>>) ->
+    {T, Rest2} = deserialize_type(Rest),
+    {{list, T}, Rest2};
+deserialize_type(<<3, N, Rest/binary>>) ->
+    {Ts, Rest2} = deserialize_types(N, Rest, []),
+    {{tuple, Ts}, Rest2};
+deserialize_type(<<4, Rest/binary>>) -> {address, Rest};
+deserialize_type(<<5, Rest/binary>>) -> {bits, Rest};
+deserialize_type(<<6, Rest/binary>>) ->
+    {K, Rest2} = deserialize_type(Rest),
+    {V, Rest3} = deserialize_type(Rest2),
+    {{map, K, V}, Rest3}.
+
+deserialize_types(0, Binary, Acc) ->
+    {lists:reverse(Acc), Binary};
+deserialize_types(N, Binary, Acc) ->
+    {T, Rest} = deserialize_type(Binary),
+    deserialize_types(N-1, Rest, [T | Acc]).
+
 
 to_hexstring(ByteList) ->
     "0x" ++ lists:flatten(
@@ -108,7 +244,7 @@ to_bytecode([{function,_line, 'FUNCTION'}|Rest], Address, Env, Code, Opts) ->
     {Fun, Rest2} = to_fun_def(Rest),
     to_bytecode(Rest2, Fun, Env2, [], Opts);
 to_bytecode([{mnemonic,_line, Op}|Rest], Address, Env, Code, Opts) ->
-    OpCode = aefa_opcode:m_to_op(Op),
+    OpCode = aefa_opcodes:m_to_op(Op),
     %% TODO: arguments
     to_bytecode(Rest, Address, Env, [OpCode|Code], Opts);
 to_bytecode([{int,_line, Int}|Rest], Address, Env, Code, Opts) ->
@@ -116,7 +252,8 @@ to_bytecode([{int,_line, Int}|Rest], Address, Env, Code, Opts) ->
 to_bytecode([{hash,_line, Hash}|Rest], Address, Env, Code, Opts) ->
     to_bytecode(Rest, Address, Env, [Hash|Code], Opts);
 to_bytecode([{id,_line, ID}|Rest], Address, Env, Code, Opts) ->
-    to_bytecode(Rest, Address, Env, [{ref, ID}|Code], Opts);
+    {ok, Hash} = lookup_symbol(ID, Env),
+    to_bytecode(Rest, Address, Env, [Hash|Code], Opts);
 to_bytecode([{label,_line, Label}|Rest], Address, Env, Code, Opts) ->
     to_bytecode(Rest, Address, Env#{Label => Address}, Code, Opts);
 to_bytecode([], Address, Env, Code, Opts) ->
@@ -190,5 +327,26 @@ expand_args([OP | Rest]) ->
 expand_args([]) -> [].
 
 insert_fun(none, [], Env) -> Env;
-insert_fun({Name, Type, RetType}, Code, Env) ->
-    Env#{Name => {{Type, RetType}, lists:reverse(Code)}}.
+insert_fun({Name, Type, RetType}, Code, #{functions := Functions} = Env) ->
+    {Hash, Env2} = insert_symbol(Name, Env),
+    Env2#{
+      functions => Functions#{Hash => {{Type, RetType}, lists:reverse(Code)}}
+     }.
+
+insert_symbol(Id, Env) ->
+    %% Use first 4 bytes of blake hash
+    {ok, <<A:8, B:8, C:8, D:8,_/binary>> } = enacl:generichash(?HASH_BYTES, list_to_binary(Id)),
+    insert_symbol(Id, <<A,B,C,D>>, Env).
+
+insert_symbol(Id, Hash, #{symbols := Symbols} = Env) ->
+    case maps:find(Hash, Symbols) of
+        {ok, Id} -> {Hash, Env};
+        {ok, Id2} ->
+            %% Very unlikely...
+            exit({two_symbols_with_same_hash, Id, Id2});
+        error ->
+            {Hash, Env#{symbols => Symbols#{ Id => Hash
+                                           , Hash => Id}}}
+    end.
+lookup_symbol(Id,  #{symbols := Symbols} = Env) ->
+    maps:find(Id, Symbols).

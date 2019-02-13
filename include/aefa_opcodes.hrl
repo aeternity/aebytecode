@@ -79,9 +79,9 @@
 -define('ABORT'          , 16#50).
 -define('EXIT'           , 16#51).
 -define('DEACTIVATE'     , 16#52).
--define('INT_TO_STR'     , 16#53).
-
-
+-define('INC'            , 16#53).
+-define('DEC'            , 16#54).
+-define('INT_TO_STR'     , 16#55).
 -define('SPEND'          , 16#56).
 -define('ORACLE_REGISTER', 16#57).
 -define('ORACLE_QUERY'   , 16#58).
@@ -101,6 +101,7 @@
 -define('SHA256'         , 16#66).
 -define('BLAKE2B'        , 16#67).
 
+-define('FUNCTION'       , 16#fe).
 -define('EXTEND'         , 16#ff).
 
 -define(       COMMENT(X), {comment, X}).

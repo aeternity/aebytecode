@@ -47,6 +47,9 @@ DIV            : {token, {mnemonic, TokenLine, 'DIV'}}.
 MOD            : {token, {mnemonic, TokenLine, 'MOD'}}.
 POW            : {token, {mnemonic, TokenLine, 'POW'}}.
 
+INC            : {token, {mnemonic, TokenLine, 'INC'}}.
+DEC            : {token, {mnemonic, TokenLine, 'DEC'}}.
+
 LT             : {token, {mnemonic, TokenLine, 'LT'}}.
 GT             : {token, {mnemonic, TokenLine, 'GT'}}.
 EQ             : {token, {mnemonic, TokenLine, 'EQ'}}.

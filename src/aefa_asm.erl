@@ -218,8 +218,6 @@ deserialize_op(Op, Rest, Code) ->
 
 
 serialize(#{functions := Functions} = Env) ->
-    %% TODO: add serialization of immediates
-    %% TODO: add serialization of function definitions
     Code = [[?FUNCTION, Name, serialize_signature(Sig), C]  ||
                {Name, {Sig, C}} <- maps:to_list(Functions)],
     serialize_code(lists:flatten(Code)).
@@ -236,7 +234,6 @@ serialize(#{functions := Functions} = Env) ->
 %% 10 : varN
 %% 11 : immediate
 
-%% TODO: serialize complex immediates
 serialize_code([ {Arg0Type, Arg0}
                , {Arg1Type, Arg1}
                , {Arg2Type, Arg2}
@@ -357,7 +354,6 @@ to_bytecode([{function,_line, 'FUNCTION'}|Rest], Address, Env, Code, Opts) ->
     to_bytecode(Rest2, Fun, Env2, [], Opts);
 to_bytecode([{mnemonic,_line, Op}|Rest], Address, Env, Code, Opts) ->
     OpCode = aefa_opcodes:m_to_op(Op),
-    %% TODO: arguments
     to_bytecode(Rest, Address, Env, [OpCode|Code], Opts);
 to_bytecode([{arg,_line, N}|Rest], Address, Env, Code, Opts) ->
     to_bytecode(Rest, Address, Env, [{arg, N}|Code], Opts);

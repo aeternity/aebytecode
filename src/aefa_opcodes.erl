@@ -37,8 +37,13 @@ mnemonic(?ADD)         -> 'ADD'        ;
 mnemonic(?AND)         -> 'AND'        ;
 mnemonic(?OR)          -> 'OR'         ;
 mnemonic(?NOT)         -> 'NOT'        ;
-mnemonic(OP)           -> {OP, nothandled} ;
-mnemonic({comment,_})  -> 'COMMENT'    .
+mnemonic(?LT)          -> 'LT'         ;
+mnemonic(?GT)          -> 'GT'         ;
+mnemonic(?EGT)         -> 'EGT'        ;
+mnemonic(?ELT)         -> 'ELT'        ;
+mnemonic(?EQ)          -> 'EQ'         ;
+mnemonic(?NEQ)         -> 'NEQ'        ;
+mnemonic(OP)           -> {OP, nothandled}.
 
 m_to_op('NOP')         -> ?NOP         ;
 m_to_op('COMMENT')     -> ?COMMENT("") ;
@@ -50,6 +55,12 @@ m_to_op('ADD')         -> ?ADD         ;
 m_to_op('AND')         -> ?AND         ;
 m_to_op('OR')          -> ?OR          ;
 m_to_op('NOT')         -> ?NOT         ;
+m_to_op('LT')          -> ?LT          ;
+m_to_op('GT')          -> ?GT          ;
+m_to_op('ELT')         -> ?ELT         ;
+m_to_op('EGT')         -> ?EGT         ;
+m_to_op('EQ')          -> ?EQ          ;
+m_to_op('NEQ')         -> ?NEQ         ;
 m_to_op('CALL')        -> ?CALL        ;
 m_to_op('CALL_T')      -> ?CALL_T      ;
 m_to_op('CALL_R')      -> ?CALL_R      ;
@@ -68,6 +79,12 @@ args(?NOT)     -> 2;
 args(?ADD)     -> 3;
 args(?AND)     -> 3;
 args(?OR)      -> 3;
+args(?LT)      -> 3;
+args(?GT)      -> 3;
+args(?EGT)     -> 3;
+args(?ELT)     -> 3;
+args(?EQ)      -> 3;
+args(?NEQ)     -> 3;
 args(_) -> 0. %% TODO do not allow this
 
 end_bb(?RETURN) -> true;

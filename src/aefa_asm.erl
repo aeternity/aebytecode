@@ -172,15 +172,19 @@ deserialize_op(Op, Rest, Code) ->
     OpName = aefa_opcodes:mnemonic(Op),
     case aefa_opcodes:args(Op) of
         0 -> {Rest, [OpName | Code]};
-        1 -> %% TODO: use rlp encoded int.
-            <<Arg:8, Rest2/binary>> = Rest,
-            {Rest2, [Arg, OpName | Code]};
-        hash ->
-            <<A, B, C, D, Rest2/binary>> = Rest,
-            Code2 = [<<A,B,C,D>>, OpName | Code],
-            {Rest2, Code2}
+        1 ->
+            <<ArgType:8, Rest2/binary>> = Rest,
+            {Arg, Rest3} = aefa_encoding:deserialize_one(Rest2),
+            Modifier = bits_to_modifier(ArgType),
+            {Rest3, [{OpName, {Modifier, Arg}} | Code]};
+        2 ->
+            <<ArgType:8, Rest2/binary>> = Rest,
+            {Arg0, Rest3} = aefa_encoding:deserialize_one(Rest2),
+            {Arg1, Rest4} = aefa_encoding:deserialize_one(Rest3),
+            Modifier = bits_to_modifier(ArgType band 2#11),
+            Modifier2 = bits_to_modifier((ArgType bsr 2) band 2#11),
+            {Rest4, [{OpName, {Modifier, Arg0}, {Modifier2, Arg1}} | Code]}
     end.
-
 
 
 serialize(#{functions := Functions} = Env) ->
@@ -188,7 +192,85 @@ serialize(#{functions := Functions} = Env) ->
     %% TODO: add serialization of function definitions
     Code = [[?FUNCTION, Name, serialize_signature(Sig), C]  ||
                {Name, {Sig, C}} <- maps:to_list(Functions)],
-    lists:flatten(Code).
+    serialize_code(lists:flatten(Code)).
+
+
+%% Argument encoding
+%% Agument Specification Byte
+%% bitpos:  6    4    2    0
+%%         xx   xx   xx   xx
+%%       Arg3 Arg2 Arg1 Arg0
+%% Bit pattern
+%% 00 : stack/unused (depending on instruction)
+%% 01 : argN
+%% 10 : varN
+%% 11 : immediate
+
+%% TODO: serialize complex immediates
+serialize_code([ {Arg0Type, Arg0}
+               , {Arg1Type, Arg1}
+               , {Arg2Type, Arg2}
+               , {Arg3Type, Arg3}| Rest]) ->
+    ArgSpec =
+        modifier_bits(Arg0Type) bor
+        (modifier_bits(Arg1Type) bsl 2) bor
+        (modifier_bits(Arg2Type) bsl 4) bor
+        (modifier_bits(Arg3Type) bsl 6),
+    [ ArgSpec
+    , serialize_data(Arg0Type, Arg0)
+    , serialize_data(Arg1Type, Arg1)
+    , serialize_data(Arg2Type, Arg2)
+    , serialize_data(Arg3Type, Arg3)
+      | serialize_code(Rest)];
+serialize_code([ {Arg0Type, Arg0}
+               , {Arg1Type, Arg1}
+               , {Arg2Type, Arg2}
+                 | Rest]) ->
+    ArgSpec =
+        modifier_bits(Arg0Type) bor
+        (modifier_bits(Arg1Type) bsl 2) bor
+        (modifier_bits(Arg2Type) bsl 4),
+    [ArgSpec
+    , serialize_data(Arg0Type, Arg0)
+    , serialize_data(Arg1Type, Arg1)
+    , serialize_data(Arg2Type, Arg2)
+     | serialize_code(Rest)];
+serialize_code([ {Arg0Type, Arg0}
+               , {Arg1Type, Arg1}
+                 | Rest]) ->
+    ArgSpec =
+        modifier_bits(Arg0Type) bor
+        (modifier_bits(Arg1Type) bsl 2),
+    [ArgSpec
+    , serialize_data(Arg0Type, Arg0)
+    , serialize_data(Arg1Type, Arg1)
+     | serialize_code(Rest)];
+serialize_code([ {Arg0Type, Arg0} | Rest]) ->
+    ArgSpec =
+        modifier_bits(Arg0Type),
+    [ArgSpec
+    , serialize_data(Arg0Type, Arg0)
+     | serialize_code(Rest)];
+serialize_code([B|Rest]) ->
+    [B | serialize_code(Rest)];
+serialize_code([]) -> [].
+
+%% 00 : stack/unused (depending on instruction)
+%% 01 : argN
+%% 10 : varN
+%% 11 : immediate
+modifier_bits(immediate) -> 2#11;
+modifier_bits(var)       -> 2#10;
+modifier_bits(arg)       -> 2#01;
+modifier_bits(stack)     -> 2#00.
+
+bits_to_modifier(2#11) -> immediate;
+bits_to_modifier(2#10) -> var;
+bits_to_modifier(2#01) -> arg;
+bits_to_modifier(2#00) -> stack.
+
+serialize_data(_, Data) ->
+    aefa_encoding:serialize(Data).
 
 serialize_signature({Args, RetType}) ->
     [serialize_type({tuple, Args}) |
@@ -247,15 +329,19 @@ to_bytecode([{mnemonic,_line, Op}|Rest], Address, Env, Code, Opts) ->
     OpCode = aefa_opcodes:m_to_op(Op),
     %% TODO: arguments
     to_bytecode(Rest, Address, Env, [OpCode|Code], Opts);
+to_bytecode([{arg,_line, N}|Rest], Address, Env, Code, Opts) ->
+    to_bytecode(Rest, Address, Env, [{arg, N}|Code], Opts);
+to_bytecode([{var,_line, N}|Rest], Address, Env, Code, Opts) ->
+    to_bytecode(Rest, Address, Env, [{var, N}|Code], Opts);
+to_bytecode([{stack,_line, N}|Rest], Address, Env, Code, Opts) ->
+    to_bytecode(Rest, Address, Env, [{stack, N}|Code], Opts);
 to_bytecode([{int,_line, Int}|Rest], Address, Env, Code, Opts) ->
-    to_bytecode(Rest, Address, Env, [Int|Code], Opts);
+    to_bytecode(Rest, Address, Env, [{immediate, Int}|Code], Opts);
 to_bytecode([{hash,_line, Hash}|Rest], Address, Env, Code, Opts) ->
-    to_bytecode(Rest, Address, Env, [Hash|Code], Opts);
+    to_bytecode(Rest, Address, Env, [{immediate, Hash}|Code], Opts);
 to_bytecode([{id,_line, ID}|Rest], Address, Env, Code, Opts) ->
-    {ok, Hash} = lookup_symbol(ID, Env),
-    to_bytecode(Rest, Address, Env, [Hash|Code], Opts);
-to_bytecode([{label,_line, Label}|Rest], Address, Env, Code, Opts) ->
-    to_bytecode(Rest, Address, Env#{Label => Address}, Code, Opts);
+    {Hash, Env2} = insert_symbol(ID, Env),
+    to_bytecode(Rest, Address, Env2, [{immediate, Hash}|Code], Opts);
 to_bytecode([], Address, Env, Code, Opts) ->
     Env2 = insert_fun(Address, Code, Env),
     case proplists:lookup(pp_opcodes, Opts) of

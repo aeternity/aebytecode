@@ -31,6 +31,7 @@ mnemonic(?JUMP)        -> 'JUMP'       ;
 mnemonic(?INC)         -> 'INC'        ;
 mnemonic(?CALL)        -> 'CALL'       ;
 mnemonic(?CALL_T)      -> 'CALL_T'     ;
+mnemonic(?CALL_R)      -> 'CALL_R'     ;
 mnemonic(OP)           -> {OP, nothandled} ;
 mnemonic({comment,_})  -> 'COMMENT'    .
 
@@ -42,6 +43,7 @@ m_to_op('JUMP')        -> ?JUMP        ;
 m_to_op('INC')         -> ?INC         ;
 m_to_op('CALL')        -> ?CALL        ;
 m_to_op('CALL_T')      -> ?CALL_T      ;
+m_to_op('CALL_R')      -> ?CALL_R      ;
 m_to_op(Data) when 0=<Data, Data=<255 -> Data.
 
 args(?NOP) -> 0;
@@ -49,13 +51,15 @@ args(?RETURN) -> 0;
 args(?PUSH) -> 1;
 args(?JUMP) -> 1;
 args(?INC) -> 0;
-args(?CALL) -> hash;
-args(?CALL_T) -> hash;
+args(?CALL) -> 1;
+args(?CALL_T) -> 1;
+args(?CALL_R) -> 2;
 args(_) -> 0. %% TODO do not allow this
 
 end_bb(?RETURN) -> true;
 end_bb(?JUMP)   -> true;
 end_bb(?CALL)   -> true;
 end_bb(?CALL_T) -> true;
+end_bb(?CALL_R) -> true;
 end_bb(_)       -> false.
 

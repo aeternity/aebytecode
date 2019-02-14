@@ -20,7 +20,10 @@ ID       = {LOWER}[a-zA-Z0-9_]*
 
 
 Rules.
-%%{ID}           : {token, {id, TokenLine, TokenChars }}.
+arg{INT}       : {token, {arg, TokenLine, parse_arg(TokenChars)}}.
+var{INT}       : {token, {var, TokenLine, parse_var(TokenChars)}}.
+a              : {token, {stack, TokenLine, 0}}.
+a{INT}         : {token, {stack, TokenLine, parse_acc(TokenChars)}}.
 
 RETURN         : {token, {mnemonic, TokenLine, 'RETURN'}}.
 CALL           : {token, {mnemonic, TokenLine, 'CALL'}}.
@@ -135,13 +138,14 @@ COMMENT        : {token, {mnemonic, TokenLine, 'COMMENT'}}.
 \-\>  : {token, {'to', TokenLine}}.
 \:  : {token, {'to', TokenLine}}.
 ,   : {token, {',', TokenLine}}.
-\.  : {token, {'.', TokenLine}}.
 \(  : {token, {'(', TokenLine}}.
 \)  : {token, {')', TokenLine}}.
 \[  : {token, {'[', TokenLine}}.
 \]  : {token, {']', TokenLine}}.
 \{  : {token, {'{', TokenLine}}.
 \}  : {token, {'}', TokenLine}}.
+
+\.  : skip_token.
 
 
 %% Whitespace ignore
@@ -166,6 +170,11 @@ Erlang code.
 parse_hex("0x" ++ Chars) -> list_to_integer(Chars, 16).
 
 parse_int(Chars) -> list_to_integer(Chars).
+
+parse_arg("arg" ++ N) -> list_to_integer(N).
+parse_var("var" ++ N) -> list_to_integer(N).
+parse_acc("a" ++ N) -> list_to_integer(N).
+
 
 parse_hash("#" ++ Chars) ->
     N = list_to_integer(Chars, 16),

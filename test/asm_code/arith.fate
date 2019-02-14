@@ -1,0 +1,26 @@
+;; CONTRACT arith
+
+FUNCTION add (integer, integer) : integer
+  ADD a arg0 arg1
+  RETURN
+
+FUNCTION sub (integer, integer) : integer
+  SUB a arg0 arg1
+  RETURN
+
+FUNCTION mul (integer, integer) : integer
+  MUL a arg0 arg1
+  RETURN
+
+FUNCTION div (integer, integer) : integer
+  DIV a arg0 arg1
+  RETURN
+
+FUNCTION mod (integer, integer) : integer
+  MOD a arg0 arg1
+  RETURN
+
+FUNCTION pow (integer, integer) : integer
+  POW a arg0 arg1
+  RETURN
+

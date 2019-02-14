@@ -181,9 +181,39 @@ deserialize_op(Op, Rest, Code) ->
             <<ArgType:8, Rest2/binary>> = Rest,
             {Arg0, Rest3} = aefa_encoding:deserialize_one(Rest2),
             {Arg1, Rest4} = aefa_encoding:deserialize_one(Rest3),
-            Modifier = bits_to_modifier(ArgType band 2#11),
-            Modifier2 = bits_to_modifier((ArgType bsr 2) band 2#11),
-            {Rest4, [{OpName, {Modifier, Arg0}, {Modifier2, Arg1}} | Code]}
+            Modifier0 = bits_to_modifier(ArgType band 2#11),
+            Modifier1 = bits_to_modifier((ArgType bsr 2) band 2#11),
+            {Rest4, [{OpName, {Modifier0, Arg0},
+                      {Modifier1, Arg1}} | Code]};
+        3 ->
+            <<ArgType:8, Rest2/binary>> = Rest,
+            {Arg0, Rest3} = aefa_encoding:deserialize_one(Rest2),
+            {Arg1, Rest4} = aefa_encoding:deserialize_one(Rest3),
+            {Arg2, Rest5} = aefa_encoding:deserialize_one(Rest4),
+            Modifier0 = bits_to_modifier(ArgType band 2#11),
+            Modifier1 = bits_to_modifier((ArgType bsr 2) band 2#11),
+            Modifier2 = bits_to_modifier((ArgType bsr 4) band 2#11),
+            {Rest5, [{ OpName
+                     , {Modifier0, Arg0}
+                     , {Modifier1, Arg1}
+                     , {Modifier2, Arg2}}
+                     | Code]};
+        4 ->
+            <<ArgType:8, Rest2/binary>> = Rest,
+            {Arg0, Rest3} = aefa_encoding:deserialize_one(Rest2),
+            {Arg1, Rest4} = aefa_encoding:deserialize_one(Rest3),
+            {Arg2, Rest5} = aefa_encoding:deserialize_one(Rest4),
+            {Arg3, Rest6} = aefa_encoding:deserialize_one(Rest5),
+            Modifier0 = bits_to_modifier(ArgType band 2#11),
+            Modifier1 = bits_to_modifier((ArgType bsr 2) band 2#11),
+            Modifier2 = bits_to_modifier((ArgType bsr 4) band 2#11),
+            Modifier3 = bits_to_modifier((ArgType bsr 6) band 2#11),
+            {Rest6, [{ OpName
+                     , {Modifier0, Arg0}
+                     , {Modifier1, Arg1}
+                     , {Modifier2, Arg2}
+                     , {Modifier3, Arg3}}
+                     | Code]}
     end.
 
 

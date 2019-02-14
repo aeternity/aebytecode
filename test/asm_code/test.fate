@@ -34,6 +34,9 @@ FUNCTION remote_call(integer) : integer
   INC
   RETURN
 
+FUNCTION remote_tailcall(integer) : integer
+  PUSH  arg0
+  CALL_TR remote add_five
 
 ;; Test the code from the shell
 ;; _build/default/rel/aessembler/bin/aessembler console

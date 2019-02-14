@@ -7,7 +7,7 @@
 -define('CALL_T'         , 16#04).
 -define('CALL_TR'        , 16#05).
 -define('JUMP'           , 16#06).
--define('JUMPI'          , 16#07).
+-define('JUMPIF'         , 16#07).
 -define('SWITCH'         , 16#08).
 -define('PUSH'           , 16#09).
 -define('DUP'            , 16#0a).

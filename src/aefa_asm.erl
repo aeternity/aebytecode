@@ -217,7 +217,7 @@ deserialize_op(Op, Rest, Code) ->
     end.
 
 
-serialize(#{functions := Functions} = Env) ->
+serialize(#{functions := Functions} =_Env) ->
     Code = [[?FUNCTION, Name, serialize_signature(Sig), C]  ||
                {Name, {Sig, C}} <- maps:to_list(Functions)],
     serialize_code(lists:flatten(Code)).
@@ -419,24 +419,12 @@ to_list_of_types(Tokens) ->
     case to_type(Tokens) of
         {Type, [{',', _} |  Rest]} ->
             {MoreTypes, Rest2} = to_list_of_types(Rest),
-            {[Type|MoreTypes], Rest2};
+            {[Type|MoreTypes], Rest2}
         {Type, [{']', _} |  Rest]} ->
             {[Type], Rest}
     end.
 
 
-
-%% Also reverses the code (back to unreversed state).
-resolve_refs([{ref, ID} | Rest], Env, Code) ->
-    Address = maps:get(ID, Env),
-    resolve_refs(Rest, Env, [Address | Code]);
-resolve_refs([Op | Rest], Env, Code) ->
-    resolve_refs(Rest, Env, [Op | Code]);
-resolve_refs([],_Env, Code) -> Code.
-
-expand_args([OP | Rest]) ->
-    [OP | expand_args(Rest)];
-expand_args([]) -> [].
 
 insert_fun(none, [], Env) -> Env;
 insert_fun({Name, Type, RetType}, Code, #{functions := Functions} = Env) ->

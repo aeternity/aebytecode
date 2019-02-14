@@ -28,12 +28,18 @@ mnemonic(?NOP)         -> 'NOP'        ;
 mnemonic(?RETURN)      -> 'RETURN'     ;
 mnemonic(?PUSH)        -> 'PUSH'       ;
 mnemonic(?JUMP)        -> 'JUMP'       ;
+mnemonic(?JUMPIF)      -> 'JUMPIF'     ;
 mnemonic(?INC)         -> 'INC'        ;
 mnemonic(?CALL)        -> 'CALL'       ;
 mnemonic(?CALL_T)      -> 'CALL_T'     ;
 mnemonic(?CALL_R)      -> 'CALL_R'     ;
 mnemonic(?CALL_TR)     -> 'CALL_TR'    ;
 mnemonic(?ADD)         -> 'ADD'        ;
+mnemonic(?SUB)         -> 'SUB'        ;
+mnemonic(?MUL)         -> 'MUL'        ;
+mnemonic(?DIV)         -> 'DIV'        ;
+mnemonic(?MOD)         -> 'MOD'        ;
+mnemonic(?POW)         -> 'POW'        ;
 mnemonic(?AND)         -> 'AND'        ;
 mnemonic(?OR)          -> 'OR'         ;
 mnemonic(?NOT)         -> 'NOT'        ;
@@ -50,8 +56,14 @@ m_to_op('COMMENT')     -> ?COMMENT("") ;
 m_to_op('RETURN')      -> ?RETURN      ;
 m_to_op('PUSH')        -> ?PUSH        ;
 m_to_op('JUMP')        -> ?JUMP        ;
+m_to_op('JUMPIF')      -> ?JUMPIF      ;
 m_to_op('INC')         -> ?INC         ;
 m_to_op('ADD')         -> ?ADD         ;
+m_to_op('SUB')         -> ?SUB         ;
+m_to_op('MUL')         -> ?MUL         ;
+m_to_op('DIV')         -> ?DIV         ;
+m_to_op('MOD')         -> ?MOD         ;
+m_to_op('POW')         -> ?POW         ;
 m_to_op('AND')         -> ?AND         ;
 m_to_op('OR')          -> ?OR          ;
 m_to_op('NOT')         -> ?NOT         ;
@@ -69,14 +81,23 @@ m_to_op('CALL_TR')     -> ?CALL_TR     .
 args(?NOP)     -> 0;
 args(?RETURN)  -> 0;
 args(?INC)     -> 0;
+
 args(?PUSH)    -> 1;
 args(?JUMP)    -> 1;
 args(?CALL)    -> 1;
 args(?CALL_T)  -> 1;
+
+args(?JUMPIF)  -> 2;
 args(?CALL_R)  -> 2;
 args(?CALL_TR) -> 2;
 args(?NOT)     -> 2;
+
 args(?ADD)     -> 3;
+args(?SUB)     -> 3;
+args(?MUL)     -> 3;
+args(?DIV)     -> 3;
+args(?MOD)     -> 3;
+args(?POW)     -> 3;
 args(?AND)     -> 3;
 args(?OR)      -> 3;
 args(?LT)      -> 3;
@@ -89,6 +110,7 @@ args(_) -> 0. %% TODO do not allow this
 
 end_bb(?RETURN) -> true;
 end_bb(?JUMP)   -> true;
+end_bb(?JUMPIF) -> true;
 end_bb(?CALL)   -> true;
 end_bb(?CALL_T) -> true;
 end_bb(?CALL_R) -> true;

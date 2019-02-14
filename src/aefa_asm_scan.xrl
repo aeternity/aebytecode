@@ -34,7 +34,7 @@ CALL_R         : {token, {mnemonic, TokenLine, 'CALL_R'}}.
 CALL_T         : {token, {mnemonic, TokenLine, 'CALL_T'}}.
 CALL_TR        : {token, {mnemonic, TokenLine, 'CALL_TR'}}.
 JUMP           : {token, {mnemonic, TokenLine, 'JUMP'}}.
-JUMPI          : {token, {mnemonic, TokenLine, 'JUMPI'}}.
+JUMPIF         : {token, {mnemonic, TokenLine, 'JUMPIF'}}.
 SWITCH         : {token, {mnemonic, TokenLine, 'SWITCH'}}.
 
 PUSH           : {token, {mnemonic, TokenLine, 'PUSH'}}.

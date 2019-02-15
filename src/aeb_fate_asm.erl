@@ -65,15 +65,16 @@ assemble_file(InFile, OutFile, Options) ->
     ok = file:write_file(OutFile, BC).
 
 function_call(String) ->
-    {ok, Tokens} = aeb_fate_asm_scan:scan(String),
+    {ok, Tokens, _} = aeb_fate_asm_scan:scan(String),
     parse_function_call(Tokens).
 
 parse_function_call([{id,_,Name}, {'(',_}| Rest]) ->
-    Args = to_args(Rest),
-    {Name, Args}.
+    {Args, []} = to_args(Rest),
+    aeb_fate_encoding:serialize(
+      {tuple, {mk_hash(Name), {tuple, list_to_tuple(Args)}}}).
 
 
-to_args([{')', _}]) -> [];
+to_args([{')', _}]) -> {[], []};
 to_args(Tokens) ->
     case to_data(Tokens) of
         {Arg, [{',', _} |  Rest]} ->
@@ -498,10 +499,14 @@ insert_fun({Name, Type, RetType}, Code, #{functions := Functions} = Env) ->
       functions => Functions#{Hash => {{Type, RetType}, lists:reverse(Code)}}
      }.
 
-insert_symbol(Id, Env) ->
+mk_hash(Id) ->
     %% Use first 4 bytes of blake hash
     {ok, <<A:8, B:8, C:8, D:8,_/binary>> } = aeb_blake2:blake2b(?HASH_BYTES, list_to_binary(Id)),
-    insert_symbol(Id, <<A,B,C,D>>, Env).
+    <<A,B,C,D>>.
+
+insert_symbol(Id, Env) ->
+    Hash = mk_hash(Id),
+    insert_symbol(Id, Hash, Env).
 
 insert_symbol(Id, Hash, #{symbols := Symbols} = Env) ->
     case maps:find(Hash, Symbols) of

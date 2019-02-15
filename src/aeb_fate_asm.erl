@@ -50,6 +50,7 @@
 -export([ assemble_file/3
         , asm_to_bytecode/2
         , bytecode_to_fate_code/2
+        , function_call/1
         , pp/1
         , read_file/1
         , to_hexstring/1
@@ -62,6 +63,33 @@ assemble_file(InFile, OutFile, Options) ->
     Asm = read_file(InFile),
     {_Env, BC} = asm_to_bytecode(Asm, Options),
     ok = file:write_file(OutFile, BC).
+
+function_call(String) ->
+    {ok, Tokens} = aeb_fate_asm_scan:scan(String),
+    parse_function_call(Tokens).
+
+parse_function_call([{id,_,Name}, {'(',_}| Rest]) ->
+    Args = to_args(Rest),
+    {Name, Args}.
+
+
+to_args([{')', _}]) -> [];
+to_args(Tokens) ->
+    case to_data(Tokens) of
+        {Arg, [{',', _} |  Rest]} ->
+            {More, Rest2} = to_args(Rest),
+            {[Arg|More], Rest2};
+        {Arg, [{')', _} |  Rest]} ->
+            {[Arg], Rest}
+    end.
+    
+to_data([{int,_line, Int}|Rest]) ->
+    {Int, Rest};
+to_data([{boolean,_line, Bool}|Rest]) ->
+    {Bool, Rest};
+to_data([{hash,_line, Hash}|Rest]) ->
+    {Hash, Rest}.
+
 
 pp(Asm) ->
     Listing = format(Asm),

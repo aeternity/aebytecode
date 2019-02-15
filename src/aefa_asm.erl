@@ -388,6 +388,8 @@ to_bytecode([{stack,_line, N}|Rest], Address, Env, Code, Opts) ->
     to_bytecode(Rest, Address, Env, [{stack, N}|Code], Opts);
 to_bytecode([{int,_line, Int}|Rest], Address, Env, Code, Opts) ->
     to_bytecode(Rest, Address, Env, [{immediate, Int}|Code], Opts);
+to_bytecode([{boolean,_line, Bool}|Rest], Address, Env, Code, Opts) ->
+    to_bytecode(Rest, Address, Env, [{immediate, Bool}|Code], Opts);
 to_bytecode([{hash,_line, Hash}|Rest], Address, Env, Code, Opts) ->
     to_bytecode(Rest, Address, Env, [{immediate, Hash}|Code], Opts);
 to_bytecode([{id,_line, ID}|Rest], Address, Env, Code, Opts) ->

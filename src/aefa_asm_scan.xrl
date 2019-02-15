@@ -25,6 +25,9 @@ var{INT}       : {token, {var, TokenLine, parse_var(TokenChars)}}.
 a              : {token, {stack, TokenLine, 0}}.
 a{INT}         : {token, {stack, TokenLine, parse_acc(TokenChars)}}.
 
+true           : {token, {boolean, TokenLine, true}}.
+false          : {token, {boolean, TokenLine, false}}.
+
 RETURN         : {token, {mnemonic, TokenLine, 'RETURN'}}.
 RETURNR        : {token, {mnemonic, TokenLine, 'RETURNR'}}.
 CALL           : {token, {mnemonic, TokenLine, 'CALL'}}.
@@ -70,8 +73,10 @@ ELEMENT        : {token, {mnemonic, TokenLine, 'ELEMENT'}}.
 
 MAP_EMPTY      : {token, {mnemonic, TokenLine, 'MAP_EMPTY'}}.
 MAP_LOOKUP     : {token, {mnemonic, TokenLine, 'MAP_LOOKUP'}}.
+MAP_LOOKUPD    : {token, {mnemonic, TokenLine, 'MAP_LOOKUPD'}}.
 MAP_UPDATE     : {token, {mnemonic, TokenLine, 'MAP_UPDATE'}}.
 MAP_MEMBER     : {token, {mnemonic, TokenLine, 'MAP_MEMBER'}}.
+MAP_DELETE     : {token, {mnemonic, TokenLine, 'MAP_DELETE'}}.
 MAP_FROM_LIST  : {token, {mnemonic, TokenLine, 'MAP_FROM_LIST'}}.
 
 NIL            : {token, {mnemonic, TokenLine, 'NIL'}}.

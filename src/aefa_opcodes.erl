@@ -53,6 +53,14 @@ mnemonic(?NEQ)         -> 'NEQ'        ;
 mnemonic(?STORE)       -> 'STORE'      ;
 mnemonic(?TUPLE)       -> 'TUPLE'      ;
 mnemonic(?ELEMENT)     -> 'ELEMENT'    ;
+mnemonic(?MAP_EMPTY)   -> 'MAP_EMPTY'  ;
+mnemonic(?MAP_UPDATE)  -> 'MAP_UPDATE' ;
+mnemonic(?MAP_DELETE)  -> 'MAP_DELETE' ;
+mnemonic(?MAP_MEMBER)  -> 'MAP_MEMBER' ;
+mnemonic(?MAP_LOOKUP)  -> 'MAP_LOOKUP' ;
+mnemonic(?MAP_LOOKUPD) -> 'MAP_LOOKUPD';
+mnemonic(?MAP_FROM_LIST)->'MAP_FROM_LIST' ;
+
 mnemonic(OP)           -> {OP, nothandled}.
 
 m_to_op('NOP')         -> ?NOP         ;
@@ -81,6 +89,13 @@ m_to_op('NEQ')         -> ?NEQ         ;
 m_to_op('STORE')       -> ?STORE       ;
 m_to_op('TUPLE')       -> ?TUPLE       ;
 m_to_op('ELEMENT')     -> ?ELEMENT     ;
+m_to_op('MAP_EMPTY')   -> ?MAP_EMPTY   ;
+m_to_op('MAP_UPDATE')  -> ?MAP_UPDATE  ;
+m_to_op('MAP_DELETE')  -> ?MAP_DELETE  ;
+m_to_op('MAP_MEMBER')  -> ?MAP_MEMBER  ;
+m_to_op('MAP_LOOKUP')  -> ?MAP_LOOKUP  ;
+m_to_op('MAP_LOOKUPD') -> ?MAP_LOOKUPD ;
+m_to_op('MAP_FROM_LIST')->?MAP_FROM_LIST ;
 m_to_op('CALL')        -> ?CALL        ;
 m_to_op('CALL_T')      -> ?CALL_T      ;
 m_to_op('CALL_R')      -> ?CALL_R      ;
@@ -90,35 +105,42 @@ args(?NOP)     -> 0;
 args(?RETURN)  -> 0;
 args(?INC)     -> 0;
 
-args(?RETURNR) -> 1;
-args(?PUSH)    -> 1;
-args(?JUMP)    -> 1;
-args(?CALL)    -> 1;
-args(?CALL_T)  -> 1;
-args(?TUPLE)   -> 1;
+args(?RETURNR)   -> 1;
+args(?PUSH)      -> 1;
+args(?JUMP)      -> 1;
+args(?CALL)      -> 1;
+args(?CALL_T)    -> 1;
+args(?TUPLE)     -> 1;
+args(?MAP_EMPTY) -> 1;
 
-args(?JUMPIF)  -> 2;
-args(?CALL_R)  -> 2;
-args(?CALL_TR) -> 2;
-args(?NOT)     -> 2;
-args(?STORE)   -> 2;
+args(?JUMPIF)        -> 2;
+args(?CALL_R)        -> 2;
+args(?CALL_TR)       -> 2;
+args(?NOT)           -> 2;
+args(?STORE)         -> 2;
+args(?MAP_FROM_LIST) -> 2;
 
-args(?ADD)     -> 3;
-args(?SUB)     -> 3;
-args(?MUL)     -> 3;
-args(?DIV)     -> 3;
-args(?MOD)     -> 3;
-args(?POW)     -> 3;
-args(?AND)     -> 3;
-args(?OR)      -> 3;
-args(?LT)      -> 3;
-args(?GT)      -> 3;
-args(?EGT)     -> 3;
-args(?ELT)     -> 3;
-args(?EQ)      -> 3;
-args(?NEQ)     -> 3;
+args(?ADD)        -> 3;
+args(?SUB)        -> 3;
+args(?MUL)        -> 3;
+args(?DIV)        -> 3;
+args(?MOD)        -> 3;
+args(?POW)        -> 3;
+args(?AND)        -> 3;
+args(?OR)         -> 3;
+args(?LT)         -> 3;
+args(?GT)         -> 3;
+args(?EGT)        -> 3;
+args(?ELT)        -> 3;
+args(?EQ)         -> 3;
+args(?NEQ)        -> 3;
+args(?MAP_MEMBER) -> 3;
+args(?MAP_LOOKUP) -> 3;
+args(?MAP_DELETE) -> 3;
 
-args(?ELEMENT) -> 4;
+args(?ELEMENT)     -> 4;
+args(?MAP_UPDATE)  -> 4;
+args(?MAP_LOOKUPD) -> 4;
 
 args(_) -> 0. %% TODO do not allow this
 

@@ -101,6 +101,7 @@
 -define('SHA256'         , 16#66).
 -define('BLAKE2B'        , 16#67).
 -define('RETURNR'        , 16#68).
+-define('MAP_LOOKUPD'    , 16#69).
 
 -define('FUNCTION'       , 16#fe).
 -define('EXTEND'         , 16#ff).

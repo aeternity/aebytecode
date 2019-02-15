@@ -419,7 +419,7 @@ to_list_of_types(Tokens) ->
     case to_type(Tokens) of
         {Type, [{',', _} |  Rest]} ->
             {MoreTypes, Rest2} = to_list_of_types(Rest),
-            {[Type|MoreTypes], Rest2}
+            {[Type|MoreTypes], Rest2};
         {Type, [{']', _} |  Rest]} ->
             {[Type], Rest}
     end.

@@ -26,6 +26,7 @@ opcode({comment,X}) -> ?COMMENT(X).
 
 mnemonic(?NOP)         -> 'NOP'        ;
 mnemonic(?RETURN)      -> 'RETURN'     ;
+mnemonic(?RETURNR)     -> 'RETURNR'    ;
 mnemonic(?PUSH)        -> 'PUSH'       ;
 mnemonic(?JUMP)        -> 'JUMP'       ;
 mnemonic(?JUMPIF)      -> 'JUMPIF'     ;
@@ -49,11 +50,13 @@ mnemonic(?EGT)         -> 'EGT'        ;
 mnemonic(?ELT)         -> 'ELT'        ;
 mnemonic(?EQ)          -> 'EQ'         ;
 mnemonic(?NEQ)         -> 'NEQ'        ;
+mnemonic(?STORE)       -> 'STORE'      ;
 mnemonic(OP)           -> {OP, nothandled}.
 
 m_to_op('NOP')         -> ?NOP         ;
 m_to_op('COMMENT')     -> ?COMMENT("") ;
 m_to_op('RETURN')      -> ?RETURN      ;
+m_to_op('RETURNR')     -> ?RETURNR     ;
 m_to_op('PUSH')        -> ?PUSH        ;
 m_to_op('JUMP')        -> ?JUMP        ;
 m_to_op('JUMPIF')      -> ?JUMPIF      ;
@@ -73,6 +76,7 @@ m_to_op('ELT')         -> ?ELT         ;
 m_to_op('EGT')         -> ?EGT         ;
 m_to_op('EQ')          -> ?EQ          ;
 m_to_op('NEQ')         -> ?NEQ         ;
+m_to_op('STORE')       -> ?STORE       ;
 m_to_op('CALL')        -> ?CALL        ;
 m_to_op('CALL_T')      -> ?CALL_T      ;
 m_to_op('CALL_R')      -> ?CALL_R      ;
@@ -82,6 +86,7 @@ args(?NOP)     -> 0;
 args(?RETURN)  -> 0;
 args(?INC)     -> 0;
 
+args(?RETURNR) -> 1;
 args(?PUSH)    -> 1;
 args(?JUMP)    -> 1;
 args(?CALL)    -> 1;
@@ -91,6 +96,7 @@ args(?JUMPIF)  -> 2;
 args(?CALL_R)  -> 2;
 args(?CALL_TR) -> 2;
 args(?NOT)     -> 2;
+args(?STORE)   -> 2;
 
 args(?ADD)     -> 3;
 args(?SUB)     -> 3;
@@ -109,6 +115,7 @@ args(?NEQ)     -> 3;
 args(_) -> 0. %% TODO do not allow this
 
 end_bb(?RETURN) -> true;
+end_bb(?RETURNR)-> true;
 end_bb(?JUMP)   -> true;
 end_bb(?JUMPIF) -> true;
 end_bb(?CALL)   -> true;

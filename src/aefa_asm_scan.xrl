@@ -26,6 +26,7 @@ a              : {token, {stack, TokenLine, 0}}.
 a{INT}         : {token, {stack, TokenLine, parse_acc(TokenChars)}}.
 
 RETURN         : {token, {mnemonic, TokenLine, 'RETURN'}}.
+RETURNR        : {token, {mnemonic, TokenLine, 'RETURNR'}}.
 CALL           : {token, {mnemonic, TokenLine, 'CALL'}}.
 FUNCTION       : {token, {function, TokenLine, 'FUNCTION' }}.
 NOP            : {token, {mnemonic, TokenLine, 'NOP'}}.

@@ -11,3 +11,4 @@ rel/example_project
 aeb_asm_scan.erl
 aefa_asm_scan.erl
 _build
+aefateasm

@@ -43,7 +43,8 @@
 
 -module(aefa_asm).
 
--export([ asm_to_bytecode/2
+-export([ assemble_file/3
+        , asm_to_bytecode/2
         , bytecode_to_fate_code/2
         , pp/1
         , read_file/1
@@ -53,6 +54,10 @@
 -include_lib("aebytecode/include/aefa_opcodes.hrl").
 -define(HASH_BYTES, 32).
 
+assemble_file(InFile, OutFile, Options) ->
+    Asm = read_file(InFile),
+    {Env, BC} = aefa_asm:asm_to_bytecode(Asm, Options),
+    ok = file:write_file(OutFile, BC).
 
 pp(Asm) ->
     Listing = format(Asm),
@@ -462,7 +467,7 @@ insert_fun({Name, Type, RetType}, Code, #{functions := Functions} = Env) ->
 
 insert_symbol(Id, Env) ->
     %% Use first 4 bytes of blake hash
-    {ok, <<A:8, B:8, C:8, D:8,_/binary>> } = enacl:generichash(?HASH_BYTES, list_to_binary(Id)),
+    {ok, <<A:8, B:8, C:8, D:8,_/binary>> } = aeblake2:blake2b(?HASH_BYTES, list_to_binary(Id)),
     insert_symbol(Id, <<A,B,C,D>>, Env).
 
 insert_symbol(Id, Hash, #{symbols := Symbols} = Env) ->

@@ -1,0 +1,26 @@
+;; CONTRACT comp
+
+FUNCTION lt(integer, integer) : boolean
+  LT a arg0 arg1
+  RETURN
+
+FUNCTION gt(integer, integer) : boolean
+  GT a arg0 arg1
+  RETURN
+
+FUNCTION egt(integer, integer) : boolean
+  EGT a arg0 arg1
+  RETURN
+
+FUNCTION elt(integer, integer) : boolean
+  ELT a arg0 arg1
+  RETURN
+
+FUNCTION eq(integer, integer) : boolean
+  EQ a arg0 arg1
+  RETURN
+
+FUNCTION neq(integer, integer) : boolean
+  NEQ a arg0 arg1
+  RETURN
+

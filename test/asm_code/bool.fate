@@ -1,0 +1,14 @@
+;; CONTRACT bool
+
+FUNCTION and(boolean, boolean) : boolean
+         AND a arg0 arg1
+         RETURN
+
+FUNCTION or(boolean, boolean) : boolean
+         OR a arg0 arg1
+         RETURN
+
+FUNCTION not(boolean) : boolean
+         NOT a arg0
+         RETURN
+

@@ -1,0 +1,4 @@
+;; CONTRACT remote
+FUNCTION add_five(integer):integer
+ ADD a 5 arg0
+ RETURN

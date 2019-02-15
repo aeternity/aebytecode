@@ -51,6 +51,8 @@ mnemonic(?ELT)         -> 'ELT'        ;
 mnemonic(?EQ)          -> 'EQ'         ;
 mnemonic(?NEQ)         -> 'NEQ'        ;
 mnemonic(?STORE)       -> 'STORE'      ;
+mnemonic(?TUPLE)       -> 'TUPLE'      ;
+mnemonic(?ELEMENT)     -> 'ELEMENT'    ;
 mnemonic(OP)           -> {OP, nothandled}.
 
 m_to_op('NOP')         -> ?NOP         ;
@@ -77,6 +79,8 @@ m_to_op('EGT')         -> ?EGT         ;
 m_to_op('EQ')          -> ?EQ          ;
 m_to_op('NEQ')         -> ?NEQ         ;
 m_to_op('STORE')       -> ?STORE       ;
+m_to_op('TUPLE')       -> ?TUPLE       ;
+m_to_op('ELEMENT')     -> ?ELEMENT     ;
 m_to_op('CALL')        -> ?CALL        ;
 m_to_op('CALL_T')      -> ?CALL_T      ;
 m_to_op('CALL_R')      -> ?CALL_R      ;
@@ -91,6 +95,7 @@ args(?PUSH)    -> 1;
 args(?JUMP)    -> 1;
 args(?CALL)    -> 1;
 args(?CALL_T)  -> 1;
+args(?TUPLE)   -> 1;
 
 args(?JUMPIF)  -> 2;
 args(?CALL_R)  -> 2;
@@ -112,6 +117,9 @@ args(?EGT)     -> 3;
 args(?ELT)     -> 3;
 args(?EQ)      -> 3;
 args(?NEQ)     -> 3;
+
+args(?ELEMENT) -> 4;
+
 args(_) -> 0. %% TODO do not allow this
 
 end_bb(?RETURN) -> true;

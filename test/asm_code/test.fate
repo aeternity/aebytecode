@@ -1,0 +1,45 @@
+;; CONTRACT: Test
+FUNCTION id(integer) -> integer
+  RETURN
+
+FUNCTION jumps() -> integer
+  PUSH 0
+  JUMP 3
+  NOP
+  JUMP 2
+  NOP
+  RETURN
+  NOP
+  JUMP 1
+
+FUNCTION inc(integer) -> integer
+  INC
+  INC
+  RETURN
+
+FUNCTION call(integer) -> integer
+  INC
+  CALL inc
+  INC
+  RETURN
+
+
+FUNCTION tailcall(integer) -> integer
+  INC
+  CALL_T inc
+
+FUNCTION remote_call(integer) : integer
+  PUSH arg0
+  CALL_R remote.add_five
+  INC
+  RETURN
+
+FUNCTION remote_tailcall(integer) : integer
+  PUSH  arg0
+  CALL_TR remote add_five
+
+;; Test the code from the shell
+;; _build/default/rel/aessembler/bin/aessembler console
+
+;; aeb_aefa:file("../../../../test/asm_code/test.fate", []).
+;; f(Asm), f(Env), f(BC), Asm = aefa_asm:read_file("../../../../test/asm_code/test.fate"), {Env, BC} = aefa_asm:asm_to_bytecode(Asm, []), aefa_asm:bytecode_to_fate_code(BC, []).

@@ -1,0 +1,31 @@
+;; CONTRACT memory
+FUNCTION call(integer):integer
+  STORE var1 arg0
+  PUSH  0
+  CALL  write
+  PUSH  var1
+  RETURN
+
+FUNCTION write(integer):integer
+  STORE    var1 arg0
+  RETURNR  var1
+
+FUNCTION dest_add(integer, integer): integer
+  STORE var1 arg0
+  STORE var2 arg1
+  ADD   var3 var1 var2
+  PUSH  var3
+  RETURN
+
+FUNCTION dest_add_imm(integer):integer
+  STORE var1 arg0
+  ADD   var3 var1 2
+  PUSH  var3
+  RETURN
+
+FUNCTION dest_add_stack(integer, integer): integer
+  STORE var1 arg0
+  PUSH  arg1
+  ADD   var3 var1 a
+  PUSH  var3
+  RETURN

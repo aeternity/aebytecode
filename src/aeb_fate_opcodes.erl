@@ -5,7 +5,7 @@
 %%% @end
 %%%-------------------------------------------------------------------
 
--module(aefa_opcodes).
+-module(aeb_fate_opcodes).
 
 -export([ args/1
         , end_bb/1
@@ -14,7 +14,7 @@
         , opcode/1
         ]).
 
--include_lib("aebytecode/include/aefa_opcodes.hrl").
+-include_lib("aebytecode/include/aeb_fate_opcodes.hrl").
 
 
 %%====================================================================

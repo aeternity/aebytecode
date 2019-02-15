@@ -41,7 +41,7 @@
 %%% Created : 21 Dec 2017
 %%%-------------------------------------------------------------------
 
--module(aefa_asm).
+-module(aeb_fate_asm).
 
 -export([ assemble_file/3
         , asm_to_bytecode/2
@@ -51,12 +51,12 @@
         , to_hexstring/1
         ]).
 
--include_lib("aebytecode/include/aefa_opcodes.hrl").
+-include_lib("aebytecode/include/aeb_fate_opcodes.hrl").
 -define(HASH_BYTES, 32).
 
 assemble_file(InFile, OutFile, Options) ->
     Asm = read_file(InFile),
-    {Env, BC} = aefa_asm:asm_to_bytecode(Asm, Options),
+    {Env, BC} = asm_to_bytecode(Asm, Options),
     ok = file:write_file(OutFile, BC).
 
 pp(Asm) ->
@@ -68,7 +68,7 @@ format(Asm) -> format(Asm, 0).
 format([{comment, Comment} | Rest], Address) ->
     ";; " ++ Comment ++ "\n" ++ format(Rest, Address);
 format([Mnemonic | Rest], Address) ->
-    _Op = aefa_opcodes:m_to_op(Mnemonic),
+    _Op = aeb_fate_opcodes:m_to_op(Mnemonic),
     "        " ++ atom_to_list(Mnemonic) ++ "\n"
         ++ format(Rest, Address + 1);
 format([],_) -> [].
@@ -79,7 +79,7 @@ read_file(Filename) ->
     binary_to_list(File).
 
 asm_to_bytecode(AssemblerCode, Options) ->
-    {ok, Tokens, _} = aefa_asm_scan:scan(AssemblerCode),
+    {ok, Tokens, _} = aeb_fate_asm_scan:scan(AssemblerCode),
 
     case proplists:lookup(pp_tokens, Options) of
         {pp_tokens, true} ->
@@ -148,7 +148,7 @@ deserialize(<<Op:8, Rest/binary>>,
              , current_bb_code := Code
              , code := Program} = Env) ->
     {Rest2, OpCode} = deserialize_op(Op, Rest, Code),
-    case aefa_opcodes:end_bb(Op) of
+    case aebe_fate_opcodes:end_bb(Op) of
         true ->
             deserialize(Rest2, Env#{ bb => BB+1
                                    , current_bb_code => []
@@ -176,40 +176,40 @@ deserialize(<<>>, #{ function := F
 deserialize_op(?ELEMENT, Rest, Code) ->
     {Type, Rest2} = deserialize_type(Rest),
     <<ArgType:8, Rest3/binary>> = Rest2,
-    {Arg0, Rest4} = aefa_encoding:deserialize_one(Rest3),
-    {Arg1, Rest5} = aefa_encoding:deserialize_one(Rest4),
-    {Arg2, Rest6} = aefa_encoding:deserialize_one(Rest5),
+    {Arg0, Rest4} = aeb_fate_encoding:deserialize_one(Rest3),
+    {Arg1, Rest5} = aeb_fate_encoding:deserialize_one(Rest4),
+    {Arg2, Rest6} = aeb_fate_encoding:deserialize_one(Rest5),
     Modifier0 = bits_to_modifier(ArgType band 2#11),
     Modifier1 = bits_to_modifier((ArgType bsr 2) band 2#11),
     Modifier2 = bits_to_modifier((ArgType bsr 4) band 2#11),
-    {Rest6, [{ aefa_opcodes:mnemonic(?ELEMENT)
+    {Rest6, [{ aeb_fate_opcodes:mnemonic(?ELEMENT)
              , Type
              , {Modifier0, Arg0}
              , {Modifier1, Arg1}
              , {Modifier2, Arg2}}
              | Code]};
 deserialize_op(Op, Rest, Code) ->
-    OpName = aefa_opcodes:mnemonic(Op),
-    case aefa_opcodes:args(Op) of
+    OpName = aeb_fate_opcodes:mnemonic(Op),
+    case aeb_fate_opcodes:args(Op) of
         0 -> {Rest, [OpName | Code]};
         1 ->
             <<ArgType:8, Rest2/binary>> = Rest,
-            {Arg, Rest3} = aefa_encoding:deserialize_one(Rest2),
+            {Arg, Rest3} = aeb_fate_encoding:deserialize_one(Rest2),
             Modifier = bits_to_modifier(ArgType),
             {Rest3, [{OpName, {Modifier, Arg}} | Code]};
         2 ->
             <<ArgType:8, Rest2/binary>> = Rest,
-            {Arg0, Rest3} = aefa_encoding:deserialize_one(Rest2),
-            {Arg1, Rest4} = aefa_encoding:deserialize_one(Rest3),
+            {Arg0, Rest3} = aeb_fate_encoding:deserialize_one(Rest2),
+            {Arg1, Rest4} = aeb_fate_encoding:deserialize_one(Rest3),
             Modifier0 = bits_to_modifier(ArgType band 2#11),
             Modifier1 = bits_to_modifier((ArgType bsr 2) band 2#11),
             {Rest4, [{OpName, {Modifier0, Arg0},
                       {Modifier1, Arg1}} | Code]};
         3 ->
             <<ArgType:8, Rest2/binary>> = Rest,
-            {Arg0, Rest3} = aefa_encoding:deserialize_one(Rest2),
-            {Arg1, Rest4} = aefa_encoding:deserialize_one(Rest3),
-            {Arg2, Rest5} = aefa_encoding:deserialize_one(Rest4),
+            {Arg0, Rest3} = aeb_fate_encoding:deserialize_one(Rest2),
+            {Arg1, Rest4} = aeb_fate_encoding:deserialize_one(Rest3),
+            {Arg2, Rest5} = aeb_fate_encoding:deserialize_one(Rest4),
             Modifier0 = bits_to_modifier(ArgType band 2#11),
             Modifier1 = bits_to_modifier((ArgType bsr 2) band 2#11),
             Modifier2 = bits_to_modifier((ArgType bsr 4) band 2#11),
@@ -220,10 +220,10 @@ deserialize_op(Op, Rest, Code) ->
                      | Code]};
         4 ->
             <<ArgType:8, Rest2/binary>> = Rest,
-            {Arg0, Rest3} = aefa_encoding:deserialize_one(Rest2),
-            {Arg1, Rest4} = aefa_encoding:deserialize_one(Rest3),
-            {Arg2, Rest5} = aefa_encoding:deserialize_one(Rest4),
-            {Arg3, Rest6} = aefa_encoding:deserialize_one(Rest5),
+            {Arg0, Rest3} = aeb_fate_encoding:deserialize_one(Rest2),
+            {Arg1, Rest4} = aeb_fate_encoding:deserialize_one(Rest3),
+            {Arg2, Rest5} = aeb_fate_encoding:deserialize_one(Rest4),
+            {Arg3, Rest6} = aeb_fate_encoding:deserialize_one(Rest5),
             Modifier0 = bits_to_modifier(ArgType band 2#11),
             Modifier1 = bits_to_modifier((ArgType bsr 2) band 2#11),
             Modifier2 = bits_to_modifier((ArgType bsr 4) band 2#11),
@@ -323,7 +323,7 @@ bits_to_modifier(2#01) -> arg;
 bits_to_modifier(2#00) -> stack.
 
 serialize_data(_, Data) ->
-    aefa_encoding:serialize(Data).
+    aeb_fate_encoding:serialize(Data).
 
 serialize_signature({Args, RetType}) ->
     [serialize_type({tuple, Args}) |
@@ -379,11 +379,11 @@ to_bytecode([{function,_line, 'FUNCTION'}|Rest], Address, Env, Code, Opts) ->
     {Fun, Rest2} = to_fun_def(Rest),
     to_bytecode(Rest2, Fun, Env2, [], Opts);
 to_bytecode([{mnemonic,_line, 'ELEMENT'}|Rest], Address, Env, Code, Opts) ->
-    OpCode = aefa_opcodes:m_to_op('ELEMENT'),
+    OpCode = aeb_fate_opcodes:m_to_op('ELEMENT'),
     {RetType, Rest2} = to_type(Rest),
     to_bytecode(Rest2, Address, Env, [RetType, OpCode|Code], Opts);
 to_bytecode([{mnemonic,_line, Op}|Rest], Address, Env, Code, Opts) ->
-    OpCode = aefa_opcodes:m_to_op(Op),
+    OpCode = aeb_fate_opcodes:m_to_op(Op),
     to_bytecode(Rest, Address, Env, [OpCode|Code], Opts);
 to_bytecode([{arg,_line, N}|Rest], Address, Env, Code, Opts) ->
     to_bytecode(Rest, Address, Env, [{arg, N}|Code], Opts);
@@ -467,7 +467,7 @@ insert_fun({Name, Type, RetType}, Code, #{functions := Functions} = Env) ->
 
 insert_symbol(Id, Env) ->
     %% Use first 4 bytes of blake hash
-    {ok, <<A:8, B:8, C:8, D:8,_/binary>> } = aeblake2:blake2b(?HASH_BYTES, list_to_binary(Id)),
+    {ok, <<A:8, B:8, C:8, D:8,_/binary>> } = aeb_blake2:blake2b(?HASH_BYTES, list_to_binary(Id)),
     insert_symbol(Id, <<A,B,C,D>>, Env).
 
 insert_symbol(Id, Hash, #{symbols := Symbols} = Env) ->

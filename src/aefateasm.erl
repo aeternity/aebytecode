@@ -43,8 +43,8 @@ assemble(File, Opts) ->
     Verbose = proplists:get_value(verbose, Opts, false),
     case proplists:get_value(outfile, Opts, undefined) of
         undefined ->
-            Asm = aefa_asm:read_file(File),
-            {Env, BC} = aefa_asm:asm_to_bytecode(Asm, Opts),
+            Asm = aeb_fate_asm:read_file(File),
+            {Env, BC} = aeb_fate_asm:asm_to_bytecode(Asm, Opts),
             case Verbose of 
                 true ->
                     io:format("Env: ~0p~n", [Env]);
@@ -52,7 +52,7 @@ assemble(File, Opts) ->
             end,
             io:format("Code: ~0p~n", [BC]);
         OutFile ->
-            aefa_asm:assemble_file(File, OutFile, Opts)
+            aeb_fate_asm:assemble_file(File, OutFile, Opts)
     end.
     
     

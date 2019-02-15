@@ -1,9 +1,8 @@
-%% First draft of FATE data representation.
-%% Very likely to change.
+%% FATE data representation.
 %%
--include("aefa_data.hrl").
+-include("aeb_fate_data.hrl").
 
--module(aefa_data).
+-module(aeb_fate_data).
 
 -type fate_integer() :: ?FATE_INTEGER_T.
 -type fate_boolean() :: ?FATE_BOOLEAN_T.

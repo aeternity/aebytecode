@@ -170,7 +170,7 @@ Erlang code.
 
 -ignore_xref([format_error/1, string/2, token/2, token/3, tokens/2, tokens/3]).
 
--include_lib("aebytecode/include/aefa_opcodes.hrl").
+-include_lib("aebytecode/include/aeb_fate_opcodes.hrl").
 
 
 parse_hex("0x" ++ Chars) -> list_to_integer(Chars, 16).

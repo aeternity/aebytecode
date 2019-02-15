@@ -129,7 +129,7 @@ format(M) when ?IS_FATE_MAP(M) ->
     "#{ "
         ++ format_kvs(maps:to_list(?FATE_MAP_VALUE(M)))
         ++" }";
-format(?FATE_ADDRESS(Address)) -> base58:binary_to_base58(Address);
+format(?FATE_ADDRESS(Address)) -> address_to_base58(Address);
 format(V) -> exit({not_a_fate_type, V}).
 
 format_list([]) -> " ]";
@@ -166,6 +166,9 @@ base58_to_address(Base58) ->
     I = base58_to_integer(Base58),
     Bin = <<I:256>>,
     Bin.
+
+address_to_base58(<<A:256>>) ->
+    integer_to_base58(A).
 
 integer_to_base58(0) -> <<"1">>;
 integer_to_base58(Integer) ->

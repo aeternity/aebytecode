@@ -9,6 +9,6 @@ rel/example_project
 .concrete/DEV_MODE
 .rebar
 aeb_asm_scan.erl
-aefa_asm_scan.erl
+aeb_fate_asm_scan.erl
 _build/
 aefateasm

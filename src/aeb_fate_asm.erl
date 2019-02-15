@@ -10,6 +10,10 @@
 %%%         DUP
 %%%      Identifiers start with a lower case letter
 %%%         an_identifier
+%%%      References to function arguments start with arg
+%%%          arg0
+%%%      References to variables/registers start with var
+%%%          var0
 %%%      Immediates can be of 9 types:
 %%%       1. Integers
 %%%          42
@@ -56,7 +60,7 @@
 
 assemble_file(InFile, OutFile, Options) ->
     Asm = read_file(InFile),
-    {Env, BC} = asm_to_bytecode(Asm, Options),
+    {_Env, BC} = asm_to_bytecode(Asm, Options),
     ok = file:write_file(OutFile, BC).
 
 pp(Asm) ->
@@ -148,7 +152,7 @@ deserialize(<<Op:8, Rest/binary>>,
              , current_bb_code := Code
              , code := Program} = Env) ->
     {Rest2, OpCode} = deserialize_op(Op, Rest, Code),
-    case aebe_fate_opcodes:end_bb(Op) of
+    case aeb_fate_opcodes:end_bb(Op) of
         true ->
             deserialize(Rest2, Env#{ bb => BB+1
                                    , current_bb_code => []
@@ -402,9 +406,10 @@ to_bytecode([{id,_line, ID}|Rest], Address, Env, Code, Opts) ->
     to_bytecode(Rest, Address, Env2, [{immediate, Hash}|Code], Opts);
 to_bytecode([], Address, Env, Code, Opts) ->
     Env2 = insert_fun(Address, Code, Env),
+     #{functions := Funs} = Env2,
     case proplists:lookup(pp_opcodes, Opts) of
         {pp_opcodes, true} ->
-            Ops = [C || {_Name, {_Sig, C}} <- maps:to_list(Env2)],
+            Ops = [C || {_Name, {_Sig, C}} <- maps:to_list(Funs)],
             io:format("opcodes ~p~n", [Ops]);
         none ->
             ok
@@ -480,5 +485,4 @@ insert_symbol(Id, Hash, #{symbols := Symbols} = Env) ->
             {Hash, Env#{symbols => Symbols#{ Id => Hash
                                            , Hash => Id}}}
     end.
-lookup_symbol(Id,  #{symbols := Symbols} = Env) ->
-    maps:find(Id, Symbols).
+

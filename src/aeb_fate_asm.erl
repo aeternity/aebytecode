@@ -153,27 +153,28 @@ deserialize(<<?FUNCTION:8, A, B, C, D, Rest/binary>>,
     Env2 = Env#{function => {<<A,B,C,D>>, Sig}},
     deserialize(Rest2, Env2);
 deserialize(<<?FUNCTION:8, A, B, C, D, Rest/binary>>,
-            #{ function := F
+            #{ function := {F, Sig}
              , bb := BB
              , current_bb_code := Code
              , code := Program
              , functions := Funs} = Env) ->
-    {Sig, Rest2} = deserialize_signature(Rest),
+    {NewSig, Rest2} = deserialize_signature(Rest),
     case Code of
         [] ->
             Env2 = Env#{ bb => 0
                        , current_bb_code => []
-                       , function => {<<A,B,C,D>>, Sig}
+                       , function => {<<A,B,C,D>>, NewSig}
                        , code => #{}
-                       , functions => Funs#{F => Program}},
+                       , functions => Funs#{F => {Sig, Program}}},
             deserialize(Rest2, Env2);
         _ ->
             Env2 = Env#{ bb => 0
                        , current_bb_code => []
-                       , function => {<<A,B,C,D>>, Sig}
+                       , function => {<<A,B,C,D>>, NewSig}
                        , code => #{}
                        , functions =>
-                             Funs#{F => Program#{ BB => lists:reverse(Code)}}},
+                             Funs#{F => {Sig,
+                                         Program#{ BB => lists:reverse(Code)}}}},
             deserialize(Rest2, Env2)
     end;
 deserialize(<<Op:8, Rest/binary>>,
@@ -190,7 +191,7 @@ deserialize(<<Op:8, Rest/binary>>,
         false ->
             deserialize(Rest2, Env#{ current_bb_code => OpCode})
     end;
-deserialize(<<>>, #{ function := F
+deserialize(<<>>, #{ function := {F, Sig}
                    , bb := BB
                    , current_bb_code := Code
                    , code := Program
@@ -204,7 +205,7 @@ deserialize(<<>>, #{ function := F
         , current_bb_code => []
         , function => none
         , code => #{}
-        , functions => Funs#{F => FunctionCode}}.
+        , functions => Funs#{F => {Sig, FunctionCode}}}.
 
 deserialize_op(?ELEMENT, Rest, Code) ->
     {Type, Rest2} = deserialize_type(Rest),

@@ -107,6 +107,10 @@
 -define('SWITCH_V4'      , 16#6c).
 -define('SWITCH_V5'      , 16#6d).
 -define('BITS_ALL_N'     , 16#6e).
+-define('BITS_NONEA'     , 16#6f).
+-define('BITS_ALLA'      , 16#70).
+-define('INCA'           , 16#71).
+-define('DECA'           , 16#72).
 
 -define('FUNCTION'       , 16#fe).
 -define('EXTEND'         , 16#ff).

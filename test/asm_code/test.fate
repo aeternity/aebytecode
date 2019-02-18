@@ -13,25 +13,25 @@ FUNCTION jumps() -> integer
   JUMP 1
 
 FUNCTION inc(integer) -> integer
-  INC
-  INC
+  INCA
+  INCA
   RETURN
 
 FUNCTION call(integer) -> integer
-  INC
+  INCA
   CALL inc
-  INC
+  INCA
   RETURN
 
 
 FUNCTION tailcall(integer) -> integer
-  INC
+  INCA
   CALL_T inc
 
 FUNCTION remote_call(integer) : integer
   PUSH arg0
   CALL_R remote.add_five
-  INC
+  INCA
   RETURN
 
 FUNCTION remote_tailcall(integer) : integer

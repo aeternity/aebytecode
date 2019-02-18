@@ -4,6 +4,6 @@ FUNCTION skip(integer, integer) : integer
  PUSH 0
  EQ a a arg0
  JUMPIF a 2
- INC
+ INCA
  JUMP 2
  RETURN

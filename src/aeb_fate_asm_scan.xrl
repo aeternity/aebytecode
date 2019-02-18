@@ -39,7 +39,10 @@ CALL_T         : {token, {mnemonic, TokenLine, 'CALL_T'}}.
 CALL_TR        : {token, {mnemonic, TokenLine, 'CALL_TR'}}.
 JUMP           : {token, {mnemonic, TokenLine, 'JUMP'}}.
 JUMPIF         : {token, {mnemonic, TokenLine, 'JUMPIF'}}.
-SWITCH         : {token, {mnemonic, TokenLine, 'SWITCH'}}.
+SWITCH_V2      : {token, {mnemonic, TokenLine, 'SWITCH_V2'}}.
+SWITCH_V3      : {token, {mnemonic, TokenLine, 'SWITCH_V3'}}.
+SWITCH_V4      : {token, {mnemonic, TokenLine, 'SWITCH_V4'}}.
+SWITCH_V5      : {token, {mnemonic, TokenLine, 'SWITCH_V5'}}.
 
 PUSH           : {token, {mnemonic, TokenLine, 'PUSH'}}.
 DUP            : {token, {mnemonic, TokenLine, 'DUP'}}.
@@ -56,6 +59,8 @@ POW            : {token, {mnemonic, TokenLine, 'POW'}}.
 
 INC            : {token, {mnemonic, TokenLine, 'INC'}}.
 DEC            : {token, {mnemonic, TokenLine, 'DEC'}}.
+INCA           : {token, {mnemonic, TokenLine, 'INCA'}}.
+DECA           : {token, {mnemonic, TokenLine, 'DECA'}}.
 
 LT             : {token, {mnemonic, TokenLine, 'LT'}}.
 GT             : {token, {mnemonic, TokenLine, 'GT'}}.
@@ -99,7 +104,10 @@ VARIANT_TEST   : {token, {mnemonic, TokenLine, 'VARIANT_TEST'}}.
 VARIANT_ELEMENT : {token, {mnemonic, TokenLine, 'VARIANT_ELEMENT'}}.
 
 BITS_NONE      : {token, {mnemonic, TokenLine, 'BITS_NONE'}}.
+BITS_NONEA     : {token, {mnemonic, TokenLine, 'BITS_NONEA'}}.
 BITS_ALL       : {token, {mnemonic, TokenLine, 'BITS_ALL'}}.
+BITS_ALLA      : {token, {mnemonic, TokenLine, 'BITS_ALLA'}}.
+BITS_ALL_N     : {token, {mnemonic, TokenLine, 'BITS_ALL_N'}}.
 BITS_SET       : {token, {mnemonic, TokenLine, 'BITS_SET'}}.
 BITS_CLEAR     : {token, {mnemonic, TokenLine, 'BITS_CLEAR'}}.
 BITS_TEST      : {token, {mnemonic, TokenLine, 'BITS_TEST'}}.

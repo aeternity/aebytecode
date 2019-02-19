@@ -219,7 +219,10 @@ bits_diff(To, Bits, Bit) ->
     {'BITS_DIFF', To, Bits, Bit}.
 
 dup() ->
-    'DUP'.
+    'DUPA'.
+
+dup(N) when is_integer(N) ->
+    {'DUP', ?i(N)}.
 
 pop() ->
     'POP'.

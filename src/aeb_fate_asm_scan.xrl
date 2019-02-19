@@ -31,7 +31,6 @@ false          : {token, {boolean, TokenLine, false}}.
 RETURN         : {token, {mnemonic, TokenLine, 'RETURN'}}.
 RETURNR        : {token, {mnemonic, TokenLine, 'RETURNR'}}.
 CALL           : {token, {mnemonic, TokenLine, 'CALL'}}.
-FUNCTION       : {token, {function, TokenLine, 'FUNCTION' }}.
 NOP            : {token, {mnemonic, TokenLine, 'NOP'}}.
 
 CALL_R         : {token, {mnemonic, TokenLine, 'CALL_R'}}.
@@ -46,6 +45,7 @@ SWITCH_V5      : {token, {mnemonic, TokenLine, 'SWITCH_V5'}}.
 
 PUSH           : {token, {mnemonic, TokenLine, 'PUSH'}}.
 DUP            : {token, {mnemonic, TokenLine, 'DUP'}}.
+DUPA           : {token, {mnemonic, TokenLine, 'DUPA'}}.
 POP            : {token, {mnemonic, TokenLine, 'POP'}}.
 
 STORE          : {token, {mnemonic, TokenLine, 'STORE'}}.
@@ -138,6 +138,9 @@ ABORT          : {token, {mnemonic, TokenLine, 'ABORT'}}.
 EXIT           : {token, {mnemonic, TokenLine, 'EXIT'}}.
 DEACTIVATE     : {token, {mnemonic, TokenLine, 'DEACTIVATE'}}.
 COMMENT        : {token, {mnemonic, TokenLine, 'COMMENT'}}.
+
+FUNCTION       : {token, {function, TokenLine, 'FUNCTION' }}.
+
 {ID} :
  {token, {id, TokenLine, TokenChars}}.
 {HEX} :

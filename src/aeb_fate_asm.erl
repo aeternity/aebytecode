@@ -83,7 +83,7 @@ to_args(Tokens) ->
         {Arg, [{')', _} |  Rest]} ->
             {[Arg], Rest}
     end.
-    
+
 to_data([{int,_line, Int}|Rest]) ->
     {Int, Rest};
 to_data([{boolean,_line, Bool}|Rest]) ->

@@ -111,6 +111,7 @@
 -define('BITS_ALLA'      , 16#70).
 -define('INCA'           , 16#71).
 -define('DECA'           , 16#72).
+-define('POPA'           , 16#73).
 
 -define('FUNCTION'       , 16#fe).
 -define('EXTEND'         , 16#ff).

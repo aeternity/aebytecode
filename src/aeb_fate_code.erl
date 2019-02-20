@@ -75,43 +75,43 @@ sub(Dest, Left, Right) ->
     {'SUB', Dest, Left, Right}.
 
 mul(Dest, Left, Right) ->
-    {'mul', Dest, Left, Right}.
+    {'MUL', Dest, Left, Right}.
 
 divide(Dest, Left, Right) ->
-    {'div', Dest, Left, Right}.
+    {'DIV', Dest, Left, Right}.
 
 modulo(Dest, Left, Right) ->
-    {'mod', Dest, Left, Right}.
+    {'MOD', Dest, Left, Right}.
 
 pow(Dest, Left, Right) ->
-    {'pow', Dest, Left, Right}.
+    {'POW', Dest, Left, Right}.
 
 lt(Dest, Left, Right) ->
-    {'lt', Dest, Left, Right}.
+    {'LT', Dest, Left, Right}.
 
 gt(Dest, Left, Right) ->
-    {'gt', Dest, Left, Right}.
+    {'GT', Dest, Left, Right}.
 
 elt(Dest, Left, Right) ->
-    {'elt', Dest, Left, Right}.
+    {'ELT', Dest, Left, Right}.
 
 egt(Dest, Left, Right) ->
-    {'egt', Dest, Left, Right}.
+    {'EGT', Dest, Left, Right}.
 
 eq(Dest, Left, Right) ->
-    {'eq', Dest, Left, Right}.
+    {'EQ', Dest, Left, Right}.
 
 neq(Dest, Left, Right) ->
-    {'neq', Dest, Left, Right}.
+    {'NEQ', Dest, Left, Right}.
 
 and_op(Dest, Left, Right) ->
-    {'and', Dest, Left, Right}.
+    {'AND', Dest, Left, Right}.
 
 or_op(Dest, Left, Right) ->
-    {'or', Dest, Left, Right}.
+    {'OR', Dest, Left, Right}.
 
 not_op(Dest, Arg) ->
-    {'not', Dest, Arg}.
+    {'NOT', Dest, Arg}.
 
 tuple(Size) when is_integer(Size) ->
     {'TUPLE', ?i(Size)}.

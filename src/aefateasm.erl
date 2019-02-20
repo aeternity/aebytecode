@@ -45,7 +45,7 @@ assemble(File, Opts) ->
         undefined ->
             Asm = aeb_fate_asm:read_file(File),
             {Env, BC} = aeb_fate_asm:asm_to_bytecode(Asm, Opts),
-            case Verbose of 
+            case Verbose of
                 true ->
                     io:format("Env: ~0p~n", [Env]);
                 false -> ok
@@ -54,5 +54,4 @@ assemble(File, Opts) ->
         OutFile ->
             aeb_fate_asm:assemble_file(File, OutFile, Opts)
     end.
-    
-    
+

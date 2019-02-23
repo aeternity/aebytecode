@@ -104,15 +104,15 @@
 -define('MAP_LOOKUPD'    , 16#69).
 -define('SWITCH_V2'      , 16#6a).
 -define('SWITCH_V3'      , 16#6b).
--define('SWITCH_V4'      , 16#6c).
--define('SWITCH_V5'      , 16#6d).
--define('BITS_ALL_N'     , 16#6e).
--define('BITS_NONEA'     , 16#6f).
--define('BITS_ALLA'      , 16#70).
+-define('SWITCH_VN'      , 16#6c).
+-define('BITS_ALL_N'     , 16#6d).
+-define('BITS_NONEA'     , 16#6e).
+-define('BITS_ALLA'      , 16#6f).
+-define('DUPA'           , 16#70).
 -define('INCA'           , 16#71).
 -define('DECA'           , 16#72).
 -define('POPA'           , 16#73).
--define('DUPA'           , 16#74).
+
 
 -define('FUNCTION'       , 16#fe).
 -define('EXTEND'         , 16#ff).

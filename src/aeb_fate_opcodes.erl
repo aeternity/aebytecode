@@ -132,8 +132,7 @@ mnemonic(?RETURNR)         ->    'RETURNR' ;
 mnemonic(?MAP_LOOKUPD)     ->    'MAP_LOOKUPD' ;
 mnemonic(?SWITCH_V2)       ->    'SWITCH_V2' ;
 mnemonic(?SWITCH_V3)       ->    'SWITCH_V3' ;
-mnemonic(?SWITCH_V4)       ->    'SWITCH_V4' ;
-mnemonic(?SWITCH_V5)       ->    'SWITCH_V5' ;
+mnemonic(?SWITCH_VN)        ->   'SWITCH_VN' ;
 mnemonic(?BITS_ALL_N)      ->    'BITS_ALL_N' ;
 mnemonic(?FUNCTION)        ->    'FUNCTION' ;
 mnemonic(?EXTEND)          ->    'EXTEND'.
@@ -246,9 +245,7 @@ m_to_op('RETURNR')         ->    ?RETURNR ;
 m_to_op('MAP_LOOKUPD')     ->    ?MAP_LOOKUPD ;
 m_to_op('SWITCH_V2')       ->    ?SWITCH_V2 ;
 m_to_op('SWITCH_V3')       ->    ?SWITCH_V3 ;
-m_to_op('SWITCH_V4')       ->    ?SWITCH_V4 ;
-m_to_op('SWITCH_V5')       ->    ?SWITCH_V5 ;
-m_to_op('BITS_ALL_N')      ->    ?BITS_ALL_N ;
+m_to_op('SWITCH_VN')       ->    ?SWITCH_VN ;
 m_to_op('FUNCTION')        ->    ?FUNCTION ;
 m_to_op('EXTEND')          ->    ?EXTEND.
 
@@ -345,9 +342,7 @@ args(?VARIANT)     -> 4;
 args(?MAP_UPDATE)  -> 4;
 args(?MAP_LOOKUPD) -> 4;
 
-args(?SWITCH_V4)   -> 5;
-
-args(?SWITCH_V5)   -> 6;
+args(?SWITCH_VN)   -> 2;
 
 args(_) -> 0. %% TODO do not allow this
 
@@ -361,8 +356,7 @@ end_bb(?CALL_R)    -> true;
 end_bb(?CALL_TR)   -> true;
 end_bb(?SWITCH_V2) -> true;
 end_bb(?SWITCH_V3) -> true;
-end_bb(?SWITCH_V4) -> true;
-end_bb(?SWITCH_V5) -> true;
+end_bb(?SWITCH_VN) -> true;
 end_bb(?ABORT)     -> true;
 end_bb(?EXIT)      -> true;
 

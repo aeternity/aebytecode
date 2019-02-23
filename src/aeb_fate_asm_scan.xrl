@@ -40,8 +40,7 @@ JUMP           : {token, {mnemonic, TokenLine, 'JUMP'}}.
 JUMPIF         : {token, {mnemonic, TokenLine, 'JUMPIF'}}.
 SWITCH_V2      : {token, {mnemonic, TokenLine, 'SWITCH_V2'}}.
 SWITCH_V3      : {token, {mnemonic, TokenLine, 'SWITCH_V3'}}.
-SWITCH_V4      : {token, {mnemonic, TokenLine, 'SWITCH_V4'}}.
-SWITCH_V5      : {token, {mnemonic, TokenLine, 'SWITCH_V5'}}.
+SWITCH_VN      : {token, {mnemonic, TokenLine, 'SWITCH_VN'}}.
 
 PUSH           : {token, {mnemonic, TokenLine, 'PUSH'}}.
 DUP            : {token, {mnemonic, TokenLine, 'DUP'}}.

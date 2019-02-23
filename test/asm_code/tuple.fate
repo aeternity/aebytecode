@@ -1,4 +1,3 @@
-;;CONTRACT tuple
 FUNCTION make_0tuple():{tuple, []}
   TUPLE   0
   RETURN
@@ -18,7 +17,7 @@ FUNCTION make_5tuple(integer, integer, integer, integer, integer):
   PUSH       arg4
   TUPLE         5
   RETURN
-  
+
 FUNCTION element1(integer, integer): integer
   PUSH            arg0
   PUSH            arg1

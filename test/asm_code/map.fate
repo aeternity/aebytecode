@@ -22,8 +22,7 @@ FUNCTION map_member({map, integer, boolean}, integer):boolean
 FUNCTION map_delete({map, integer, boolean}, integer):{map, integer, boolean}
   MAP_DELETE a arg0 arg1
   RETURN
-        
-        
+
 FUNCTION map_member({map, integer, boolean}, integer) : boolean
         MAP_MEMBER a arg0 arg1
         RETURN

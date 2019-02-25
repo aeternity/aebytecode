@@ -1,8 +1,10 @@
 FUNCTION make_0tuple():{tuple, []}
+;; BB : 0
   TUPLE   0
   RETURN
 
 FUNCTION make_2tuple(integer, integer):{tuple, [integer, integer]}
+;; BB : 0
   PUSH       arg0
   PUSH       arg1
   TUPLE         2
@@ -10,6 +12,7 @@ FUNCTION make_2tuple(integer, integer):{tuple, [integer, integer]}
 
 FUNCTION make_5tuple(integer, integer, integer, integer, integer):
                 {tuple, [integer, integer, integer, integer, integer]}
+;; BB : 0
   PUSH       arg0
   PUSH       arg1
   PUSH       arg2
@@ -19,6 +22,7 @@ FUNCTION make_5tuple(integer, integer, integer, integer, integer):
   RETURN
 
 FUNCTION element1(integer, integer): integer
+;; BB : 0
   PUSH            arg0
   PUSH            arg1
   TUPLE              2
@@ -26,5 +30,6 @@ FUNCTION element1(integer, integer): integer
   RETURN
 
 FUNCTION element({tuple, [integer, integer]}, integer): integer
+;; BB : 0
   ELEMENT integer a arg1 arg0
   RETURN

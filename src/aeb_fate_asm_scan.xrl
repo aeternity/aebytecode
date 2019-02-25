@@ -161,6 +161,9 @@ FUNCTION       : {token, {function, TokenLine, 'FUNCTION' }}.
 \{  : {token, {'{', TokenLine}}.
 \}  : {token, {'}', TokenLine}}.
 
+;;.* :
+ {token, {comment, TokenLine, drop_prefix($;, TokenChars)}}.
+
 \.  : skip_token.
 
 
@@ -168,7 +171,7 @@ FUNCTION       : {token, {function, TokenLine, 'FUNCTION' }}.
 {WS} : skip_token.
 
 %% Comments (TODO: nested comments)
-;;.*                     : skip_token.
+
 
 . : {error, "Unexpected token: " ++ TokenChars}.
 
@@ -199,3 +202,6 @@ parse_hash("#" ++ Chars) ->
 scan(S) ->
     string(S).
 
+drop_prefix(C, [C|Rest]) ->
+    drop_prefix(C, Rest);
+drop_prefix(_, Tail) -> Tail.

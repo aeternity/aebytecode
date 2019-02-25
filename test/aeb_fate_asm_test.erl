@@ -60,7 +60,6 @@ check_roundtrip(File) ->
     io:format("~s~n", [AssemblerCode]),
     io:format("~s~n", [DissasmCode]),
     {Env2, ByteCode2} = assemble(DissasmCode),
-    ?assertEqual(ByteCode, ByteCode2).
-
-
-
+    Code1 = aeb_fate_asm:strip(ByteCode),
+    Code2 = aeb_fate_asm:strip(ByteCode2),
+    ?assertEqual(Code1, Code2).

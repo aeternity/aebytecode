@@ -53,6 +53,7 @@
         , function_call/1
         , pp/1
         , read_file/1
+        , strip/1
         , to_asm/1
         , to_hexstring/1
         ]).
@@ -99,14 +100,36 @@ pp(FateCode) ->
 
 
 to_asm(#{ functions := Functions
-        , symbols := Symbols} = _FateCode) ->
-    lists:flatten(
-      io_lib:format("~s",[
-                          [format(lookup(Name, Symbols),
-                                  Sig,
-                                  lists:sort(maps:to_list(CodeMap)),
-                                  Symbols) ||
-                              {Name, {Sig, CodeMap}} <- maps:to_list(Functions)]])).
+        , symbols := Symbols
+        , annotations := Annotations} = _FateCode) ->
+    insert_comments(get_comments(Annotations), 1,
+                    lists:flatten(
+                      io_lib:format("~s",
+                                    [format_functions(Functions, Symbols)]))).
+
+insert_comments([{L,C}|Comments], L, String) ->
+    ";; " ++ C ++ "\n" ++ insert_comments(Comments, L + 1, String);
+insert_comments(Comments, L, [$\n|String]) ->
+    "\n" ++ insert_comments(Comments, L+1, String);
+insert_comments(Comments, L, [C|Rest]) ->
+    [C|insert_comments(Comments, L, Rest)];
+insert_comments([],_,[]) -> [];
+insert_comments([{L,C}|Rest], _, []) ->
+    ";; " ++ C ++ "\n" ++ insert_comments(Rest, L + 1, []).
+
+
+
+
+
+
+
+format_functions(Functions, Symbols) ->
+    [format(lookup(Name, Symbols),
+            Sig,
+            lists:sort(maps:to_list(CodeMap)),
+            Symbols)
+     ||
+        {Name, {Sig, CodeMap}} <- maps:to_list(Functions)].
 
 
 format(Name, Sig, BBs, Symbols) ->
@@ -320,6 +343,7 @@ asm_to_bytecode(AssemblerCode, Options) ->
 
     Env = to_bytecode(Tokens, none, #{ functions => #{}
                                      , symbols => #{}
+                                     , annotations => #{}
                                      }, [], Options),
 
     ByteList = serialize(Env),
@@ -329,7 +353,7 @@ asm_to_bytecode(AssemblerCode, Options) ->
     ByteCode = <<  (aeb_rlp:encode(list_to_binary(ByteList)))/binary,
                    (aeb_rlp:encode(list_to_binary(Signatures)))/binary,
                    (aeb_rlp:encode(SymbolTable))/binary,
-                   (aeb_rlp:encode(list_to_binary(Annotatations)))/binary
+                   (aeb_rlp:encode(Annotatations))/binary
                >>,
 
     case proplists:lookup(pp_hex_string, Options) of
@@ -340,6 +364,10 @@ asm_to_bytecode(AssemblerCode, Options) ->
     end,
 
     {Env, ByteCode}.
+
+strip(ByteCode) ->
+    {Code, _Rest} = aeb_rlp:decode_one(ByteCode),
+    Code.
 
 bytecode_to_fate_code(Bytes, _Options) ->
     {ByteCode, Rest1} = aeb_rlp:decode_one(Bytes),
@@ -517,15 +545,19 @@ deserialize_symbols(Table, Env) ->
     ?FATE_MAP_VALUE(SymbolTable) = aeb_fate_encoding:deserialize(Table),
     Env#{symbols => SymbolTable}.
 
-deserialize_annotations(_Annotations, Env) -> Env.
+deserialize_annotations(AnnotationsBin, Env) ->
+    ?FATE_MAP_VALUE(Annotations) = aeb_fate_encoding:deserialize(AnnotationsBin),
+    Env#{annotations => Annotations}.
+
+
 
 serialize_sigs(_Env) -> [].
 
 serialize_symbol_table(#{ symbols := Symbols }) ->
     aeb_fate_encoding:serialize(aeb_fate_data:make_map(Symbols)).
 
-serialize_annotations(_Env) ->
-    [].
+serialize_annotations(#{ annotations := Annotations}) ->
+    aeb_fate_encoding:serialize(aeb_fate_data:make_map(Annotations)).
 
 
 
@@ -652,17 +684,6 @@ serialize_signature({Args, RetType}) ->
     [serialize_type({tuple, Args}) |
      serialize_type(RetType)].
 
-serialize_type(integer) -> [0];
-serialize_type(boolean) -> [1];
-serialize_type({list, T}) -> [2 | serialize_type(T)];
-serialize_type({tuple, Ts}) ->
-    case length(Ts) of
-        N when N =< 255 ->
-            [3, N | [serialize_type(T) || T <- Ts]]
-    end;
-serialize_type(address) -> 4;
-serialize_type(bits) -> 5;
-serialize_type({map, K, V}) -> [6 | serialize_type(K) ++ serialize_type(V)].
 
 
 deserialize_signature(Binary) ->
@@ -697,6 +718,13 @@ to_hexstring(ByteList) ->
               [io_lib:format("~2.16.0b", [X])
                || X <- ByteList]).
 
+
+
+%% -------------------------------------------------------------------
+%% Parser
+%% Asm tokens -> Fate code env
+%% -------------------------------------------------------------------
+
 to_bytecode([{function,_line, 'FUNCTION'}|Rest], Address, Env, Code, Opts) ->
     Env2 = insert_fun(Address, Code, Env),
     {Fun, Rest2} = to_fun_def(Rest),
@@ -723,6 +751,10 @@ to_bytecode([{hash,_line, Hash}|Rest], Address, Env, Code, Opts) ->
 to_bytecode([{id,_line, ID}|Rest], Address, Env, Code, Opts) ->
     {Hash, Env2} = insert_symbol(ID, Env),
     to_bytecode(Rest, Address, Env2, [{immediate, Hash}|Code], Opts);
+to_bytecode([{comment, Line, Comment}|Rest], Address, Env, Code, Opts) ->
+    Env2 = insert_annotation(comment, Line, Comment, Env),
+    to_bytecode(Rest, Address, Env2, Code, Opts);
+
 to_bytecode([], Address, Env, Code, Opts) ->
     Env2 = insert_fun(Address, Code, Env),
      #{functions := Funs} = Env2,
@@ -750,6 +782,9 @@ to_arg_types(Tokens) ->
         {Type, [{')', _} |  Rest]} ->
             {[Type], Rest}
     end.
+
+
+%% Type handling
 
 to_type([{id, _, "integer"} | Rest]) -> {integer, Rest};
 to_type([{id, _, "boolean"} | Rest]) -> {boolean, Rest};
@@ -781,6 +816,24 @@ to_list_of_types(Tokens) ->
     end.
 
 
+serialize_type(integer) -> [0];
+serialize_type(boolean) -> [1];
+serialize_type({list, T}) -> [2 | serialize_type(T)];
+serialize_type({tuple, Ts}) ->
+    case length(Ts) of
+        N when N =< 255 ->
+            [3, N | [serialize_type(T) || T <- Ts]]
+    end;
+serialize_type(address) -> 4;
+serialize_type(bits) -> 5;
+serialize_type({map, K, V}) -> [6 | serialize_type(K) ++ serialize_type(V)].
+
+
+%% -------------------------------------------------------------------
+%% Helper functions
+%% -------------------------------------------------------------------
+
+%% State handling
 
 insert_fun(none, [], Env) -> Env;
 insert_fun({Name, Type, RetType}, Code, #{functions := Functions} = Env) ->
@@ -793,6 +846,20 @@ mk_hash(Id) ->
     %% Use first 4 bytes of blake hash
     {ok, <<A:8, B:8, C:8, D:8,_/binary>> } = aeb_blake2:blake2b(?HASH_BYTES, list_to_binary(Id)),
     <<A,B,C,D>>.
+
+%% Handle annotations
+
+insert_annotation(comment, Line, Comment, #{annotations := A} = Env) ->
+    Key = aeb_fate_data:make_tuple({aeb_fate_data:make_string("comment"), Line}),
+    Value = aeb_fate_data:make_string(Comment),
+    Env#{annotations => A#{ Key => Value}}.
+
+get_comments(Annotations) ->
+    [ {Line, Comment} ||
+        {?FATE_TUPLE({?FATE_STRING_VALUE("comment"), Line}),
+         ?FATE_STRING_VALUE(Comment)} <- maps:to_list(Annotations)].
+
+%% Symbols handling
 
 insert_symbol(Id, Env) ->
     Hash = mk_hash(Id),
@@ -809,6 +876,7 @@ insert_symbol(Id, Hash, #{symbols := Symbols} = Env) ->
                                            , Hash => Id}}}
     end.
 
+%% Symbol table handling
 
 lookup(Name, Symbols) ->
     maps:get(Name, Symbols, Name).

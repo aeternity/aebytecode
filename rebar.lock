@@ -1,6 +1,9 @@
 {"1.1.0",
-[
-  {<<"getopt">>,{pkg,<<"getopt">>,<<"1.0.1">>},0}]}.
+[{<<"eblake2">>,
+  {git,"https://github.com/aeternity/eblake2.git",
+       {ref,"ac1fed46f90a7bada781ee78fa30a1b5239ea613"}},
+  0},
+ {<<"getopt">>,{pkg,<<"getopt">>,<<"1.0.1">>},0}]}.
 [
 {pkg_hash,[
  {<<"getopt">>, <<"C73A9FA687B217F2FF79F68A3B637711BB1936E712B521D8CE466B29CBF7808A">>}]}

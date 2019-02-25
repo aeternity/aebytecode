@@ -844,7 +844,7 @@ insert_fun({Name, Type, RetType}, Code, #{functions := Functions} = Env) ->
 
 mk_hash(Id) ->
     %% Use first 4 bytes of blake hash
-    {ok, <<A:8, B:8, C:8, D:8,_/binary>> } = aeb_blake2:blake2b(?HASH_BYTES, list_to_binary(Id)),
+    {ok, <<A:8, B:8, C:8, D:8,_/binary>> } = eblake2:blake2b(?HASH_BYTES, list_to_binary(Id)),
     <<A,B,C,D>>.
 
 %% Handle annotations

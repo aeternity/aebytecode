@@ -54,12 +54,12 @@ sources() ->
 
 check_roundtrip(File) ->
     AssemblerCode = read_file(File),
-    {Env, ByteCode} = assemble(AssemblerCode),
+    {_Env, ByteCode} = assemble(AssemblerCode),
     FateCode = disassemble(ByteCode),
     DissasmCode = aeb_fate_asm:to_asm(FateCode),
     io:format("~s~n", [AssemblerCode]),
     io:format("~s~n", [DissasmCode]),
-    {Env2, ByteCode2} = assemble(DissasmCode),
+    {_Env2, ByteCode2} = assemble(DissasmCode),
     Code1 = aeb_fate_asm:strip(ByteCode),
     Code2 = aeb_fate_asm:strip(ByteCode2),
     ?assertEqual(Code1, Code2).

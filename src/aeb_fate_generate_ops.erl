@@ -397,6 +397,3 @@ insert_tokens_in_template(<<"###REPLACEWITHNOTE###", Rest/binary >>, Tokens) ->
      | insert_tokens_in_template(Rest, Tokens)];
 insert_tokens_in_template(<<B,Rest/binary>>, Tokens) ->
     [B|insert_tokens_in_template(Rest, Tokens)].
-
-
-

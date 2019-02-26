@@ -6,6 +6,7 @@
    [kernel,
     stdlib,
     eblake2,
+    aeserialization,
     getopt
    ]},
   {env,[]},

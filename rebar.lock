@@ -1,5 +1,13 @@
 {"1.1.0",
-[{<<"eblake2">>,{pkg,<<"eblake2">>,<<"1.0.0">>},0},
+[{<<"aeserialization">>,
+  {git,"https://github.com/aeternity/aeserialization.git",
+       {ref,"b55c3726f4a21063721c68d6fa7fda39121edf11"}},
+  0},
+ {<<"base58">>,
+  {git,"https://github.com/aeternity/erl-base58.git",
+       {ref,"60a335668a60328a29f9731b67c4a0e9e3d50ab6"}},
+  1},
+ {<<"eblake2">>,{pkg,<<"eblake2">>,<<"1.0.0">>},0},
  {<<"getopt">>,{pkg,<<"getopt">>,<<"1.0.1">>},0}]}.
 [
 {pkg_hash,[

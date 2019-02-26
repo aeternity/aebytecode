@@ -350,10 +350,10 @@ asm_to_bytecode(AssemblerCode, Options) ->
     Signatures = serialize_sigs(Env),
     SymbolTable = serialize_symbol_table(Env),
     Annotatations = serialize_annotations(Env),
-    ByteCode = <<  (aeb_rlp:encode(list_to_binary(ByteList)))/binary,
-                   (aeb_rlp:encode(list_to_binary(Signatures)))/binary,
-                   (aeb_rlp:encode(SymbolTable))/binary,
-                   (aeb_rlp:encode(Annotatations))/binary
+    ByteCode = <<  (aeser_rlp:encode(list_to_binary(ByteList)))/binary,
+                   (aeser_rlp:encode(list_to_binary(Signatures)))/binary,
+                   (aeser_rlp:encode(SymbolTable))/binary,
+                   (aeser_rlp:encode(Annotatations))/binary
                >>,
 
     case proplists:lookup(pp_hex_string, Options) of
@@ -366,14 +366,14 @@ asm_to_bytecode(AssemblerCode, Options) ->
     {Env, ByteCode}.
 
 strip(ByteCode) ->
-    {Code, _Rest} = aeb_rlp:decode_one(ByteCode),
+    {Code, _Rest} = aeser_rlp:decode_one(ByteCode),
     Code.
 
 bytecode_to_fate_code(Bytes, _Options) ->
-    {ByteCode, Rest1} = aeb_rlp:decode_one(Bytes),
-    {Signatures, Rest2} = aeb_rlp:decode_one(Rest1),
-    {SymbolTable, Rest3} = aeb_rlp:decode_one(Rest2),
-    {Annotations, <<>>} = aeb_rlp:decode_one(Rest3),
+    {ByteCode, Rest1} = aeser_rlp:decode_one(Bytes),
+    {Signatures, Rest2} = aeser_rlp:decode_one(Rest1),
+    {SymbolTable, Rest3} = aeser_rlp:decode_one(Rest2),
+    {Annotations, <<>>} = aeser_rlp:decode_one(Rest3),
 
     Env1 = deserialize(ByteCode, #{ function => none
                                   , bb => 0

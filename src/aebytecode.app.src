@@ -1,6 +1,6 @@
 {application, aebytecode,
  [{description, "Bytecode definitions, serialization and deserialization for aeternity."},
-  {vsn, "2.0.0"},
+  {vsn, "2.0.1"},
   {registered, []},
   {applications,
    [kernel,

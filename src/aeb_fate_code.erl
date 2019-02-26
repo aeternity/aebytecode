@@ -1,4 +1,75 @@
+%% Provide constructor functuions for Fate instructions.
+%% Provide types and documentation for Fate instructions.
+
+
 -module(aeb_fate_code).
+
+-include_lib("aebytecode/include/aeb_fate_data.hrl").
+
+-type fate_arg_immediate(T) :: {immediate, T}.
+-type fate_arg_var()        :: {var, integer()}.
+-type fate_arg_arg()        :: {arg, integer()}.
+-type fate_arg_stack()      :: {stack, integer()}.
+-type fate_arg() :: fate_arg_immediate()
+                  | fate_arg_var()
+                  | fate_arg_arg()
+                  | fate_arg_stack().
+
+-type fate_arg_immediate() :: {immediate, aeb_fate_data:fate_type()}.
+
+-type fate_return()     ::  'RETURN'.
+-type fate_returnr()    :: {'RETURNR', fate_arg()}.
+-type fate_call()       :: {'CALL',
+                            fate_arg_immediate(aeb_fate_data:fate_string())}.
+-type fate_call_t()     :: {'CALL_T',
+                            fate_arg_immediate(aeb_fate_data:fate_string())}.
+-type fate_call_r()     :: {'CALL_R', fate_arg(),
+                            fate_arg_immediate(aeb_fate_data:fate_string())}.
+-type fate_call_tr()    :: {'CALL_TR', fate_arg(),
+                            fate_arg_immediate(aeb_fate_data:fate_string())}.
+-type fate_jump()       :: {'JUMP',
+                            fate_arg_immediate(aeb_fate_data:fate_integer())}.
+-type fate_jumpif()     :: {'JUMPIF', fate_arg(),
+                            fate_arg_immediate(aeb_fate_data:fate_integer())}.
+-type fate_switch_v2()  :: {'SWITCH_V2', fate_arg(),
+                            fate_arg_immediate(aeb_fate_data:fate_integer()),
+                            fate_arg_immediate(aeb_fate_data:fate_integer())}.
+-type fate_switch_v3()  :: {'SWITCH_V3', fate_arg(),
+                            fate_arg_immediate(aeb_fate_data:fate_integer()),
+                            fate_arg_immediate(aeb_fate_data:fate_integer()),
+                            fate_arg_immediate(aeb_fate_data:fate_integer())}.
+-type fate_switch_vn()  :: {'SWITCH_VN', fate_arg(),
+                            fate_arg_immediate(aeb_fate_data:fate_integer()),
+                            [fate_arg_immediate(aeb_fate_data:fate_integer())]}.
+-type fate_push()       :: {'PUSH', fate_arg()}.
+-type fate_inca()       ::  'INCA'.
+-type fate_inc()        :: {'INC', fate_arg()}.
+-type fate_deca()       ::  'DECA'.
+-type fate_dec()        :: {'DEC', fate_arg()}.
+
+
+-type fate_code() :: fate_return()
+                   | fate_returnr()
+                   | fate_call()
+                   | fate_call_t()
+                   | fate_call_r()
+                   | fate_call_tr()
+                   | fate_jump()
+                   | fate_jumpif()
+                   | fate_switch_v2()
+                   | fate_switch_v3()
+                   | fate_switch_vn()
+                   | fate_push()
+                   | fate_inca()
+                   | fate_inc()
+                   | fate_deca()
+                   | fate_dec()
+                     .
+
+-export_type([ fate_code/0
+
+             , fate_arg/0
+             ]).
 
 -export([ return/0
         , return/1
@@ -10,8 +81,7 @@
         , jumpif/2
         , switch/3
         , switch/4
-        , switch/5
-        , switch/6
+        , switch_n/2
         , push/1
         , inc/0
         , inc/1
@@ -76,64 +146,80 @@
 
 -define(i(__X__), {immediate, __X__ }).
 
+-spec return() -> fate_return().
 return() ->
     'RETURN'.
 
+-spec return(fate_arg()) -> fate_returnr().
 return(Arg) ->
     {'RETURNR', Arg}.
 
-call(Function) when is_binary(Function)->
+-spec call(aeb_fate_data:fate_string()) -> fate_call().
+call(Function) when ?IS_FATE_STRING(Function)->
     {'CALL', ?i(Function) }.
 
-call_t(Function) when is_binary(Function) ->
+-spec call_t(aeb_fate_data:fate_string()) -> fate_call_t().
+call_t(Function) when ?IS_FATE_STRING(Function) ->
     {'CALL_T', ?i(Function)}.
 
-call_r(Contract, Function) when is_binary(Function) ->
+-spec call_r(fate_arg(), aeb_fate_data:fate_string()) -> fate_call_r().
+call_r(Contract, Function) when ?IS_FATE_STRING(Function) ->
     {'CALL_R', Contract, ?i(Function)}.
 
-call_tr(Contract, Function) when is_binary(Function) ->
+-spec call_tr(fate_arg(), aeb_fate_data:fate_string()) -> fate_call_tr().
+call_tr(Contract, Function) when ?IS_FATE_STRING(Function) ->
     {'CALL_TR', Contract, ?i(Function)}.
 
-jump(BB) when is_integer(BB) ->
+-spec jump(aeb_fate_data:fate_integer()) -> fate_jump().
+jump(BB) when ?IS_FATE_INTEGER(BB) ->
     {'JUMP', ?i(BB)}.
 
-jumpif(Arg, BB) when is_integer(BB) ->
+-spec jumpif(fate_arg(), aeb_fate_data:fate_integer()) -> fate_jumpif().
+jumpif(Arg, BB) when  ?IS_FATE_INTEGER(BB) ->
     {'JUMPIF', Arg, ?i(BB)}.
 
-switch(Arg, BB1, BB2) when is_integer(BB1),
-                           is_integer(BB2) ->
+-spec switch(fate_arg(),
+             aeb_fate_data:fate_integer(),
+             aeb_fate_data:fate_integer())
+            -> fate_switch_v2().
+switch(Arg, BB1, BB2) when ?IS_FATE_INTEGER(BB1),
+                           ?IS_FATE_INTEGER(BB2) ->
     {'SWITCH_V2', Arg, ?i(BB1), ?i(BB2)}.
 
-switch(Arg, BB1, BB2, BB3) when is_integer(BB1),
-                                is_integer(BB2),
-                                is_integer(BB3) ->
+-spec switch(fate_arg(),
+             aeb_fate_data:fate_integer(),
+             aeb_fate_data:fate_integer(),
+             aeb_fate_data:fate_integer())
+            -> fate_switch_v3().
+switch(Arg, BB1, BB2, BB3) when ?IS_FATE_INTEGER(BB1),
+                                ?IS_FATE_INTEGER(BB2),
+                                ?IS_FATE_INTEGER(BB3) ->
     {'SWITCH_V3', Arg, ?i(BB1), ?i(BB2), ?i(BB3)}.
 
-switch(Arg, BB1, BB2, BB3, BB4) when is_integer(BB1),
-                                     is_integer(BB2),
-                                     is_integer(BB3),
-                                     is_integer(BB4) ->
-    {'SWITCH_V4', Arg, ?i(BB1), ?i(BB2), ?i(BB3), ?i(BB4)}.
+-spec switch_n(fate_arg(),
+             [aeb_fate_data:fate_integer()])
+            -> fate_switch_vn().
+switch_n(Arg, BBS) when is_list(BBS) ->
+    N = length(BBS),
+    {'SWITCH_VN', Arg, ?i(N), [?i(BB) || BB <- BBS]}.
 
-switch(Arg, BB1, BB2, BB3, BB4, BB5) when is_integer(BB1),
-                                          is_integer(BB2),
-                                          is_integer(BB3),
-                                          is_integer(BB4),
-                                          is_integer(BB5) ->
-    {'SWITCH_V5', Arg, ?i(BB1), ?i(BB2), ?i(BB3), ?i(BB4), ?i(BB5)}.
-
+-spec push(fate_arg()) -> fate_push().
 push(Arg) ->
     {'PUSH', Arg}.
 
+-spec inc() -> fate_inca().
 inc() ->
     'INCA'.
 
+-spec inc(fate_arg()) -> fate_inc().
 inc(Arg) ->
     {'INC', Arg}.
 
+-spec dec() -> fate_deca().
 dec() ->
     'DECA'.
 
+-spec dec(fate_arg()) -> fate_dec().
 dec(Arg) ->
     {'DEC', Arg}.
 
@@ -182,7 +268,7 @@ or_op(Dest, Left, Right) ->
 not_op(Dest, Arg) ->
     {'NOT', Dest, Arg}.
 
-tuple(Size) when is_integer(Size) ->
+tuple(Size) when ?IS_FATE_INTEGER(Size) ->
     {'TUPLE', ?i(Size)}.
 
 element_op(Type, Dest, N, T) ->
@@ -290,7 +376,7 @@ bits_diff(To, Bits, Bit) ->
 dup() ->
     'DUPA'.
 
-dup(N) when is_integer(N) ->
+dup(N) when ?IS_FATE_INTEGER(N) ->
     {'DUP', ?i(N)}.
 
 pop() ->

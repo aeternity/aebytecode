@@ -16,11 +16,20 @@ clean:
 	rm -f src/aeb_fate_code.erl
 	rm -f include/aeb_fate_opcodes.hrl
 
+dialyzer: local
+	@$(REBAR) as local dialyzer
+
+
+
 distclean: clean
 	@rm -rf _build/
 
+euint: local
+	@$(REBAR) as local eunit
+
 test: local
 	@$(REBAR) as local eunit
+
 
 ebin/aeb_fate_generate_ops.beam: src/aeb_fate_generate_ops.erl ebin
 	erlc -o $(dir $@) $<

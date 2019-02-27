@@ -820,7 +820,7 @@ to_list_of_types(Tokens) ->
             {[Type], Rest}
     end.
 
--spec serialize_type(aeb_fate_date:fate_type_type()) -> [byte()].
+-spec serialize_type(aeb_fate_data:fate_type_type()) -> [byte()].
 serialize_type(integer) -> [0];
 serialize_type(boolean) -> [1];
 serialize_type({list, T}) -> [2 | serialize_type(T)];

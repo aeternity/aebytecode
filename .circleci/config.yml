@@ -22,13 +22,13 @@ jobs:
           command: make
       - run:
           name: Static Analysis
-          command: rebar3 dialyzer
+          command: make dialyzer
       - run:
           name: Eunit
-          command: rebar3 eunit
+          command: make eunit
       - run:
           name: Common Tests
-          command: rebar3 ct
+          command: make ct
       - save_cache:
           key: dialyzer-cache-v1-{{ .Branch }}-{{ .Revision }}
           paths:

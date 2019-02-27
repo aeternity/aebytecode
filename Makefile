@@ -19,8 +19,6 @@ clean:
 dialyzer: local
 	@$(REBAR) as local dialyzer
 
-
-
 distclean: clean
 	@rm -rf _build/
 
@@ -29,7 +27,6 @@ eunit: local
 
 test: local
 	@$(REBAR) as local eunit
-
 
 ebin/aeb_fate_generate_ops.beam: src/aeb_fate_generate_ops.erl ebin
 	erlc -o $(dir $@) $<

@@ -28,7 +28,7 @@ jobs:
           command: make eunit
       - run:
           name: Common Tests
-          command: make ct
+          command: make test
       - save_cache:
           key: dialyzer-cache-v1-{{ .Branch }}-{{ .Revision }}
           paths:

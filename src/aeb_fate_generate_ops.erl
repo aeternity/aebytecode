@@ -1,34 +1,33 @@
-
-
 -module(aeb_fate_generate_ops).
 
--export([generate/0]).
+-export([ gen_and_halt/1
+        , generate/0]).
 
--define(ati(__X__), {immediate, __X__}).
--define(atv(__X__), {var, __X__}).
--define(ata(__X__), {arg, __X__}).
--define(ats(__X__), {stack, __X__}).
-
--define(ta(), "fate_arg()").
--define(ti(__X__), "fate_arg_immediate(" __X__ ")").
--define(ts, "aeb_fate_data:fate_string()").
+gen_and_halt([SrcDirArg, IncludeDirArg]) ->
+    generate(atom_to_list(SrcDirArg),
+             atom_to_list(IncludeDirArg)),
+    halt().
 
 generate() ->
+    generate("src/", "include/").
+
+generate(Src, Include) ->
     Ops = gen(ops_defs()),
-    io:format("ops: ~p\n", [Ops]),
-    HrlFile = "aeb_new_fate_opcodes.hrl",
+    %% io:format("ops: ~p\n", [Ops]),
+    HrlFile = Include ++ "aeb_fate_opcodes.hrl",
     generate_header_file(HrlFile, Ops),
-    generate_opcodes_ops(aeb_new_fate_opcodes, HrlFile, Ops),
-    generate_code_ops(aeb_new_fate_code, Ops).
+    generate_opcodes_ops(aeb_fate_opcodes, HrlFile, Src, Ops),
+    generate_code_ops(aeb_fate_code, Src, Ops).
+
 
 ops_defs() ->
     %%  Opname,    Opcode, args, end_bb, gas, format,   Constructor,  Documentation
-    [ { 'NOP',     16#00,    0,  false,   1, atomic,    nop,         "The no op. does nothing."}
-    , { 'RETURN',  16#01,    0,   true,   2, atomic,    return,      "Return from function call pop stack to arg0."}
-    , { 'RETURNR', 16#68,    1,   true,   2, [a],       returnr,     "Return from function call pop stack to arg0."}
+    [ { 'NOP',     16#f0,    0,  false,   1, atomic,    nop,         "The no op. does nothing."}
+    , { 'RETURN',  16#00,    0,   true,   2, atomic,    return,      "Return from function call pop stack to arg0."}
+    , { 'RETURNR', 16#01,    1,   true,   2, [a],       returnr,     "Return from function call pop stack to arg0."}
     , { 'CALL',    16#02,    1,   true,   4, [is],      call,        "Call given function with args on stack."}
-    , { 'CALL_T',  16#04,    1,   true,   4, [is],      call_t,      "Tail call to given function."}
     , { 'CALL_R',  16#03,    2,   true,   8, [a, is],   call_r,      "Remote call to given contract and function."}
+    , { 'CALL_T',  16#04,    1,   true,   4, [is],      call_t,      "Tail call to given function."}
     , { 'CALL_TR', 16#05,    2,   true,   8, [a, is],   call_tr,     "Remote tail call to given contract and function."}
     , { 'JUMP',    16#06,    1,   true,   3, [ii],      jump,        "Jump to a basic block."}
     , { 'JUMPIF',  16#07,    2,   true,   4, [a, ii],   jumpif,      "Conditional jump to a basic block."}
@@ -56,20 +55,21 @@ ops_defs() ->
     , { 'OR',       16#1e,   3,  false,   3, [a,a,a],   or_op,       "Arg0 := Arg1  or Arg2."}
     , { 'NOT',      16#1f,   2,  false,   3, [a,a],     not_op,      "Arg0 := not Arg1."}
     , { 'TUPLE',    16#20,   1,  false,   3, [ii],      tuple,       "Create a tuple of size = Arg0. Elements on stack."}
-    , { 'ELEMET',   16#21,   4,  false,   3, [t,a,a,a], element_op,  "Arg1 := element(Arg2, Arg3). The element should be of type Arg1"}
+    , { 'ELEMENT',  16#21,   4,  false,   3, [t,a,a,a], element_op,  "Arg1 := element(Arg2, Arg3). The element should be of type Arg1"}
     , { 'MAP_EMPTY',16#22,   1,  false,   3, [a],       map_empty,   "Arg0 := #{}."}
     , { 'MAP_LOOKUP',16#23,  3,  false,   3, [a, a, a], map_lookup,  "Arg0 := lookup key Arg2 in map Arg1."}
     , { 'MAP_LOOKUPD',16#69, 4,  false,   3, [a, a, a, a], map_lookup,  "Arg0 := lookup key Arg2 in map Arg1 if key exists in map otherwise Arg0 := Arg3."}
     , { 'MAP_UPDATE',16#24,  4,  false,   3, [a, a, a, a], map_update,  "Arg0 := update key Arg2 in map Arg1 with value Arg3."}
     , { 'MAP_DELETE',16#25,  3,  false,   3, [a, a, a], map_delete,  "Arg0 := delete key Arg2 from map Arg1."}
     , { 'MAP_MEMBER',16#26,  3,  false,   3, [a, a, a], map_member,  "Arg0 := true if key Arg2 is in map Arg1."}
+    , { 'MAP_FROM_LIST',16#27,  2,  false,   3, [a, a], map_from_list,  "Arg0 := make a map from (key, value) list in Arg1."}
     , { 'NIL',       16#28,  1,  false,   3, [a],       nil,         "Arg0 := []."}
     , { 'IS_NIL',    16#29,  2,  false,   3, [a, a],    is_nil,      "Arg0 := true if Arg1 == []."}
     , {'CONS',       16#2a,  3,  false,   3, [a, a, a], cons,        "Arg0 := [Arg1|Arg2]."}
     , {'HD',         16#2b,  2,  false,   3, [a, a],    hd,          "Arg0 := head of list Arg1."}
     , {'TL',         16#2c,  2,  false,   3, [a, a],    tl,          "Arg0 := tail of list Arg1."}
     , {'LENGTH',     16#2d,  2,  false,   3, [a, a],    length,      "Arg0 := length of list Arg1."}
-      
+
     , {'STR_EQ',     16#2e,  3,  false,   3, [a, a, a], str_eq,      "Arg0 := true iff the strings Arg1 and Arg2 are the same."}
     , {'STR_JOIN',   16#2f,  3,  false,   3, [a, a, a], str_join,    "Arg0 := string Arg1 followed by string Arg2."}
     , {'INT_TO_STR', 16#55,  2,  false,   3, [a, a],    int_to_str,  "Arg0 := turn integer Arg1 into a string."}
@@ -78,7 +78,7 @@ ops_defs() ->
     , {'INT_TO_ADDR', 16#32, 2,  false,   3, [a, a],    int_to_addr, "Arg0 := turn integer Arg1 into an address."}
     , {'VARIANT',     16#33, 4,  false,   3, [a, a, a, a], variant,  "Arg0 := create a variant of size Arg1 with the tag Arg2 (Arg2 < Arg1) and take Arg3 elements from the stack."}
     , {'VARIANT_TEST', 16#34,3,  false,   3, [a, a, a], variant_test,"Arg0 := true if variant Arg1 has the tag Arg2."}
-    , {'VARIANT_ELEMENT',16#35,3,false,   3, [a, a, a], variant_element,"Arg0 := element number Arg2 from variant Arg1."}
+    , {'VARIANT_ELEMNT',16#35,3,false,   3, [a, a, a], variant_element,"Arg0 := element number Arg2 from variant Arg1."}
     , {'BITS_NONEA', 16#6e,  0,  false,   3, atomic,    bits_none,   "accumulator := empty bitmap."}
     , {'BITS_NONE',  16#36,  1,  false,   3, [a],       bits_none,   "Arg0 := empty bitmap."}
     , {'BITS_ALLA', 16#6f,   0,  false,   3, atomic,    bits_all,    "accumulator := full bitmap."}
@@ -94,6 +94,21 @@ ops_defs() ->
     , {'DUP',       16#0a,   1,  false,   3, [a],       dup,         "push Arg0 stack pos on top of stack."}
     , {'POP',       16#0b,   1,  false,   3, [a],       pop,         "Arg0 := top of stack."}
     , {'STORE',     16#10,   2,  false,   3, [a, a],    store,       "Arg0 := Arg1."}
+      %% TODO: Check the documentation and update it.
+    , {'ADDRESS',   16#3f,   1,  false,   3, [a],       address,     "Arg0 := The current contract address."}
+    , {'BALANCE',   16#3f,   1,  false,   3, [a],       balance,     "Arg0 := The current contract address."}
+    , {'ORIGIN',    16#40,   1,  false,   3, [a],       origin,      "Arg0 := Address of contract called by the call transaction."}
+    , {'CALLER',    16#41,   1,  false,   3, [a],       caller,      "Arg0 := The address that signed the call transaction."}
+    , {'GASPRICE',  16#42,   1,  false,   3, [a],       gasprice,    "Arg0 := The current gas price."}
+    , {'BLOCKHASH', 16#43,   1,  false,   3, [a],       blockhash,   "Arg0 := The current blockhash."} %% TODO: Do we support has at height?
+    , {'BENEFICIARY',16#44,  1,  false,   3, [a],       beneficiary, "Arg0 := The address of the current beneficiary."}
+    , {'TIMESTAMP', 16#45,   1,  false,   3, [a],       timestamp,   "Arg0 := The current timestamp. Unrelaiable, don't use for anything."}
+    , {'NUMBER',    16#46,   1,  false,   3, [a],       number,      "Arg0 := The block height."}
+    , {'DIFFICULTY',16#47,   1,  false,   3, [a],       difficulty,  "Arg0 := The current difficulty."}
+    , {'GASLIMIT',  16#48,   1,  false,   3, [a],       gaslimit,    "Arg0 := The current gaslimit."}
+    , {'GAS',       16#49,   1,  false,   3, [a],       gas,         "Arg0 := The amount of gas left."}
+    , {'ABORT',     16#4f,   1,  false,   3, [a],       abort,       "Abort execution (dont use all gas) with error message in Arg0."}
+    , {'EXIT',      16#4e,   1,  false,   3, [a],       exit,        "Abort execution (use upp all gas) with error message in Arg0."}
     ].
 
 
@@ -102,10 +117,13 @@ generate_header_file(Filename, Ops) ->
     Defines = lists:flatten([gen_defines(Op) || Op <- Ops]),
     io:format(File, "~s", [prelude("Provides opcode defines.\n")]),
     io:format(File, "%% FATE opcodes\n~s", [Defines]),
+    io:format(File, "~s",
+              ["-define('FUNCTION'       , 16#fe).\n"
+               "-define('EXTEND'         , 16#ff).\n\n"]),
     file:close(File).
 
-generate_opcodes_ops(Modulename, HrlFile, Ops) ->
-    Filename = atom_to_list(Modulename) ++ ".erl",
+generate_opcodes_ops(Modulename, HrlFile, SrcDir, Ops) ->
+    Filename = SrcDir ++ atom_to_list(Modulename) ++ ".erl",
 
     {ok, File} = file:open(Filename, [write]),
     Mnemonic = lists:flatten([gen_mnemonic(Op) || Op <- Ops]),
@@ -135,8 +153,8 @@ generate_opcodes_ops(Modulename, HrlFile, Ops) ->
 
     file:close(File).
 
-generate_code_ops(Modulename, Ops) ->
-    Filename = atom_to_list(Modulename) ++ ".erl",
+generate_code_ops(Modulename, SrcDir, Ops) ->
+    Filename = SrcDir ++ atom_to_list(Modulename) ++ ".erl",
 
     {ok, File} = file:open(Filename, [write]),
     Types = lists:flatten([gen_type(Op) || Op <- Ops]),
@@ -163,7 +181,6 @@ generate_code_ops(Modulename, Ops) ->
               "                  | fate_arg_stack().\n\n"
               "-type fate_arg_immediate() :: {immediate, aeb_fate_data:fate_type()}.\n"
              , []),
-    
     io:format(File, "~s", [Types]),
     io:format(File, "-type fate_code() :: ~s\n~s                   .\n\n",
               [FirstType, FateTypes]),
@@ -172,7 +189,6 @@ generate_code_ops(Modulename, Ops) ->
     io:format(File, "~s\n", [Constructors]),
 
     io:format(File, "foo() -> \"A temp hack.\".\n", []),
-    
 
     file:close(File).
 
@@ -222,7 +238,7 @@ gen_arg_type_specs([t | Args]) -> "aeb_fate_data:fate_type_type(), " ++ gen_arg_
 gen_arg_names(_, []) ->
     [];
 gen_arg_names(N, [_]) -> io_lib:format("Arg~w", [N]);
-gen_arg_names(N, [_|Args]) -> 
+gen_arg_names(N, [_|Args]) ->
     io_lib:format("Arg~w, ", [N]) ++ gen_arg_names(N+1, Args).
 
 gen_arg_uses(_, []) ->
@@ -232,15 +248,15 @@ gen_arg_uses(N, [is]) -> io_lib:format("{immediate, Arg~w}", [N]);
 gen_arg_uses(N, [ii]) -> io_lib:format("{immediate, Arg~w}", [N]);
 gen_arg_uses(N, [li]) -> io_lib:format("[{immediate, I} || I <- Arg~w]", [N]);
 gen_arg_uses(N, [t]) -> io_lib:format("Arg~w", [N]);
-gen_arg_uses(N, [a | Args]) -> 
+gen_arg_uses(N, [a | Args]) ->
     io_lib:format("Arg~w, ", [N]) ++ gen_arg_uses(N+1, Args);
-gen_arg_uses(N, [is | Args]) -> 
+gen_arg_uses(N, [is | Args]) ->
     io_lib:format("{immediate, Arg~w}, ", [N]) ++ gen_arg_uses(N+1, Args);
-gen_arg_uses(N, [ii | Args]) -> 
+gen_arg_uses(N, [ii | Args]) ->
     io_lib:format("{immediate, Arg~w}, ", [N]) ++ gen_arg_uses(N+1, Args);
-gen_arg_uses(N, [li | Args]) -> 
+gen_arg_uses(N, [li | Args]) ->
     io_lib:format("[{immediate, I} || I <- Arg~w], ", [N]) ++ gen_arg_uses(N+1, Args);
-gen_arg_uses(N, [t | Args]) -> 
+gen_arg_uses(N, [t | Args]) ->
     io_lib:format("Arg~w, ", [N]) ++ gen_arg_uses(N+1, Args).
 
 
@@ -248,7 +264,7 @@ ops_exports(Module, HrlFile, Exports) ->
     lists:flatten(io_lib:format(
                     "-module(~w).\n\n"
                     "-export([ ~s         ]).\n\n"
-                    "-include_lib(\"aebytecode/include/" ++ HrlFile ++"\").\n\n"
+                    "-include_lib(\"aebytecode/" ++ HrlFile ++"\").\n\n"
                     "%%====================================================================\n"
                     "%% API\n"
                     "%%====================================================================\n",

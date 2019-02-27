@@ -12,3 +12,6 @@ aeb_asm_scan.erl
 aeb_fate_asm_scan.erl
 _build/
 aefateasm
+include/aeb_fate_opcodes.hrl
+src/aeb_fate_code.erl
+src/aeb_fate_opcodes.erl

@@ -24,7 +24,7 @@ dialyzer: local
 distclean: clean
 	@rm -rf _build/
 
-euint: local
+eunit: local
 	@$(REBAR) as local eunit
 
 test: local

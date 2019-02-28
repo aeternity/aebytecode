@@ -2,6 +2,21 @@
 %%% @copyright (C) 2019, Aeternity Anstalt
 %%% @doc Assembler for Fate machine code.
 %%%
+%%%  Fate code exists in 3 formats:
+%%%
+%%%   1. Fate byte code. This format is under consensus.
+%%%   2. Fate assembler. This is a text represenation of fate code.
+%%%                      This is not under consensus and other
+%%%                      implemenation and toolchains could have
+%%%                      their own format.
+%%%   3. Internal. This is an Erlang representation of fate code
+%%%                Used by this particular engin implementation.
+%%%
+%%%  This library handles all tree representations.
+%%%  The byte code format is described in a separate document.
+%%%  The internal format is described in a separate document.
+%%%  The text representation is described here:
+%%%
 %%%      Assembler code can be read from a file.
 %%%      The assembler has the following format
 %%%      Comments start with 2 semicolons and runs till end of line
@@ -156,14 +171,6 @@ format_arg_types([T|Ts]) ->
     [format_type(T)
     , ", "
     , format_arg_types(Ts)].
-
-format_arg({immediate, I}) ->
-    aeb_fate_data:format(I);
-format_arg({arg, N}) -> io_lib:format("arg~p", [N]);
-format_arg({var, N}) -> io_lib:format("var~p", [N]);
-format_arg({stack, 0}) -> "a";
-format_arg({stack, N}) -> io_lib:format("a~p", [N]).
-
 
 format_type(T) ->
     %% TODO: Limit to ok types.

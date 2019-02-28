@@ -17,7 +17,8 @@ HEX      = 0x{HEXDIGIT}+
 HASH     = #{HEXDIGIT}+
 WS       = [\000-\s]
 ID       = {LOWER}[a-zA-Z0-9_]*
-
+STRING   = "[^"]*"
+BITS     = (\!)?\<[\s01]*\>
 
 Rules.
 arg{INT}       : {token, {arg, TokenLine, parse_arg(TokenChars)}}.
@@ -38,13 +39,22 @@ FUNCTION       : {token, {function, TokenLine, 'FUNCTION' }}.
  {token, {int, TokenLine, parse_hex(TokenChars)}}.
 {INT} :
  {token, {int, TokenLine, parse_int(TokenChars)}}.
+-{INT} :
+ {token, {int, TokenLine, parse_int(TokenChars)}}.
 {HASH} :
  {token, {hash, TokenLine, parse_hash(TokenChars)}}.
+{STRING} :
+ {token, {hash, TokenLine, list_to_binary(TokenChars)}}.
+{BITS} :
+ {token, {bits, TokenLine, bits(TokenChars)}}.
 
 
 %% Symbols
-\-\>  : {token, {'to', TokenLine}}.
-\:  : {token, {'to', TokenLine}}.
+\-\>  : {token, {to, TokenLine}}.
+\:    : {token, {to, TokenLine}}.
+
+\=\>  : {token, {arrow, TokenLine}}.
+
 ,   : {token, {',', TokenLine}}.
 \(  : {token, {'(', TokenLine}}.
 \)  : {token, {')', TokenLine}}.
@@ -97,3 +107,13 @@ scan(S) ->
 drop_prefix(C, [C|Rest]) ->
     drop_prefix(C, Rest);
 drop_prefix(_, Tail) -> Tail.
+
+bits([$!, $< | Rest]) ->
+    bits(Rest, -1);
+bits([$< | Rest]) ->
+    bits(Rest, 0).
+
+bits([$> |_Rest], Acc) -> Acc;
+bits([$0 | Rest], Acc) -> bits(Rest, Acc bsl 1);
+bits([$1 | Rest], Acc) -> bits(Rest, (Acc bsl 1) bor 1);
+bits([$  | Rest], Acc) -> bits(Rest, Acc).

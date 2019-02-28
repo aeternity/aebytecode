@@ -128,7 +128,7 @@ serialize(L) when ?IS_FATE_LIST(L) ->
             <<?LONG_LIST, Val/binary, Rest/binary>>
     end;
 serialize(Map) when ?IS_FATE_MAP(Map) ->
-    L = [{_K,_V}|_] = maps:to_list(?FATE_MAP_VALUE(Map)),
+    L = [{_K,_V}|_] = lists:sort(maps:to_list(?FATE_MAP_VALUE(Map))),
     Size = length(L),
     %% TODO:  check all K same type, and all V same type
     %%        check K =/= map

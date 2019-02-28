@@ -50,6 +50,8 @@ sources() ->
     , "remote"
     , "test"
     , "tuple"
+    , "mapofmap"
+    , "immediates"
     ].
 
 check_roundtrip(File) ->
@@ -62,4 +64,5 @@ check_roundtrip(File) ->
     {_Env2, ByteCode2} = assemble(DissasmCode),
     Code1 = aeb_fate_asm:strip(ByteCode),
     Code2 = aeb_fate_asm:strip(ByteCode2),
+    io:format("~s~n", [aeb_fate_asm:to_asm(disassemble(ByteCode2))]),
     ?assertEqual(Code1, Code2).

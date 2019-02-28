@@ -48,14 +48,15 @@
 %%%          false
 %%%       5. Strings
 %%%          "Hello"
-%%%       6. Empty map
+%%%       6. Map
 %%%          {}
+%%%          { 1 => { "foo" => true, "bar" => false}
 %%%       7. Lists
 %%%          []
 %%%          [1, 2]
 %%%       8. Bit field
 %%%          <000>
-%%%          <1010>
+%%%          <1010 1010>
 %%%          <>
 %%%          !<>
 %%%       9. Tuples
@@ -569,7 +570,11 @@ deserialize_type(<<5, Rest/binary>>) -> {bits, Rest};
 deserialize_type(<<6, Rest/binary>>) ->
     {K, Rest2} = deserialize_type(Rest),
     {V, Rest3} = deserialize_type(Rest2),
-    {{map, K, V}, Rest3}.
+    {{map, K, V}, Rest3};
+deserialize_type(<<7, Rest/binary>>) ->
+    {string, Rest}.
+
+
 
 deserialize_types(0, Binary, Acc) ->
     {lists:reverse(Acc), Binary};
@@ -616,6 +621,19 @@ to_bytecode([{hash,_line, Hash}|Rest], Address, Env, Code, Opts) ->
 to_bytecode([{id,_line, ID}|Rest], Address, Env, Code, Opts) ->
     {Hash, Env2} = insert_symbol(ID, Env),
     to_bytecode(Rest, Address, Env2, [{immediate, Hash}|Code], Opts);
+to_bytecode([{'{',_line}|Rest], Address, Env, Code, Opts) ->
+    {Map, Rest2} = parse_map(Rest),
+    to_bytecode(Rest2, Address, Env, [{immediate, Map}|Code], Opts);
+to_bytecode([{'[',_line}|Rest], Address, Env, Code, Opts) ->
+    {List, Rest2} = parse_list(Rest),
+    to_bytecode(Rest2, Address, Env, [{immediate, List}|Code], Opts);
+to_bytecode([{'(',_line}|Rest], Address, Env, Code, Opts) ->
+    {Elements, Rest2} = parse_tuple(Rest),
+    Tuple = aeb_fate_data:make_tuple(list_to_tuple(Elements)),
+    to_bytecode(Rest2, Address, Env, [{immediate, Tuple}|Code], Opts);
+to_bytecode([{bits,_line, Bits}|Rest], Address, Env, Code, Opts) ->
+    to_bytecode(Rest, Address, Env, [{immediate, Bits}|Code], Opts);
+
 to_bytecode([{comment, Line, Comment}|Rest], Address, Env, Code, Opts) ->
     Env2 = insert_annotation(comment, Line, Comment, Env),
     to_bytecode(Rest, Address, Env2, Code, Opts);
@@ -631,6 +649,51 @@ to_bytecode([], Address, Env, Code, Opts) ->
             ok
     end,
     Env2.
+
+parse_map([{'}',_line}|Rest]) ->
+    {#{}, Rest};
+parse_map(Tokens) ->
+    {Key, [{arrow, _} | Rest]} = parse_value(Tokens),
+    {Value, Rest2} = parse_value(Rest),
+    case Rest2 of
+        [{',',_} | Rest3] ->
+            {Map, Rest4} = parse_map(Rest3),
+            {Map#{Key => Value}, Rest4};
+        [{'}',_} | Rest3] ->
+            {#{Key => Value}, Rest3}
+    end.
+
+parse_list([{']',_line}|Rest]) ->
+    {[], Rest};
+parse_list(Tokens) ->
+    {Head , Rest} = parse_value(Tokens),
+    case Rest of
+        [{',',_} | Rest2] ->
+            {Tail, Rest3} = parse_list(Rest2),
+            {[Head | Tail], Rest3};
+        [{']',_} | Rest3] ->
+            {[Head], Rest3}
+    end.
+
+parse_tuple([{')',_line}|Rest]) ->
+    {[], Rest};
+parse_tuple(Tokens) ->
+    {Head , Rest} = parse_value(Tokens),
+    case Rest of
+        [{',',_} | Rest2] ->
+            {Tail, Rest3} = parse_tuple(Rest2),
+            {[Head | Tail], Rest3};
+        [{')',_} | Rest3] ->
+            {[Head], Rest3}
+    end.
+
+
+parse_value([{int,_line, Int} | Rest]) -> {Int, Rest};
+parse_value([{boolean,_line, Bool} | Rest]) -> {Bool, Rest};
+parse_value([{hash,_line, Hash} | Rest]) -> {Hash, Rest};
+parse_value([{'{',_line} | Rest]) -> parse_map(Rest);
+parse_value([{'[',_line} | Rest]) -> parse_list(Rest);
+parse_value([{'(',_line} | Rest]) -> parse_tuple(Rest).
 
 
 to_fun_def([{id, _, Name}, {'(', _} | Rest]) ->
@@ -689,9 +752,11 @@ serialize_type({tuple, Ts}) ->
         N when N =< 255 ->
             [3, N | [serialize_type(T) || T <- Ts]]
     end;
-serialize_type(address) -> 4;
-serialize_type(bits) -> 5;
-serialize_type({map, K, V}) -> [6 | serialize_type(K) ++ serialize_type(V)].
+serialize_type(address) -> [4];
+serialize_type(bits) -> [5];
+serialize_type({map, K, V}) -> [6 | serialize_type(K) ++ serialize_type(V)];
+serialize_type(string) -> [7].
+
 
 
 %% -------------------------------------------------------------------

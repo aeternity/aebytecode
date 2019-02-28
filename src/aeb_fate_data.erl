@@ -23,7 +23,7 @@
                         | {map, fate_type(), fate_type()}
                         | {tuple, [fate_type()]}
                         | address
-                        | bits 
+                        | bits
                         | {variant, integer()}.
 
 
@@ -147,7 +147,7 @@ format(M) when ?IS_FATE_MAP(M) ->
 format(?FATE_ADDRESS(Address)) -> ["#", address_to_base58(Address)];
 format(V) -> exit({not_a_fate_type, V}).
 
-format_list(List) -> 
+format_list(List) ->
     ["[ ", lists:join(", ", [format(E) || E <- List]), " ]"].
 
 format_kvs(List) ->

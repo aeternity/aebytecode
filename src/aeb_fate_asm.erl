@@ -10,10 +10,15 @@
 %%%         DUP
 %%%      Identifiers start with a lower case letter
 %%%         an_identifier
-%%%      References to function arguments start with arg
+%%%      References to function arguments start with arg followed by an integer
 %%%          arg0
-%%%      References to variables/registers start with var
+%%%      References to variables/registers start with var followed by an integer
 %%%          var0
+%%%      References to stack postions is either a (for stack 0)
+%%%       or start with stack followed by an integer
+%%%          stack1
+%%%          a
+%%%
 %%%      Immediates can be of 9 types:
 %%%       1. Integers
 %%%          42
@@ -815,7 +820,7 @@ to_list_of_types(Tokens) ->
             {[Type], Rest}
     end.
 
-
+-spec serialize_type(aeb_fate_data:fate_type_type()) -> [byte()].
 serialize_type(integer) -> [0];
 serialize_type(boolean) -> [1];
 serialize_type({list, T}) -> [2 | serialize_type(T)];

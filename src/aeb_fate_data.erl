@@ -15,9 +15,17 @@
 
 -type fate_variant() :: ?FATE_VARIANT_T.
 
--type fate_void()    :: ?FATE_VOID_T.
-
 -type fate_tuple()   :: ?FATE_TUPLE_T.
+
+-type fate_type_type() :: integer
+                        | boolean
+                        | {list, fate_type()}
+                        | {map, fate_type(), fate_type()}
+                        | {tuple, [fate_type()]}
+                        | address
+                        | bits 
+                        | {variant, integer()}.
+
 
 -type fate_type() ::
         fate_boolean()
@@ -30,11 +38,21 @@
       | fate_address()
       | fate_variant()
       | fate_map()
-      | fate_list()
-      | fate_tuple()
-      | fate_void(). %% Not sure we need this.
+      | fate_type_type().
 
--export_type([fate_type/0]).
+-export_type([fate_type/0
+             , fate_boolean/0
+             , fate_integer/0
+             , fate_nil/0
+             , fate_list/0
+             , fate_unit/0
+             , fate_tuple/0
+             , fate_string/0
+             , fate_address/0
+             , fate_variant/0
+             , fate_map/0
+             , fate_type_type/0
+             ]).
 
 -export([ make_integer/1
         , make_boolean/1
@@ -111,7 +129,6 @@ decode(M) when ?IS_FATE_MAP(M) ->
 
 -spec format(fate_type()) -> iolist().
 format(I) when ?IS_FATE_INTEGER(I) -> integer_to_list(?MAKE_FATE_INTEGER(I));
-format(?FATE_VOID) -> "void";
 format(?FATE_TRUE) -> "true";
 format(?FATE_FALSE) -> "false";
 format(?FATE_NIL) -> "[]";

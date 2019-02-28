@@ -135,28 +135,23 @@ format(?FATE_NIL) -> "[]";
 format(L) when ?IS_FATE_LIST(L) -> format_list(?FATE_LIST_VALUE(L));
 format(?FATE_UNIT) -> "()";
 format(?FATE_TUPLE(T)) ->
-    "{ " ++ [format(E) ++ " " || E <- erlang:tuple_to_list(T)] ++ "}";
+    ["( ", lists:join(", ", [ format(E) || E <- erlang:tuple_to_list(T)]), " )"];
 format(S) when ?IS_FATE_STRING(S) -> [S];
 format(?FATE_VARIANT(Size, Tag, T)) ->
-    "( " ++ integer_to_list(Size) ++ ", "
-        ++ integer_to_list(Tag) ++ ", "
-        ++ [format(E) ++ " " || E <- erlang:tuple_to_list(T)]
-        ++ " )";
+    ["(| ",
+      lists:join("| ", [integer_to_list(Size), integer_to_list(Tag) |
+                        [format(E) || E <- erlang:tuple_to_list(T)]]),
+     " |)"];
 format(M) when ?IS_FATE_MAP(M) ->
-    "#{ "
-        ++ format_kvs(maps:to_list(?FATE_MAP_VALUE(M)))
-        ++" }";
-format(?FATE_ADDRESS(Address)) -> address_to_base58(Address);
+    ["{ ", format_kvs(maps:to_list(?FATE_MAP_VALUE(M))), " }"];
+format(?FATE_ADDRESS(Address)) -> ["#", address_to_base58(Address)];
 format(V) -> exit({not_a_fate_type, V}).
 
-format_list([]) -> " ]";
-format_list([E]) -> format(E) ++ " ]";
-format_list([H|T]) -> format(H) ++ ", " ++ format_list(T).
+format_list(List) -> 
+    ["[ ", lists:join(", ", [format(E) || E <- List]), " ]"].
 
-format_kvs([]) -> "";
-format_kvs([{K,V}]) -> "( " ++ format(K) ++ " => " ++ format(V) ++ " )";
-format_kvs([{K,V} | Rest]) ->
-    "( " ++ format(K) ++ " => " ++  format(V) ++ " ), " ++ format_kvs(Rest).
+format_kvs(List) ->
+    lists:join(", ", [ [format(K), " => ",  format(V)] || {K, V} <- List]).
 
 
 %% -- Local base 58 library

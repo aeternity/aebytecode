@@ -499,4 +499,3 @@ gen_format(#{opname := Name, format := Args}) ->
               "\" \",  format_arg(~w, Arg6)];",
               [Name, NameAsString, T0, T1, T2, T3, T4, T5, T6])
     end.
-

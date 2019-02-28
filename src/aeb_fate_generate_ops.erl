@@ -18,7 +18,8 @@ generate(Src, Include) ->
     generate_header_file(HrlFile, Ops),
     generate_opcodes_ops(aeb_fate_opcodes, HrlFile, Src, Ops),
     generate_code_ops(aeb_fate_code, Src, Ops),
-    generate_scanner("aeb_fate_asm_scan.template", "aeb_fate_asm_scan.xrl", Src, Ops).
+    generate_scanner("aeb_fate_asm_scan.template", "aeb_fate_asm_scan.xrl", Src, Ops),
+    gen_asm_pp(aeb_fate_pp, Src, Ops).
 
 %% TODO: Some real gas numbers...
 ops_defs() ->
@@ -398,5 +399,103 @@ insert_tokens_in_template(<<"###REPLACEWITHNOTE###", Rest/binary >>, Tokens) ->
 insert_tokens_in_template(<<B,Rest/binary>>, Tokens) ->
     [B|insert_tokens_in_template(Rest, Tokens)].
 
+gen_asm_pp(Module, Path, Ops) ->
+    Filename = filename:join(Path, atom_to_list(Module)) ++ ".erl",
+    {ok, File} = file:open(Filename, [write]),
+    Formats = lists:flatten([gen_format(Op)++"\n" || Op <- Ops]),
 
+    io:format(File, "~s", [prelude(" Provide pretty printing functuions for "
+                                   "Fate instructions.\n")]),
+    io:format(File, "-module(~w).\n\n", [Module]),
+    io:format(File,
+              "-export([format_op/2]).\n\n"
+              "format_arg(t, T) ->\n"
+              "    io_lib:format(\"~~p \", [T]);\n"
+              "format_arg(li, List) ->\n"
+              "     [[\" \", E] || {immedate, E} <- List];\n"
+              "format_arg(_, {immediate, I}) ->\n"
+              "    aeb_fate_data:format(I);\n"
+              "format_arg(a, {arg, N}) -> io_lib:format(\"arg~~p\", [N]);\n"
+              "format_arg(a, {var, N}) -> io_lib:format(\"var~~p\", [N]);\n"
+              "format_arg(a, {stack, 0}) -> \"a\";\n"
+              "format_arg(a, {stack, N}) -> io_lib:format(\"a~~p\", [N]).\n\n"
+              "lookup(Name, Symbols) ->\n"
+              "    maps:get(Name, Symbols, Name).\n\n"
+              "~s"
+             , [Formats]),
 
+    io:format(File, "format_op(Op, _Symbols) -> io_lib:format(\";; Bad Op: ~~w\\n\", [Op]).\n", []),
+    file:close(File).
+
+gen_format(#{opname := Name}) when ('CALL' =:= Name) or (Name =:= 'CALL_T') ->
+    io_lib:format("format_op({~w, {immediate, Function}}, Symbols) ->\n"
+                  "[\"~s \", lookup(Function, Symbols)];",
+                  [Name, atom_to_list(Name)]);
+gen_format(#{opname := Name}) when (Name =:= 'CALL_R') or (Name =:= 'CALL_TR') ->
+    io_lib:format("format_op({~w, {immediate, Contract}, {immediate, Function}}, Symbols) ->\n"
+                  "[\"~s \", lookup(Contract, Symbols), \".\", lookup(Function, Symbols)];\n"
+                  "format_op({~w, Contract, {immediate, Function}}, Symbols) ->\n"
+                  "[\"~s \", format_arg(a, Contract), \".\", lookup(Function, Symbols)];",
+                  [Name, atom_to_list(Name), Name, atom_to_list(Name)]);
+gen_format(#{opname := Name, format := atomic}) ->
+    io_lib:format("format_op(~w, _) -> [\"~s\"];", [Name, atom_to_list(Name)]);
+gen_format(#{opname := Name, format := Args}) ->
+    NameAsString = atom_to_list(Name),
+    case Args of
+        [T0] ->
+            io_lib:format(
+              "format_op({~w, Arg0}, _) ->\n"
+              "    [\"~s \", format_arg(~w, Arg0)];",
+              [Name, NameAsString, T0]);
+        [T0, T1] ->
+            io_lib:format(
+              "format_op({~w, Arg0, Arg1}, _) ->\n"
+              "    [\"~s \", format_arg(~w, Arg0), "
+              "\" \",  format_arg(~w, Arg1)];",
+              [Name, NameAsString, T0, T1]);
+        [T0, T1, T2] ->
+            io_lib:format(
+              "format_op({~w, Arg0, Arg1, Arg2}, _) ->\n"
+              "    [\"~s \", format_arg(~w, Arg0), "
+              "\" \",  format_arg(~w, Arg1),"
+              "\" \",  format_arg(~w, Arg2)];",
+              [Name, NameAsString, T0, T1, T2]);
+        [T0, T1, T2, T3] ->
+            io_lib:format(
+              "format_op({~w, Arg0, Arg1, Arg2, Arg3}, _) ->\n"
+              "    [\"~s \", format_arg(~w, Arg0), "
+              "\" \",  format_arg(~w, Arg1),"
+              "\" \",  format_arg(~w, Arg2),"
+              "\" \",  format_arg(~w, Arg3)];",
+              [Name, NameAsString, T0, T1, T2, T3]);
+        [T0, T1, T2, T3, T4] ->
+            io_lib:format(
+              "format_op({~w, Arg0, Arg1, Arg2, Arg3, Arg4}, _) ->\n"
+              "    [\"~s \", format_arg(~w, Arg0), "
+              "\" \",  format_arg(~w, Arg1),"
+              "\" \",  format_arg(~w, Arg2),"
+              "\" \",  format_arg(~w, Arg3),"
+              "\" \",  format_arg(~w, Arg4)];",
+              [Name, NameAsString, T0, T1, T2, T3, T4]);
+        [T0, T1, T2, T3, T4, T5] ->
+            io_lib:format(
+              "format_op({~w, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5}, _) ->\n"
+              "    [\"~s \", format_arg(~w, Arg0), "
+              "\" \",  format_arg(~w, Arg1),"
+              "\" \",  format_arg(~w, Arg2),"
+              "\" \",  format_arg(~w, Arg3),"
+              "\" \",  format_arg(~w, Arg4),"
+              "\" \",  format_arg(~w, Arg5)];",
+              [Name, NameAsString, T0, T1, T2, T3, T4, T5]);
+        [T0, T1, T2, T3, T4, T5, T6] ->
+            io_lib:format(
+              "format_op({~w, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6}, _) ->\n"
+              "    [\"~s \", format_arg(~w, Arg0), "
+              "\" \",  format_arg(~w, Arg1),"
+              "\" \",  format_arg(~w, Arg2),"
+              "\" \",  format_arg(~w, Arg3),"
+              "\" \",  format_arg(~w, Arg4),"
+              "\" \",  format_arg(~w, Arg5),"
+              "\" \",  format_arg(~w, Arg6)];",
+              [Name, NameAsString, T0, T1, T2, T3, T4, T5, T6])
+    end.

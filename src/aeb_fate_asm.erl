@@ -2,6 +2,21 @@
 %%% @copyright (C) 2019, Aeternity Anstalt
 %%% @doc Assembler for Fate machine code.
 %%%
+%%%  Fate code exists in 3 formats:
+%%%
+%%%   1. Fate byte code. This format is under consensus.
+%%%   2. Fate assembler. This is a text represenation of fate code.
+%%%                      This is not under consensus and other
+%%%                      implemenation and toolchains could have
+%%%                      their own format.
+%%%   3. Internal. This is an Erlang representation of fate code
+%%%                Used by this particular engin implementation.
+%%%
+%%%  This library handles all tree representations.
+%%%  The byte code format is described in a separate document.
+%%%  The internal format is described in a separate document.
+%%%  The text representation is described here:
+%%%
 %%%      Assembler code can be read from a file.
 %%%      The assembler has the following format
 %%%      Comments start with 2 semicolons and runs till end of line
@@ -33,14 +48,15 @@
 %%%          false
 %%%       5. Strings
 %%%          "Hello"
-%%%       6. Empty map
+%%%       6. Map
 %%%          {}
+%%%          { 1 => { "foo" => true, "bar" => false}
 %%%       7. Lists
 %%%          []
 %%%          [1, 2]
 %%%       8. Bit field
 %%%          <000>
-%%%          <1010>
+%%%          <1010 1010>
 %%%          <>
 %%%          !<>
 %%%       9. Tuples
@@ -157,14 +173,6 @@ format_arg_types([T|Ts]) ->
     , ", "
     , format_arg_types(Ts)].
 
-format_arg({immediate, I}) ->
-    aeb_fate_data:format(I);
-format_arg({arg, N}) -> io_lib:format("arg~p", [N]);
-format_arg({var, N}) -> io_lib:format("var~p", [N]);
-format_arg({stack, 0}) -> "a";
-format_arg({stack, N}) -> io_lib:format("a~p", [N]).
-
-
 format_type(T) ->
     %% TODO: Limit to ok types.
     io_lib:format("~p", [T]).
@@ -180,156 +188,9 @@ format_code([], _) ->
     "";
 format_code([Op|Rest], Symbols) ->
     ["          ",
-     format_op(Op, Symbols),
+     aeb_fate_pp:format_op(Op, Symbols),
      "\n",
      format_code(Rest, Symbols)].
-
-format_op('RETURN', _) -> "RETURN";
-format_op({'RETURNR', Arg}, _) -> ["RETURNR ", format_arg(Arg)];
-format_op({'CALL', {immediate, Function}}, Symbols) ->
-    ["CALL ", lookup(Function, Symbols)];
-format_op({'CALL_T', {immediate, Function}}, Symbols) ->
-    ["CALL_T ", lookup(Function, Symbols)];
-format_op({'CALL_R',  {immediate, Contract}, {immediate, Function}}, Symbols) ->
-    ["CALL_R ", lookup(Contract, Symbols), "." , lookup(Function, Symbols)];
-format_op({'CALL_R', Contract, {immediate, Function}}, Symbols) ->
-    ["CALL_R ", format_arg(Contract), "." , lookup(Function, Symbols)];
-format_op({'CALL_TR', {immediate, Contract}, {immediate, Function}}, Symbols) ->
-    ["CALL_TR ", lookup(Contract, Symbols), "." , lookup(Function, Symbols)];
-format_op({'CALL_TR', Contract, {immediate, Function}}, Symbols) ->
-    ["CALL_TR ", format_arg(Contract), "." , lookup(Function, Symbols)];
-format_op({'JUMP', {immediate, BB}}, _) ->
-    ["JUMP ",  io_lib:format("~p", [BB])];
-format_op({'JUMPIF', Arg, {immediate, BB}}, _) ->
-    ["JUMPIF ", format_arg(Arg), " ",  io_lib:format("~p", [BB])];
-format_op({'SWITCH_V2', Variant, {immediate, BB1}, {immediate, BB2}}, _) ->
-    ["SWITCH_V2 ", format_arg(Variant), " ", BB1, " ", BB2];
-format_op({'SWITCH_V3', Variant, {immediate, BB1}, {immediate, BB2}, {immediate, BB3}}, _) ->
-    ["SWITCH_V2 ", format_arg(Variant), " ", BB1, " ", BB2, " ", BB3];
-format_op({'SWITCH_VN', Variant, BBs}, _) ->
-    ["SWITCH_VN ", format_arg(Variant), [[" ", BB] || {immedate, BB} <- BBs]];
-format_op({'PUSH', Arg0}, _) ->
-    ["PUSH ", format_arg(Arg0)];
-format_op('INCA', _) -> "INCA";
-format_op({'INC', Name}, _) -> ["INC ", format_arg(Name)];
-format_op({'DEC', Name}, _) -> ["DEC ", format_arg(Name)];
-format_op('DECA', _) -> "DECA";
-format_op({'ADD', Dest, Left, Right}, _) ->
-    ["ADD ", format_arg(Dest), " ", format_arg(Left), " ", format_arg(Right)];
-format_op({'SUB', Dest, Left, Right}, _) ->
-    ["SUB ", format_arg(Dest), " ", format_arg(Left), " ", format_arg(Right)];
-format_op({'MUL', Dest, Left, Right}, _) ->
-    ["MUL ", format_arg(Dest), " ", format_arg(Left), " ", format_arg(Right)];
-format_op({'DIV', Dest, Left, Right}, _) ->
-    ["DIV ", format_arg(Dest), " ", format_arg(Left), " ", format_arg(Right)];
-format_op({'MOD', Dest, Left, Right}, _) ->
-    ["MOD ", format_arg(Dest), " ", format_arg(Left), " ", format_arg(Right)];
-format_op({'POW', Dest, Left, Right}, _) ->
-    ["POW ", format_arg(Dest), " ", format_arg(Left), " ", format_arg(Right)];
-format_op({'LT', Dest,  Left, Right}, _) ->
-    ["LT ", format_arg(Dest), " ", format_arg(Left), " ", format_arg(Right)];
-format_op({'GT', Dest, Left, Right}, _) ->
-    ["GT ", format_arg(Dest), " ", format_arg(Left), " ", format_arg(Right)];
-format_op({'ELT', Dest, Left, Right}, _) ->
-    ["ELT ", format_arg(Dest), " ", format_arg(Left), " ", format_arg(Right)];
-format_op({'EGT', Dest, Left, Right}, _) ->
-    ["EGT ", format_arg(Dest), " ", format_arg(Left), " ", format_arg(Right)];
-format_op({'EQ', Dest, Left, Right}, _) ->
-    ["EQ ", format_arg(Dest), " ", format_arg(Left), " ", format_arg(Right)];
-format_op({'NEQ', Dest, Left, Right}, _) ->
-    ["NEQ ", format_arg(Dest), " ", format_arg(Left), " ", format_arg(Right)];
-format_op({'AND', Dest, Left, Right}, _) ->
-    ["AND ", format_arg(Dest), " ", format_arg(Left), " ", format_arg(Right)];
-format_op({'OR', Dest, Left, Right}, _) ->
-    ["OR ", format_arg(Dest), " ", format_arg(Left), " ", format_arg(Right)];
-format_op({'NOT', Dest, Name}, _) ->
-     ["NOT ", format_arg(Dest), " ", format_arg(Name)];
-format_op({'TUPLE', {immediate, Size}}, _) ->
-     ["TUPLE ", io_lib:format("~p", [Size])];
-format_op({'ELEMENT', Type, Dest, Which, Tuple}, _) ->
-    [ "ELEMENT "
-    , io_lib:format("~p ", [Type])
-    , format_arg(Dest), " "
-    , format_arg(Which), " "
-    , format_arg(Tuple)];
-format_op({'MAP_EMPTY', Dest}, _) ->
-    ["MAP_EMPTY ", format_arg(Dest)];
-format_op({'MAP_LOOKUP', Dest, Map, Key}, _) ->
-    ["MAP_LOOKUP ", format_arg(Dest), " "
-    , format_arg(Map), " ", format_arg(Key)];
-format_op({'MAP_DELETE', Dest, Map, Key}, _) ->
-    ["MAP_DELETE ", format_arg(Dest), " "
-    , format_arg(Map), " ", format_arg(Key)];
-format_op({'MAP_LOOKUPD', Dest, Map, Key, Default}, _) ->
-    ["MAP_LOOKUPD ", format_arg(Dest), " "
-    , format_arg(Map), " ", format_arg(Key), " ", format_arg(Default)];
-format_op({'MAP_UPDATE', Dest, Map, Key, Value}, _) ->
-    ["MAP_UPDATE ", format_arg(Dest), " "
-    , format_arg(Map), " ", format_arg(Key), " ", format_arg(Value)];
-format_op({'MAP_MEMBER', Dest, Map, Key}, _) ->
-    ["MAP_MEMBER ", format_arg(Dest), " "
-    , format_arg(Map), " ", format_arg(Key)];
-format_op({'MAP_FROM_LIST', Dest, List}, _) ->
-    ["MAP_FROM_LIST ", format_arg(Dest), " ", format_arg(List)];
-format_op({'NIL', Dest}, _) ->
-    ["NIL ", format_arg(Dest)];
-format_op({'IS_NIL', Dest, List}, _) ->
-    ["IS_NIL ", format_arg(Dest), " ", format_arg(List)];
-format_op({'CONS', Dest, Hd, Tl}, _) ->
-    ["CONS ", format_arg(Dest), " ", format_arg(Hd), " ", format_arg(Tl)];
-format_op({'HD', Dest, List}, _) ->
-    ["HD ", format_arg(Dest), " ", format_arg(List)];
-format_op({'TL', Dest, List}, _) ->
-    ["TL ", format_arg(Dest), " ", format_arg(List)];
-format_op({'LENGTH', Dest, List}, _) ->
-    ["LENGTH ", format_arg(Dest), " ", format_arg(List)];
-format_op({'STR_EQ', Dest, Str1, Str2}, _) ->
-    ["STR_EQ ", format_arg(Dest), " ", format_arg(Str1), format_arg(Str2)];
-format_op({'STR_JOIN', Dest, Str1, Str2}, _) ->
-    ["STR_JOIN ", format_arg(Dest), " ", format_arg(Str1), format_arg(Str2)];
-format_op({'INT_TO_STR', Dest, Str}, _) ->
-    ["INT_TO_STR ", format_arg(Dest), " ", format_arg(Str)];
-format_op({'ADDR_TO_STR', Dest, Str}, _) ->
-    ["ADDR_TO_STR ", format_arg(Dest), " ", format_arg(Str)];
-format_op({'STR_REVERSE', Dest, Str}, _) ->
-    ["STR_REVERSE ", format_arg(Dest), " ", format_arg(Str)];
-format_op({'INT_TO_ADDR', Dest, Str}, _) ->
-    ["INT_TO_ADDR ", format_arg(Dest), " ", format_arg(Str)];
-format_op({'VARIANT_TEST', Dest, Variant, Tag}, _) ->
-    ["VARIANT_TEST ", format_arg(Dest), " ", format_arg(Variant), " ", format_arg(Tag)];
-format_op({'VARIANT_ELEMENT', Dest, Variant, Index}, _) ->
-    ["VARIANT_ELEMENT ", format_arg(Dest), " ", format_arg(Variant), " ", format_arg(Index)];
-format_op({'VARIANT', Dest, SizeA, TagA, ElementsA}, _) ->
-    ["VARIANT ", format_arg(Dest), " ", format_arg(SizeA), " "
-    , format_arg(TagA), " ", format_arg(ElementsA)];
-format_op('BITS_NONEA', _) -> "BITS_NONEA ";
-format_op({'BITS_NONE', To}, _) -> ["BITS_NONE ", format_arg(To)];
-format_op('BITS_ALLA', _) -> "BITS_ALLA";
-format_op({'BITS_ALL', To}, _) -> ["BITS_ALL ", format_arg(To)];
-format_op({'BITS_ALL_N', To, N}, _) ->
-    ["BITS_ALL_N ", format_arg(To), " ", format_arg(N)];
-format_op({'BITS_SET', To, Bits, Bit}, _) ->
-    ["BITS_SET ", format_arg(To), " ", format_arg(Bits), " ", format_arg(Bit)];
-format_op({'BITS_CLEAR', To, Bits, Bit}, _) ->
-    ["BITS_CLEAR ", format_arg(To), " ", format_arg(Bits), " ", format_arg(Bit)];
-format_op({'BITS_TEST', To, Bits, Bit}, _) ->
-    ["BITS_TEST ", format_arg(To), " ", format_arg(Bits), " ", format_arg(Bit)];
-format_op({'BITS_SUM', To, Bits}, _) ->
-    ["BITS_SUM ", format_arg(To), " ", format_arg(Bits)];
-format_op({'BITS_OR', To, Bits, Bit}, _) ->
-    ["BITS_OR ", format_arg(To), " ", format_arg(Bits), " ", format_arg(Bit)];
-format_op({'BITS_AND', To, Bits, Bit}, _) ->
-    ["BITS_AND ", format_arg(To), " ", format_arg(Bits), " ", format_arg(Bit)];
-format_op({'BITS_DIFF', To, Bits, Bit}, _) ->
-    ["BITS_DIFF ", format_arg(To), " ", format_arg(Bits), " ", format_arg(Bit)];
-format_op('DUPA', _) -> "DUPA";
-format_op({'DUP', {immediate, N}}, _) ->
-    ["DUP ", io_lib:format("~p", [N])];
-format_op({'POP', Dest}, _) ->
-    ["POP ", format_arg(Dest)];
-format_op({'STORE', Var, What}, _) ->
-    ["STORE ", format_arg(Var), " ", format_arg(What)];
-format_op('NOP', _) -> "NOP".
 
 
 read_file(Filename) ->
@@ -709,7 +570,11 @@ deserialize_type(<<5, Rest/binary>>) -> {bits, Rest};
 deserialize_type(<<6, Rest/binary>>) ->
     {K, Rest2} = deserialize_type(Rest),
     {V, Rest3} = deserialize_type(Rest2),
-    {{map, K, V}, Rest3}.
+    {{map, K, V}, Rest3};
+deserialize_type(<<7, Rest/binary>>) ->
+    {string, Rest}.
+
+
 
 deserialize_types(0, Binary, Acc) ->
     {lists:reverse(Acc), Binary};
@@ -756,6 +621,19 @@ to_bytecode([{hash,_line, Hash}|Rest], Address, Env, Code, Opts) ->
 to_bytecode([{id,_line, ID}|Rest], Address, Env, Code, Opts) ->
     {Hash, Env2} = insert_symbol(ID, Env),
     to_bytecode(Rest, Address, Env2, [{immediate, Hash}|Code], Opts);
+to_bytecode([{'{',_line}|Rest], Address, Env, Code, Opts) ->
+    {Map, Rest2} = parse_map(Rest),
+    to_bytecode(Rest2, Address, Env, [{immediate, Map}|Code], Opts);
+to_bytecode([{'[',_line}|Rest], Address, Env, Code, Opts) ->
+    {List, Rest2} = parse_list(Rest),
+    to_bytecode(Rest2, Address, Env, [{immediate, List}|Code], Opts);
+to_bytecode([{'(',_line}|Rest], Address, Env, Code, Opts) ->
+    {Elements, Rest2} = parse_tuple(Rest),
+    Tuple = aeb_fate_data:make_tuple(list_to_tuple(Elements)),
+    to_bytecode(Rest2, Address, Env, [{immediate, Tuple}|Code], Opts);
+to_bytecode([{bits,_line, Bits}|Rest], Address, Env, Code, Opts) ->
+    to_bytecode(Rest, Address, Env, [{immediate, Bits}|Code], Opts);
+
 to_bytecode([{comment, Line, Comment}|Rest], Address, Env, Code, Opts) ->
     Env2 = insert_annotation(comment, Line, Comment, Env),
     to_bytecode(Rest, Address, Env2, Code, Opts);
@@ -771,6 +649,51 @@ to_bytecode([], Address, Env, Code, Opts) ->
             ok
     end,
     Env2.
+
+parse_map([{'}',_line}|Rest]) ->
+    {#{}, Rest};
+parse_map(Tokens) ->
+    {Key, [{arrow, _} | Rest]} = parse_value(Tokens),
+    {Value, Rest2} = parse_value(Rest),
+    case Rest2 of
+        [{',',_} | Rest3] ->
+            {Map, Rest4} = parse_map(Rest3),
+            {Map#{Key => Value}, Rest4};
+        [{'}',_} | Rest3] ->
+            {#{Key => Value}, Rest3}
+    end.
+
+parse_list([{']',_line}|Rest]) ->
+    {[], Rest};
+parse_list(Tokens) ->
+    {Head , Rest} = parse_value(Tokens),
+    case Rest of
+        [{',',_} | Rest2] ->
+            {Tail, Rest3} = parse_list(Rest2),
+            {[Head | Tail], Rest3};
+        [{']',_} | Rest3] ->
+            {[Head], Rest3}
+    end.
+
+parse_tuple([{')',_line}|Rest]) ->
+    {[], Rest};
+parse_tuple(Tokens) ->
+    {Head , Rest} = parse_value(Tokens),
+    case Rest of
+        [{',',_} | Rest2] ->
+            {Tail, Rest3} = parse_tuple(Rest2),
+            {[Head | Tail], Rest3};
+        [{')',_} | Rest3] ->
+            {[Head], Rest3}
+    end.
+
+
+parse_value([{int,_line, Int} | Rest]) -> {Int, Rest};
+parse_value([{boolean,_line, Bool} | Rest]) -> {Bool, Rest};
+parse_value([{hash,_line, Hash} | Rest]) -> {Hash, Rest};
+parse_value([{'{',_line} | Rest]) -> parse_map(Rest);
+parse_value([{'[',_line} | Rest]) -> parse_list(Rest);
+parse_value([{'(',_line} | Rest]) -> parse_tuple(Rest).
 
 
 to_fun_def([{id, _, Name}, {'(', _} | Rest]) ->
@@ -829,9 +752,11 @@ serialize_type({tuple, Ts}) ->
         N when N =< 255 ->
             [3, N | [serialize_type(T) || T <- Ts]]
     end;
-serialize_type(address) -> 4;
-serialize_type(bits) -> 5;
-serialize_type({map, K, V}) -> [6 | serialize_type(K) ++ serialize_type(V)].
+serialize_type(address) -> [4];
+serialize_type(bits) -> [5];
+serialize_type({map, K, V}) -> [6 | serialize_type(K) ++ serialize_type(V)];
+serialize_type(string) -> [7].
+
 
 
 %% -------------------------------------------------------------------

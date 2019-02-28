@@ -102,37 +102,38 @@ ops_defs() ->
     , { 'BLOCKHASH',    16#5e,    1,  false,   3, [a],           blockhash, "Arg0 := The current blockhash."} %% TODO: Do we support has at height?
     , { 'BENEFICIARY',  16#5f,    1,  false,   3, [a],         beneficiary, "Arg0 := The address of the current beneficiary."}
     , { 'TIMESTAMP',    16#60,    1,  false,   3, [a],           timestamp, "Arg0 := The current timestamp. Unrelaiable, don't use for anything."}
-    , { 'NUMBER',       16#61,    1,  false,   3, [a],              number, "Arg0 := The block height."}
-    , { 'DIFFICULTY',   16#62,    1,  false,   3, [a],          difficulty, "Arg0 := The current difficulty."}
-    , { 'GASLIMIT',     16#63,    1,  false,   3, [a],            gaslimit, "Arg0 := The current gaslimit."}
-    , { 'GAS',          16#64,    1,  false,   3, [a],                 gas, "Arg0 := The amount of gas left."}
+    , { 'GENERATION',   16#61,    1,  false,   3, [a],          generation, "Arg0 := The block height of the cureent generation."}
+    , { 'MICROBLOCK',   16#62,    1,  false,   3, [a],          microblock, "Arg0 := The current micro block number."}
+    , { 'DIFFICULTY',   16#63,    1,  false,   3, [a],          difficulty, "Arg0 := The current difficulty."}
+    , { 'GASLIMIT',     16#64,    1,  false,   3, [a],            gaslimit, "Arg0 := The current gaslimit."}
+    , { 'GAS',          16#65,    1,  false,   3, [a],                 gas, "Arg0 := The amount of gas left."}
 
-    , { 'LOG0',         16#65,    2,  false,   3, [a,a],               log, "Create a log message in the call object."}
-    , { 'LOG1',         16#66,    3,  false,   3, [a,a,a],             log, "Create a log message with one topic in the call object."}
-    , { 'LOG2',         16#67,    4,  false,   3, [a,a,a,a],           log, "Create a log message with two topics in the call object."}
-    , { 'LOG3',         16#68,    5,  false,   3, [a,a,a,a,a],         log, "Create a log message with three topics in the call object."}
-    , { 'LOG4',         16#69,    6,  false,   3, [a,a,a,a,a,a],       log, "Create a log message with four topics in the call object."}
-    , { 'DEACTIVATE',   16#6a,    0,  false,   3, atomic,       deactivate, "Mark the current contract for deactication."}
+    , { 'LOG0',         16#66,    2,  false,   3, [a,a],               log, "Create a log message in the call object."}
+    , { 'LOG1',         16#67,    3,  false,   3, [a,a,a],             log, "Create a log message with one topic in the call object."}
+    , { 'LOG2',         16#68,    4,  false,   3, [a,a,a,a],           log, "Create a log message with two topics in the call object."}
+    , { 'LOG3',         16#69,    5,  false,   3, [a,a,a,a,a],         log, "Create a log message with three topics in the call object."}
+    , { 'LOG4',         16#6a,    6,  false,   3, [a,a,a,a,a,a],       log, "Create a log message with four topics in the call object."}
+    , { 'DEACTIVATE',   16#6b,    0,  false,   3, atomic,       deactivate, "Mark the current contract for deactication."}
       %% Transaction ops
-    , { 'SPEND',               16#6b, 2, false,3, [a,a],                       spend, "Transfer Arg0 tokens to account Arg1. (If the contract account has at least that many tokens."}
-    , { 'ORACLE_REGISTER',     16#6c, 6, false,3, [a,a,a,a,a,a],     oracle_register, "Mark the current contract for deactication."}
+    , { 'SPEND',               16#6c, 2, false,3, [a,a],                       spend, "Transfer Arg0 tokens to account Arg1. (If the contract account has at least that many tokens."}
+    , { 'ORACLE_REGISTER',     16#6d, 6, false,3, [a,a,a,a,a,a],     oracle_register, "Mark the current contract for deactication."}
       %% TODO:
-    , { 'ORACLE_QUERY',        16#6d, 0, false,3, atomic,       oracle_query, ""}
-    , { 'ORACLE_RESPOND',      16#6e, 0, false,3, atomic,     oracle_respond, ""}
-    , { 'ORACLE_EXTEND',       16#6f, 0, false,3, atomic,      oracle_extend, ""}
-    , { 'ORACLE_GET_ANSWER',   16#70, 0, false,3, atomic,  oracle_get_answer, ""}
-    , { 'ORACLE_GET_QUESTION', 16#71, 0, false,3, atomic,oracle_get_question, ""}
-    , { 'ORACLE_QUERY_FEE',    16#72, 0, false,3, atomic,   oracle_query_fee, ""}
-    , { 'AENS_RESOLVE',        16#73, 0, false,3, atomic,       aens_resolve, ""}
-    , { 'AENS_PRECLAIM',       16#74, 0, false,3, atomic,      aens_preclaim, ""}
-    , { 'AENS_CLAIM',          16#75, 0, false,3, atomic,         aens_claim, ""}
-    , { 'AENS_UPDATE',         16#76, 0, false,3, atomic,        aend_update, ""}
-    , { 'AENS_TRANSFER',       16#77, 0, false,3, atomic,      aens_transfer, ""}
-    , { 'AENS_REVOKE',         16#78, 0, false,3, atomic,        aens_revoke, ""}
-    , { 'ECVERIFY',            16#79, 0, false,3, atomic,           ecverify, ""}
-    , { 'SHA3',                16#7a, 0, false,3, atomic,               sha3, ""}
-    , { 'SHA256',              16#7b, 0, false,3, atomic,             sha256, ""}
-    , { 'BLAKE2B',             16#7c, 0, false,3, atomic,            blake2b, ""}
+    , { 'ORACLE_QUERY',        16#6e, 0, false,3, atomic,       oracle_query, ""}
+    , { 'ORACLE_RESPOND',      16#6f, 0, false,3, atomic,     oracle_respond, ""}
+    , { 'ORACLE_EXTEND',       16#70, 0, false,3, atomic,      oracle_extend, ""}
+    , { 'ORACLE_GET_ANSWER',   16#71, 0, false,3, atomic,  oracle_get_answer, ""}
+    , { 'ORACLE_GET_QUESTION', 16#72, 0, false,3, atomic,oracle_get_question, ""}
+    , { 'ORACLE_QUERY_FEE',    16#73, 0, false,3, atomic,   oracle_query_fee, ""}
+    , { 'AENS_RESOLVE',        16#74, 0, false,3, atomic,       aens_resolve, ""}
+    , { 'AENS_PRECLAIM',       16#75, 0, false,3, atomic,      aens_preclaim, ""}
+    , { 'AENS_CLAIM',          16#76, 0, false,3, atomic,         aens_claim, ""}
+    , { 'AENS_UPDATE',         16#77, 0, false,3, atomic,        aend_update, ""}
+    , { 'AENS_TRANSFER',       16#78, 0, false,3, atomic,      aens_transfer, ""}
+    , { 'AENS_REVOKE',         16#79, 0, false,3, atomic,        aens_revoke, ""}
+    , { 'ECVERIFY',            16#7a, 0, false,3, atomic,           ecverify, ""}
+    , { 'SHA3',                16#7b, 0, false,3, atomic,               sha3, ""}
+    , { 'SHA256',              16#7c, 0, false,3, atomic,             sha256, ""}
+    , { 'BLAKE2B',             16#7d, 0, false,3, atomic,            blake2b, ""}
 
     , {'ABORT',         16#fb,    1,  false,   3, [a],               abort, "Abort execution (dont use all gas) with error message in Arg0."}
     , {'EXIT',          16#fc,    1,  false,   3, [a],                exit, "Abort execution (use upp all gas) with error message in Arg0."}

@@ -17,19 +17,20 @@ generate(Src, Include) ->
     HrlFile = Include ++ "aeb_fate_opcodes.hrl",
     generate_header_file(HrlFile, Ops),
     generate_opcodes_ops(aeb_fate_opcodes, HrlFile, Src, Ops),
-    generate_code_ops(aeb_fate_code, Src, Ops).
+    generate_code_ops(aeb_fate_code, Src, Ops),
+    generate_scanner("aeb_fate_asm_scan.template", "aeb_fate_asm_scan.xrl", Src, Ops).
 
 %% TODO: Some real gas numbers...
 ops_defs() ->
     %%  Opname,        Opcode, args, end_bb, gas, format,      Constructor, Documentation
-    [ { 'RETURN',       16#00,    0,   true,   2, atomic,           return, "Return from function call pop stack to arg0."}
-    , { 'RETURNR',      16#01,    1,   true,   2, [a],             returnr, "Return from function call copy Arg0 to arg0."}
-    , { 'CALL',         16#02,    1,   true,   4, [is],               call, "Call given function with args on stack."}
-    , { 'CALL_R',       16#03,    2,   true,   8, [a,is],           call_r, "Remote call to given contract and function."}
-    , { 'CALL_T',       16#04,    1,   true,   4, [is],             call_t, "Tail call to given function."}
-    , { 'CALL_TR',      16#05,    2,   true,   8, [a,is],          call_tr, "Remote tail call to given contract and function."}
-    , { 'JUMP',         16#06,    1,   true,   3, [ii],               jump, "Jump to a basic block."}
-    , { 'JUMPIF',       16#07,    2,   true,   4, [a,ii],           jumpif, "Conditional jump to a basic block."}
+    [ { 'RETURN',       16#00,    0,   true,   2, atomic,           return, "Return from function call pop stack to arg0. The type of the retun value has to match the return type of the function."}
+    , { 'RETURNR',      16#01,    1,   true,   2, [a],             returnr, "Return from function call copy Arg0 to arg0. The type of the retun value has to match the return type of the function."}
+    , { 'CALL',         16#02,    1,   true,   4, [is],               call, "Call given function with args on stack. The types of the arguments has to match the argument typs of the function."}
+    , { 'CALL_R',       16#03,    2,   true,   8, [a,is],           call_r, "Remote call to given contract and function.  The types of the arguments has to match the argument typs of the function."}
+    , { 'CALL_T',       16#04,    1,   true,   4, [is],             call_t, "Tail call to given function. The types of the arguments has to match the argument typs of the function. And the return type of the called function has to match the type of the current function."}
+    , { 'CALL_TR',      16#05,    2,   true,   8, [a,is],          call_tr, "Remote tail call to given contract and function. The types of the arguments has to match the argument typs of the function. And the return type of the called function has to match the type of the current function."}
+    , { 'JUMP',         16#06,    1,   true,   3, [ii],               jump, "Jump to a basic block. The basic block has to exist in the current function."}
+    , { 'JUMPIF',       16#07,    2,   true,   4, [a,ii],           jumpif, "Conditional jump to a basic block. If Arg0 then jump to Arg1."}
     , { 'SWITCH_V2',    16#08,    3,   true,   4, [a,ii,ii],        switch, "Conditional jump to a basic block on variant tag."}
     , { 'SWITCH_V3',    16#09,    4,   true,   4, [a,ii,ii,ii],     switch, "Conditional jump to a basic block on variant tag."}
     , { 'SWITCH_VN',    16#0a,    2,   true,   4, [a,li],           switch, "Conditional jump to a basic block on variant tag."}
@@ -371,4 +372,30 @@ expand_type(is) -> "fate_arg_immediate(aeb_fate_data:fate_string())";
 expand_type(ii) -> "fate_arg_immediate(aeb_fate_data:fate_integer())";
 expand_type(li) -> "[fate_arg_immediate(aeb_fate_data:fate_integer())]";
 expand_type(t)  -> "aeb_fate_data:fate_type_type()".
+
+generate_scanner(TemplateFile, Outfile, Path, Ops) ->
+    {ok, Template} = file:read_file(filename:join(Path,TemplateFile)),
+    Tokens = lists:flatten([gen_token(Op) || Op <- Ops]),
+    NewFile = insert_tokens_in_template(Template, Tokens),
+    file:write_file(filename:join(Path, Outfile), NewFile).
+
+gen_token(#{opname := OpName}) ->
+    Name = atom_to_list(OpName),
+    io_lib:format("~-28s: {token, {mnemonic, TokenLine, ~w}}.\n",
+                  [Name, OpName]).
+
+insert_tokens_in_template(<<"###REPLACEWITHOPTOKENS###", Rest/binary >>, Tokens) ->
+    [Tokens, Rest];
+insert_tokens_in_template(<<"###REPLACEWITHNOTE###", Rest/binary >>, Tokens) ->
+    [
+     "%%%\n"
+     "%%%   === ===  N O T E :   This file is generated do not edit. === ===\n"
+     "%%%\n"
+     "%%% Source is in aeb_fate_generate_ops.erl\n"
+     "%%%          and aeb_fate_asm_scan.template"
+     | insert_tokens_in_template(Rest, Tokens)];
+insert_tokens_in_template(<<B,Rest/binary>>, Tokens) ->
+    [B|insert_tokens_in_template(Rest, Tokens)].
+
+
 

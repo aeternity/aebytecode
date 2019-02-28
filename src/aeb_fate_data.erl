@@ -133,7 +133,7 @@ format(?FATE_TRUE) -> "true";
 format(?FATE_FALSE) -> "false";
 format(?FATE_NIL) -> "[]";
 format(L) when ?IS_FATE_LIST(L) -> format_list(?FATE_LIST_VALUE(L));
-format(?FATE_UNIT) -> "unit";
+format(?FATE_UNIT) -> "()";
 format(?FATE_TUPLE(T)) ->
     "{ " ++ [format(E) ++ " " || E <- erlang:tuple_to_list(T)] ++ "}";
 format(S) when ?IS_FATE_STRING(S) -> [S];

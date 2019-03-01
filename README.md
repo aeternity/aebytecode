@@ -51,11 +51,10 @@ or start with stack followed by an integer
 
 Immediate values can be of 9 types:
 
-1a. Integers as decimals: {Digits} or -{Digits}
+1. Integers as decimals: {Digits} or -{Digits}
  `42`
  `-2374683271468723648732648736498712634876147`
-
-1b. Integers as Hexadecimals::  0x{Hexdigits}
+  And integers as Hexadecimals::  0x{Hexdigits}
  `0x0deadbeef0`
 
 2. addresses, a base58 encoded string starting with #{base58char}

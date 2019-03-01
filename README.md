@@ -91,13 +91,22 @@ Immediate values can be of 9 types:
  `(| 42 | 12 | ( "foo", 12) |)`
 
 Where
- Digits: [0123456789]
- Hexdigits:  [0123456789abcdef]
- base58char:  [123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]
- Characters any printable ascii character 0..255 (except " no quoting yet)
- Key: any value except for a map
- Bits: 01 or space
- Elements: Nothing or Value , Elements
- Size: Digits
- Tag: Digits
+
+Digits: [0123456789]
+
+Hexdigits:  [0123456789abcdef]
+
+base58char:  [123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]
+
+Characters: any printable ascii character 0..255 (except " no quoting yet)
+
+Key: any value except for a map
+
+Bits: 01 or space
+
+Elements: Nothing or Value , Elements
+
+Size: Digits (0 < Size < 256)
+
+Tag: Digits (0 =< Tag < Size)
 

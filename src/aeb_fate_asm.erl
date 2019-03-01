@@ -34,34 +34,47 @@
 %%%          stack1
 %%%          a
 %%%
-%%%      Immediates can be of 9 types:
-%%%       1. Integers
+%%%      Immediate values can be of 9 types:
+%%%      1a. Integers as decimals: {Digits} or -{Digits}
 %%%          42
 %%%          -2374683271468723648732648736498712634876147
-%%%       2. Hexadecimal integers starting with 0x
+%%%      1b. Integers as Hexadecimals::  0x{Hexdigits}
 %%%          0x0deadbeef0
-%%%       3. addresses, a 256-bit hash strings starting with #
+%%%       2. addresses, a base58 encoded string starting with #{base58char}
 %%%          followed by up to 64 hex chars
 %%%          #00000deadbeef
-%%%       4. Boolean
+%%%       3. Boolean  true or false
 %%%          true
 %%%          false
-%%%       5. Strings
+%%%       4. Strings  "{Characters}"
 %%%          "Hello"
-%%%       6. Map
+%%%       5. Map  { Key => Value }
 %%%          {}
 %%%          { 1 => { "foo" => true, "bar" => false}
-%%%       7. Lists
+%%%       6. Lists [ Elements ]
 %%%          []
 %%%          [1, 2]
-%%%       8. Bit field
+%%%       7. Bit field < Bits > or !< Bits >
 %%%          <000>
 %%%          <1010 1010>
 %%%          <>
 %%%          !<>
-%%%       9. Tuples
+%%%       8. Tuples ( Elements )
 %%%          ()
 %%%          (1, "foo")
+%%%       9. Variants: (| Size | Tag | ( Elements ) |)
+%%%          (| 42 | 12 | ( "foo", 12) |)
+%%%
+%%%       Where Digits: [0123456789]
+%%%             Hexdigits:  [0123456789abcdef]
+%%%             base58char:  [123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]
+%%%             Characters any printable ascii character 0..255 (except " no quoting yet)
+%%%             Key: any value except for a map
+%%%             Bits: 01 or space
+%%%             Elements: Nothing or Value , Elements
+%%%             Size: Digits
+%%%             Tag: Digits
+%%%
 %%% @end
 %%% Created : 21 Dec 2017
 %%%-------------------------------------------------------------------
@@ -100,20 +113,13 @@ parse_function_call([{id,_,Name}, {'(',_}| Rest]) ->
 
 to_args([{')', _}]) -> {[], []};
 to_args(Tokens) ->
-    case to_data(Tokens) of
+    case parse_value(Tokens) of
         {Arg, [{',', _} |  Rest]} ->
             {More, Rest2} = to_args(Rest),
             {[Arg|More], Rest2};
         {Arg, [{')', _} |  Rest]} ->
             {[Arg], Rest}
     end.
-
-to_data([{int,_line, Int}|Rest]) ->
-    {Int, Rest};
-to_data([{boolean,_line, Bool}|Rest]) ->
-    {Bool, Rest};
-to_data([{hash,_line, Hash}|Rest]) ->
-    {Hash, Rest}.
 
 pp(FateCode) ->
     Listing = to_asm(FateCode),
@@ -572,7 +578,16 @@ deserialize_type(<<6, Rest/binary>>) ->
     {V, Rest3} = deserialize_type(Rest2),
     {{map, K, V}, Rest3};
 deserialize_type(<<7, Rest/binary>>) ->
-    {string, Rest}.
+    {string, Rest};
+deserialize_type(<<8, Size, Rest/binary>>) ->
+    {Variants, Rest2} = deserialize_variants(Size, Rest, []),
+    {{variant, Variants}, Rest2}.
+
+deserialize_variants(0, Rest, Variants) ->
+    {lists:reverse(Variants), Rest};
+deserialize_variants(N, Rest, Variants) ->
+    {T, Rest2} = deserialize_type(Rest),
+    deserialize_variants(N-1, Rest2, [T|Variants]).
 
 
 
@@ -616,8 +631,14 @@ to_bytecode([{int,_line, Int}|Rest], Address, Env, Code, Opts) ->
     to_bytecode(Rest, Address, Env, [{immediate, Int}|Code], Opts);
 to_bytecode([{boolean,_line, Bool}|Rest], Address, Env, Code, Opts) ->
     to_bytecode(Rest, Address, Env, [{immediate, Bool}|Code], Opts);
-to_bytecode([{hash,_line, Hash}|Rest], Address, Env, Code, Opts) ->
-    to_bytecode(Rest, Address, Env, [{immediate, Hash}|Code], Opts);
+to_bytecode([{string,_line, String}|Rest], Address, Env, Code, Opts) ->
+    to_bytecode(Rest, Address, Env,
+                [{immediate, aeb_fate_data:make_string(String)}|Code],
+                Opts);
+to_bytecode([{address,_line, Value}|Rest], Address, Env, Code, Opts) ->
+    to_bytecode(Rest, Address, Env,
+                [{immediate, aeb_fate_data:make_address(Value)}|Code],
+                Opts);
 to_bytecode([{id,_line, ID}|Rest], Address, Env, Code, Opts) ->
     {Hash, Env2} = insert_symbol(ID, Env),
     to_bytecode(Rest, Address, Env2, [{immediate, Hash}|Code], Opts);
@@ -631,6 +652,10 @@ to_bytecode([{'(',_line}|Rest], Address, Env, Code, Opts) ->
     {Elements, Rest2} = parse_tuple(Rest),
     Tuple = aeb_fate_data:make_tuple(list_to_tuple(Elements)),
     to_bytecode(Rest2, Address, Env, [{immediate, Tuple}|Code], Opts);
+to_bytecode([{start_variant,_line}|_] = Tokens, Address, Env, Code, Opts) ->
+    {Size, Tag, Values, Rest} = parse_variant(Tokens),
+    Variant = aeb_fate_data:make_variant(Size, Tag, Values),
+    to_bytecode(Rest, Address, Env, [{immediate, Variant}|Code], Opts);
 to_bytecode([{bits,_line, Bits}|Rest], Address, Env, Code, Opts) ->
     to_bytecode(Rest, Address, Env,
                 [{immediate, aeb_fate_data:make_bits(Bits)}|Code], Opts);
@@ -689,13 +714,35 @@ parse_tuple(Tokens) ->
     end.
 
 
+parse_variant([{start_variant,_line}
+              , {int,_line, Size}
+              , {'|',_}
+              , {int,_line, Tag}
+              , {'|',_}
+              , {'(',_}
+              | Rest]) when (Size > 0), (Tag < Size) ->
+    {Elements , [{end_variant, _} | Rest2]} = parse_tuple(Rest),
+    {Size, Tag, list_to_tuple(Elements), Rest2}.
+
+
 parse_value([{int,_line, Int} | Rest]) -> {Int, Rest};
 parse_value([{boolean,_line, Bool} | Rest]) -> {Bool, Rest};
 parse_value([{hash,_line, Hash} | Rest]) -> {Hash, Rest};
 parse_value([{'{',_line} | Rest]) -> parse_map(Rest);
 parse_value([{'[',_line} | Rest]) -> parse_list(Rest);
-parse_value([{'(',_line} | Rest]) -> parse_tuple(Rest).
-
+parse_value([{'(',_line} | Rest]) ->
+    {T, Rest2} = parse_tuple(Rest),
+    {aeb_fate_data:make_tuple(list_to_tuple(T)), Rest2};
+parse_value([{bits,_line, Bits} | Rest]) ->
+    {aeb_fate_data:make_bits(Bits), Rest};
+parse_value([{start_variant,_line}|_] = Tokens) ->
+    {Size, Tag, Values, Rest} = parse_variant(Tokens),
+    Variant = aeb_fate_data:make_variant(Size, Tag, Values),
+    {Variant, Rest};
+parse_value([{string,_line, String} | Rest]) ->
+    {aeb_fate_data:make_string(String), Rest};
+parse_value([{address,_line, Address} | Rest]) ->
+    {aeb_fate_data:make_address(Address), Rest}.
 
 to_fun_def([{id, _, Name}, {'(', _} | Rest]) ->
     {ArgsType, [{'to', _} | Rest2]} = to_arg_types(Rest),
@@ -732,7 +779,16 @@ to_type([{'{', _}, {id, _, "map"}, {',', _} | Rest]) ->
     %% TODO: Error handling
     {KeyType, [{',', _}| Rest2]} = to_type(Rest),
     {ValueType, [{'}', _}| Rest3]} = to_type(Rest2),
-    {{map, KeyType, ValueType}, Rest3}.
+    {{map, KeyType, ValueType}, Rest3};
+to_type([{'{', _}
+        , {id, _, "variant"}
+        , {',', _}
+        , {'[', _}
+         | Rest]) ->
+    %% TODO: Error handling
+    {ElementTypes, [{'}', _}| Rest2]} = to_list_of_types(Rest),
+    {{variant, ElementTypes}, Rest2}.
+
 
 to_list_of_types([{']', _} | Rest]) -> {[], Rest};
 to_list_of_types(Tokens) ->
@@ -756,8 +812,12 @@ serialize_type({tuple, Ts}) ->
 serialize_type(address) -> [4];
 serialize_type(bits) -> [5];
 serialize_type({map, K, V}) -> [6 | serialize_type(K) ++ serialize_type(V)];
-serialize_type(string) -> [7].
-
+serialize_type(string) -> [7];
+serialize_type({variant, ListOfVariants}) ->
+    Size = length(ListOfVariants),
+    if Size < 256 ->
+            [8, Size | [serialize_type(T) || T <- ListOfVariants]]
+    end.
 
 
 %% -------------------------------------------------------------------

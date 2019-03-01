@@ -144,7 +144,7 @@ format(?FATE_BITS(B)) when B < 0 ->
 format(?FATE_VARIANT(Size, Tag, T)) ->
     ["(| ",
       lists:join("| ", [integer_to_list(Size), integer_to_list(Tag) |
-                        [format(E) || E <- erlang:tuple_to_list(T)]]),
+                        [format(make_tuple(T))]]),
      " |)"];
 format(M) when ?IS_FATE_MAP(M) ->
     ["{ ", format_kvs(maps:to_list(?FATE_MAP_VALUE(M))), " }"];
@@ -153,18 +153,13 @@ format(V) -> exit({not_a_fate_type, V}).
 
 format_bits(0, Acc) -> Acc;
 format_bits(N, Acc) ->
-    case N band 1 of
-        1 -> format_bits(N bsr 1, [$1|Acc]);
-        0 -> format_bits(N bsr 1, [$0|Acc])
-    end.
+    Bit = $0 + (N band 1),
+    format_bits(N bsr 1, [Bit|Acc]).
 
 format_nbits(0, Acc) -> Acc;
 format_nbits(N, Acc) ->
-    case N band 1 of
-        1 -> format_nbits(N bsr 1, [$0|Acc]);
-        0 -> format_nbits(N bsr 1, [$1|Acc])
-    end.
-
+    Bit = $1 - (N band 1),
+    format_nbits(N bsr 1, [Bit|Acc]).
 
 format_list(List) ->
     ["[ ", lists:join(", ", [format(E) || E <- List]), " ]"].

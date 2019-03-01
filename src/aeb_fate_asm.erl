@@ -632,7 +632,8 @@ to_bytecode([{'(',_line}|Rest], Address, Env, Code, Opts) ->
     Tuple = aeb_fate_data:make_tuple(list_to_tuple(Elements)),
     to_bytecode(Rest2, Address, Env, [{immediate, Tuple}|Code], Opts);
 to_bytecode([{bits,_line, Bits}|Rest], Address, Env, Code, Opts) ->
-    to_bytecode(Rest, Address, Env, [{immediate, Bits}|Code], Opts);
+    to_bytecode(Rest, Address, Env,
+                [{immediate, aeb_fate_data:make_bits(Bits)}|Code], Opts);
 
 to_bytecode([{comment, Line, Comment}|Rest], Address, Env, Code, Opts) ->
     Env2 = insert_annotation(comment, Line, Comment, Env),

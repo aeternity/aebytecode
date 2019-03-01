@@ -85,7 +85,7 @@ Immediate values can be of 9 types:
  `()`
  `(1, "foo")`
 
-9. Varaiants: (| Size | Tag | ( Elements ) |)
+9. Variants: (| Size | Tag | ( Elements ) |)
  `(| 42 | 12 | ( "foo", 12) |)`
 
 Where

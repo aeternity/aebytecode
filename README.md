@@ -57,8 +57,7 @@ Immediate values can be of 9 types:
   And integers as Hexadecimals::  0x{Hexdigits}
  `0x0deadbeef0`
 
-2. addresses, a base58 encoded string starting with #{base58char}
- followed by up to 64 hex chars
+2. addresses, a base58 encoded string starting with # followed by a number of base58chars
  `#nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv`
 
 3. Boolean  true or false

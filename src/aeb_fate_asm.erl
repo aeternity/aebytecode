@@ -710,20 +710,6 @@ serialize_code([B|Rest]) ->
     [B | serialize_code(Rest)];
 serialize_code([]) -> [].
 
-serialize_n_ints(N, Rest) ->
-    serialize_n_ints(N, Rest, []).
-
-serialize_n_ints(0, Rest, Acc) ->
-    %% Acc is a list of binaries.
-    {lists:reverse(Acc), Rest};
-serialize_n_ints(N, [Int|Rest], Acc) when is_integer(Int), Int >= 0 ->
-    serialize_n_ints(N - 1, Rest, [aeb_fate_encoding:serialize(Int)|Acc]);
-serialize_n_ints(_, [], _) ->
-    exit(not_enough_bbs_for_switch_vn);
-serialize_n_ints(_, _, _) ->
-    exit(bad_bbs_value_for_switch_vn).
-
-
 
 %% 00 : stack/unused (depending on instruction)
 %% 01 : argN

@@ -137,8 +137,11 @@ ops_defs() ->
     , { 'SHA256',              16#7c, 0, false,3, atomic,             sha256, ""}
     , { 'BLAKE2B',             16#7d, 0, false,3, atomic,            blake2b, ""}
 
-    , {'ABORT',         16#fb,    1,  false,   3, [a],               abort, "Abort execution (dont use all gas) with error message in Arg0."}
-    , {'EXIT',          16#fc,    1,  false,   3, [a],                exit, "Abort execution (use upp all gas) with error message in Arg0."}
+
+    , { 'DUMMY7ARG',           16#f9, 7, false,3, [a,a,a,a,a,a,a],  dummyarg, "Temporary dummy instruction to test 7 args."}
+    , { 'DUMMY8ARG',           16#fa, 8, false,3, [a,a,a,a,a,a,a,a],dummyarg, "Temporary dummy instruction to test 8 args."}
+    , { 'ABORT',         16#fb,    1,  false,   3, [a],               abort, "Abort execution (dont use all gas) with error message in Arg0."}
+    , { 'EXIT',          16#fc,    1,  false,   3, [a],                exit, "Abort execution (use upp all gas) with error message in Arg0."}
     , { 'NOP',          16#fd,    0,  false,   1, atomic,              nop, "The no op. does nothing."}
     %% FUNCTION         16#fe                                               "Function declaration and entrypoint."
     %% EXTEND           16#ff                                               "Reserved for future extensions beyond one byte opcodes."
@@ -498,7 +501,19 @@ gen_format(#{opname := Name, format := Args}) ->
               "\" \",  format_arg(~w, Arg4),"
               "\" \",  format_arg(~w, Arg5),"
               "\" \",  format_arg(~w, Arg6)];",
-              [Name, NameAsString, T0, T1, T2, T3, T4, T5, T6])
+              [Name, NameAsString, T0, T1, T2, T3, T4, T5, T6]);
+        [T0, T1, T2, T3, T4, T5, T6, T7] ->
+            io_lib:format(
+              "format_op({~w, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7}, _) ->\n"
+              "    [\"~s \", format_arg(~w, Arg0), "
+              "\" \",  format_arg(~w, Arg1),"
+              "\" \",  format_arg(~w, Arg2),"
+              "\" \",  format_arg(~w, Arg3),"
+              "\" \",  format_arg(~w, Arg4),"
+              "\" \",  format_arg(~w, Arg5),"
+              "\" \",  format_arg(~w, Arg6),"
+              "\" \",  format_arg(~w, Arg7)];",
+              [Name, NameAsString, T0, T1, T2, T3, T4, T5, T6, T7])
     end.
 
 test_asm_generator(Filename) ->

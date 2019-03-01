@@ -1,0 +1,229 @@
+;; CONTRACT all_instructions
+
+;; Dont expect this contract to typecheck or run.
+;; Just used to check assembler rountrip of all instruction.
+
+FUNCTION foo () : {tuple, []}
+  RETURN
+
+  RETURNR var150
+
+  CALL foo
+
+  CALL_R arg242 foo
+
+  CALL_T foo
+
+  CALL_TR a foo
+
+  JUMP 2778181099722339546444847932597842403980
+
+  JUMPIF arg71 17
+
+  SWITCH_V2 var242 7 51
+
+  SWITCH_V3 var90 0x1bdd846f3 9 0x17cbdd6c9
+
+  SWITCH_VN arg153 [1, 2, 3]
+
+  PUSH var118
+
+  DUPA
+
+  DUP var85
+
+  POP (| 2 | 1 | ( 4557687389579322034215261600548680294108 ) |)
+
+  STORE 0x23f57a6d7 a
+
+  INCA
+
+  INC var100
+
+  DECA
+
+  DEC var230
+
+  ADD a111 a a
+
+  SUB 93 arg198 a140
+
+  MUL var240 a77 arg67
+
+  DIV arg169 1 95
+
+  MOD a241 a a
+
+  POW arg143 a a121
+
+  LT a252 var158 var204
+
+  GT var141 a195 6565006908676281259280322225737939009024
+
+  EQ arg16 a166 0x8f076589
+
+  ELT var117 0x8175205c 0xb659ba4a
+
+  EGT a a a
+
+  NEQ var105 a arg170
+
+  AND a154 var183 a55
+
+  OR var103 var201 a250
+
+  NOT arg158 a17
+
+  TUPLE 6
+
+  ELEMENT integer (| 2 | 0 | ( 7875086700039857579956050953972728274596, 35 ) |) a9 a27
+
+  MAP_EMPTY a180
+
+  MAP_LOOKUP var76 arg238 arg180
+
+  MAP_LOOKUPD a arg209 arg71 !<>
+
+  MAP_UPDATE arg243 a13 false a
+
+  MAP_DELETE arg237 arg138 0x16bb2da52
+
+  MAP_MEMBER a134 a49 arg231
+
+  MAP_FROM_LIST a250 8
+
+  NIL [ ]
+
+  IS_NIL 0x21968d787 5311352343894713188976994917630885293949
+
+  CONS a arg209 57
+
+  HD arg242 a
+
+  TL a var194
+
+  LENGTH var70 a236
+
+  STR_EQ (| 5 | 2 | (1, "foo", ()) |) 50 (| 2 | 1 | ( 0x17a9e8119 ) |)
+
+  STR_JOIN a1 a85 <>
+
+  INT_TO_STR a82 var203
+
+  ADDR_TO_STR arg159 a199
+
+  STR_REVERSE a36 a
+
+  INT_TO_ADDR var161 arg92
+
+  VARIANT var252 a162 a 0xb1912372
+
+  VARIANT_TEST 11 arg173 [ (), 3 ]
+
+  VARIANT_ELEMENT a103 a201 a
+
+  BITS_NONEA
+
+  BITS_NONE [ (| 2 | 1 | ( { 0xa0ee2284 => [ 6 ]} ) |) ]
+
+  BITS_ALLA
+
+  BITS_ALL "foo"
+
+  BITS_ALL_N a a77
+
+  BITS_SET a53 var101 arg213
+
+  BITS_CLEAR arg142 a var157
+
+  BITS_TEST var125 ([(| 2 | 1 | ( 4 ) |) ]) 3084289254269705189827835600187262322355
+
+  BITS_SUM var197 a
+
+  BITS_OR a var35 ("foo")
+
+  BITS_AND a1 a8 arg213
+
+  BITS_DIFF a var24 a
+
+  ADDRESS 8
+
+  BALANCE 2
+
+  ORIGIN var208
+
+  CALLER 90
+
+  GASPRICE a188
+
+  BLOCKHASH arg18
+
+  BENEFICIARY a
+
+  TIMESTAMP arg84
+
+  GENERATION arg110
+
+  MICROBLOCK { 3 => 7374978216136870915189251106310661704403}
+
+  DIFFICULTY var58
+
+  GASLIMIT a
+
+  GAS { true => 0x10acb2ff2}
+
+  LOG0 var170 arg108
+
+  LOG1 a [] arg209
+
+  LOG2 a var170 arg8 a
+
+  LOG3 arg213 a #nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv [ "foo", [] ] var204
+
+  LOG4 a57 a 0x237fcc40c arg167 arg230 var59
+
+  DEACTIVATE
+
+  SPEND arg243 var172
+
+  ORACLE_REGISTER a arg223 var193 arg60 a111 a182
+
+  ORACLE_QUERY
+
+  ORACLE_RESPOND
+
+  ORACLE_EXTEND
+
+  ORACLE_GET_ANSWER
+
+  ORACLE_GET_QUESTION
+
+  ORACLE_QUERY_FEE
+
+  AENS_RESOLVE
+
+  AENS_PRECLAIM
+
+  AENS_CLAIM
+
+  AENS_UPDATE
+
+  AENS_TRANSFER
+
+  AENS_REVOKE
+
+  ECVERIFY
+
+  SHA3
+
+  SHA256
+
+  BLAKE2B
+
+  ABORT a
+
+  EXIT (0x34df4f98)
+
+  NOP
+
+  RETURNR ()

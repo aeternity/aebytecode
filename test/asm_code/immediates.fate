@@ -65,4 +65,9 @@ FUNCTION tuple() : {tuple, [integer, boolean, string, {tuple, [integer, integer]
          RETURNR (42, true, "FooBar", (1, 2))
 
 
+FUNCTION address() : address
+         RETURNR #deadbeef
 
+;; Option(integer) = NONE | SOME(integer)
+FUNCTION varaint() : {variant, 2, [{tuple, []}, {tuple, [integer]}]}
+         RETURNR #deadbeef

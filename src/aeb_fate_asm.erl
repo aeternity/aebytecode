@@ -581,7 +581,7 @@ deserialize_type(<<7, Rest/binary>>) ->
     {string, Rest};
 deserialize_type(<<8, Size, Rest/binary>>) ->
     {Variants, Rest2} = deserialize_variants(Size, Rest, []),
-    {{variant, Size, Variants}, Rest2}.
+    {{variant, Variants}, Rest2}.
 
 deserialize_variants(0, Rest, Variants) ->
     {lists:reverse(Variants), Rest};
@@ -783,17 +783,11 @@ to_type([{'{', _}, {id, _, "map"}, {',', _} | Rest]) ->
 to_type([{'{', _}
         , {id, _, "variant"}
         , {',', _}
-        , {int, _, Size}
-        , {',', _}
         , {'[', _}
-         | Rest]) when Size > 0
-                       , Size < 256 ->
-    {ElementTypes, [{'}', _}| Rest2]} = to_list_of_types(Rest),
+         | Rest]) ->
     %% TODO: Error handling
-    if Size =:= length(ElementTypes) ->
-            {{variant, Size, ElementTypes}, Rest2}
-    end.
-
+    {ElementTypes, [{'}', _}| Rest2]} = to_list_of_types(Rest),
+    {{variant, ElementTypes}, Rest2}.
 
 
 to_list_of_types([{']', _} | Rest]) -> {[], Rest};
@@ -819,11 +813,11 @@ serialize_type(address) -> [4];
 serialize_type(bits) -> [5];
 serialize_type({map, K, V}) -> [6 | serialize_type(K) ++ serialize_type(V)];
 serialize_type(string) -> [7];
-serialize_type({variant, Size, ListOfVariants})
-  when Size > 0
-       , Size < 256
-       , Size =:= length(ListOfVariants) ->
-    [8, Size | [serialize_type(T) || T <- ListOfVariants]].
+serialize_type({variant, ListOfVariants}) ->
+    Size = length(ListOfVariants),
+    if Size < 256 ->
+            [8, Size | [serialize_type(T) || T <- ListOfVariants]]
+    end.
 
 
 %% -------------------------------------------------------------------

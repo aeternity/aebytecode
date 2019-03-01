@@ -50,33 +50,43 @@ or start with stack followed by an integer
 `a`
 
 Immediate values can be of 9 types:
+
 1a. Integers as decimals: {Digits} or -{Digits}
  `42`
  `-2374683271468723648732648736498712634876147`
+
 1b. Integers as Hexadecimals::  0x{Hexdigits}
  `0x0deadbeef0`
+
 2. addresses, a base58 encoded string starting with #{base58char}
  followed by up to 64 hex chars
  `#nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv`
+
 3. Boolean  true or false
  `true`
  `false`
+
 4. Strings  "{Characters}"
  `"Hello"`
+
 5. Map  { Key => Value }
  `{}`
  `{ 1 => { "foo" => true, "bar" => false}`
+
 6. Lists [ Elements ]
  `[]`
  `[1, 2]`
+
 7. Bit field < Bits > or !< Bits >
  `<000>`
  `<1010 1010>`
  `<>`
  `!<>`
+
 8. Tuples ( Elements )
  `()`
  `(1, "foo")`
+
 9. Varaiants: (| Size | Tag | ( Elements ) |)
  `(| 42 | 12 | ( "foo", 12) |)`
 

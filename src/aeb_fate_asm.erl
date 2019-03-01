@@ -62,7 +62,7 @@
 %%%       8. Tuples ( Elements )
 %%%          ()
 %%%          (1, "foo")
-%%%       9. Varaiants: (| Size | Tag | ( Elements ) |)
+%%%       9. Variants: (| Size | Tag | ( Elements ) |)
 %%%          (| 42 | 12 | ( "foo", 12) |)
 %%%
 %%%       Where Digits: [0123456789]

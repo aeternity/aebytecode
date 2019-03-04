@@ -19,7 +19,7 @@ jobs:
             - dialyzer-cache-v1-
       - run:
           name: Build
-          command: make
+          command: rebar3 compile
       - run:
           name: Static Analysis
           command: make dialyzer

@@ -4,6 +4,8 @@ REBAR ?= rebar3
 
 all: local
 
+sources: $(GENERATED_SRC)
+
 local: $(GENERATED_SRC)
 	@$(REBAR) as local release
 

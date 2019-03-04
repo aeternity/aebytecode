@@ -69,5 +69,9 @@ FUNCTION address() : address
          RETURNR #deadbeef
 
 ;; Option(integer) = NONE | SOME(integer)
-FUNCTION varaint() : {variant, [{tuple, []}, {tuple, [integer]}]}
-         RETURNR #deadbeef
+FUNCTION variant_none() : {variant, [{tuple, []}, {tuple, [integer]}]}
+         RETURNR (| 2 | 0 | () |)
+
+;; Option(integer) = NONE | SOME(integer)
+FUNCTION variant_some() : {variant, [{tuple, []}, {tuple, [integer]}]}
+         RETURNR (| 2 | 1 | (42) |)

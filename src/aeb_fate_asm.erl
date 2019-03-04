@@ -341,14 +341,13 @@ deserialize_op(?SWITCH_VN, Rest, Code) ->
     <<ArgType:8, Rest2/binary>> = Rest,
     {Arg0, Rest3} = aeb_fate_encoding:deserialize_one(Rest2),
     case aeb_fate_encoding:deserialize_one(Rest3) of
-    {N, Rest4} when is_integer(N), N >= 0 ->
+    {L, Rest4} when is_list(L) ->
             Modifier0 = bits_to_modifier(ArgType band 2#11),
             immediate = bits_to_modifier((ArgType bsr 2) band 2#11),
-            {BBs, Rest5} = deserialize_n(N, Rest4),
-            {Rest5, [{aeb_fate_opcodes:mnemonic(?SWITCH_VN)
+            {Rest4, [{aeb_fate_opcodes:mnemonic(?SWITCH_VN)
                      , {Modifier0, Arg0}
-                     , {immediate, N}
-                     , list_to_tuple(BBs)}
+                     , {immediate, L}
+                     }
                      | Code]};
         _ -> exit(bad_argument_to_switch_vn)
     end;
@@ -397,17 +396,107 @@ deserialize_op(Op, Rest, Code) ->
                      , {Modifier1, Arg1}
                      , {Modifier2, Arg2}
                      , {Modifier3, Arg3}}
-                     | Code]}
+                     | Code]};
+        5 ->
+            <<ArgType:8, ArgType2:8, Rest2/binary>> = Rest,
+            {Arg0, Rest3} = aeb_fate_encoding:deserialize_one(Rest2),
+            {Arg1, Rest4} = aeb_fate_encoding:deserialize_one(Rest3),
+            {Arg2, Rest5} = aeb_fate_encoding:deserialize_one(Rest4),
+            {Arg3, Rest6} = aeb_fate_encoding:deserialize_one(Rest5),
+            {Arg4, Rest7} = aeb_fate_encoding:deserialize_one(Rest6),
+            Modifier0 = bits_to_modifier(ArgType band 2#11),
+            Modifier1 = bits_to_modifier((ArgType bsr 2) band 2#11),
+            Modifier2 = bits_to_modifier((ArgType bsr 4) band 2#11),
+            Modifier3 = bits_to_modifier((ArgType bsr 6) band 2#11),
+            Modifier4 = bits_to_modifier(ArgType2 band 2#11),
+            {Rest7, [{ OpName
+                     , {Modifier0, Arg0}
+                     , {Modifier1, Arg1}
+                     , {Modifier2, Arg2}
+                     , {Modifier3, Arg3}
+                     , {Modifier4, Arg4}
+                     }
+                     | Code]};
+        6 ->
+            <<ArgType:8, ArgType2:8, Rest2/binary>> = Rest,
+            {Arg0, Rest3} = aeb_fate_encoding:deserialize_one(Rest2),
+            {Arg1, Rest4} = aeb_fate_encoding:deserialize_one(Rest3),
+            {Arg2, Rest5} = aeb_fate_encoding:deserialize_one(Rest4),
+            {Arg3, Rest6} = aeb_fate_encoding:deserialize_one(Rest5),
+            {Arg4, Rest7} = aeb_fate_encoding:deserialize_one(Rest6),
+            {Arg5, Rest8} = aeb_fate_encoding:deserialize_one(Rest7),
+            Modifier0 = bits_to_modifier(ArgType band 2#11),
+            Modifier1 = bits_to_modifier((ArgType bsr 2) band 2#11),
+            Modifier2 = bits_to_modifier((ArgType bsr 4) band 2#11),
+            Modifier3 = bits_to_modifier((ArgType bsr 6) band 2#11),
+            Modifier4 = bits_to_modifier(ArgType2 band 2#11),
+            Modifier5 = bits_to_modifier((ArgType2 bsr 2) band 2#11),
+            {Rest8, [{ OpName
+                     , {Modifier0, Arg0}
+                     , {Modifier1, Arg1}
+                     , {Modifier2, Arg2}
+                     , {Modifier3, Arg3}
+                     , {Modifier4, Arg4}
+                     , {Modifier5, Arg5}
+                     }
+                     | Code]};
+        7 ->
+            <<ArgType:8, ArgType2:8, Rest2/binary>> = Rest,
+            {Arg0, Rest3} = aeb_fate_encoding:deserialize_one(Rest2),
+            {Arg1, Rest4} = aeb_fate_encoding:deserialize_one(Rest3),
+            {Arg2, Rest5} = aeb_fate_encoding:deserialize_one(Rest4),
+            {Arg3, Rest6} = aeb_fate_encoding:deserialize_one(Rest5),
+            {Arg4, Rest7} = aeb_fate_encoding:deserialize_one(Rest6),
+            {Arg5, Rest8} = aeb_fate_encoding:deserialize_one(Rest7),
+            {Arg6, Rest9} = aeb_fate_encoding:deserialize_one(Rest8),
+            Modifier0 = bits_to_modifier(ArgType band 2#11),
+            Modifier1 = bits_to_modifier((ArgType bsr 2) band 2#11),
+            Modifier2 = bits_to_modifier((ArgType bsr 4) band 2#11),
+            Modifier3 = bits_to_modifier((ArgType bsr 6) band 2#11),
+            Modifier4 = bits_to_modifier(ArgType2 band 2#11),
+            Modifier5 = bits_to_modifier((ArgType2 bsr 2) band 2#11),
+            Modifier6 = bits_to_modifier((ArgType2 bsr 4) band 2#11),
+            {Rest9, [{ OpName
+                     , {Modifier0, Arg0}
+                     , {Modifier1, Arg1}
+                     , {Modifier2, Arg2}
+                     , {Modifier3, Arg3}
+                     , {Modifier4, Arg4}
+                     , {Modifier5, Arg5}
+                     , {Modifier6, Arg6}
+                     }
+                     | Code]};
+        8 ->
+            <<ArgType:8, ArgType2:8, Rest2/binary>> = Rest,
+            {Arg0, Rest3} = aeb_fate_encoding:deserialize_one(Rest2),
+            {Arg1, Rest4} = aeb_fate_encoding:deserialize_one(Rest3),
+            {Arg2, Rest5} = aeb_fate_encoding:deserialize_one(Rest4),
+            {Arg3, Rest6} = aeb_fate_encoding:deserialize_one(Rest5),
+            {Arg4, Rest7} = aeb_fate_encoding:deserialize_one(Rest6),
+            {Arg5, Rest8} = aeb_fate_encoding:deserialize_one(Rest7),
+            {Arg6, Rest9} = aeb_fate_encoding:deserialize_one(Rest8),
+            {Arg7, Rest10} = aeb_fate_encoding:deserialize_one(Rest9),
+            Modifier0 = bits_to_modifier(ArgType band 2#11),
+            Modifier1 = bits_to_modifier((ArgType bsr 2) band 2#11),
+            Modifier2 = bits_to_modifier((ArgType bsr 4) band 2#11),
+            Modifier3 = bits_to_modifier((ArgType bsr 6) band 2#11),
+            Modifier4 = bits_to_modifier(ArgType2 band 2#11),
+            Modifier5 = bits_to_modifier((ArgType2 bsr 2) band 2#11),
+            Modifier6 = bits_to_modifier((ArgType2 bsr 4) band 2#11),
+            Modifier7 = bits_to_modifier((ArgType2 bsr 6) band 2#11),
+            {Rest10, [{ OpName
+                      , {Modifier0, Arg0}
+                      , {Modifier1, Arg1}
+                      , {Modifier2, Arg2}
+                      , {Modifier3, Arg3}
+                      , {Modifier4, Arg4}
+                      , {Modifier5, Arg5}
+                      , {Modifier6, Arg6}
+                      , {Modifier7, Arg7}
+                      }
+                      | Code]}
     end.
 
-deserialize_n(N, Binary) ->
-    deserialize_n(N, Binary, []).
-
-deserialize_n(0, Binary, Acc) ->
-    {lists:reverse(Acc), Binary};
-deserialize_n(N, Binary, Acc) ->
-    {Value, Rest} = aeb_fate_encoding:deserialize_one(Binary),
-    deserialize_n(N-1, Rest, [Value|Acc]).
 
 
 
@@ -447,11 +536,114 @@ serialize(#{functions := Functions} =_Env) ->
 %% bitpos:  6    4    2    0
 %%         xx   xx   xx   xx
 %%       Arg3 Arg2 Arg1 Arg0
+%% For 5-8 args another Argument Spec Byte is used
 %% Bit pattern
 %% 00 : stack/unused (depending on instruction)
 %% 01 : argN
 %% 10 : varN
 %% 11 : immediate
+serialize_code([ {Arg0Type, Arg0}
+               , {Arg1Type, Arg1}
+               , {Arg2Type, Arg2}
+               , {Arg3Type, Arg3}
+               , {Arg4Type, Arg4}
+               , {Arg5Type, Arg5}
+               , {Arg6Type, Arg6}
+               , {Arg7Type, Arg7}
+                 | Rest]) ->
+    ArgSpec1 =
+        modifier_bits(Arg0Type) bor
+        (modifier_bits(Arg1Type) bsl 2) bor
+        (modifier_bits(Arg2Type) bsl 4) bor
+        (modifier_bits(Arg3Type) bsl 6),
+    ArgSpec2 =
+        modifier_bits(Arg4Type) bor
+        (modifier_bits(Arg5Type) bsl 2) bor
+        (modifier_bits(Arg6Type) bsl 4) bor
+        (modifier_bits(Arg7Type) bsl 6),
+    [ ArgSpec1
+    , ArgSpec2
+    , serialize_data(Arg0Type, Arg0)
+    , serialize_data(Arg1Type, Arg1)
+    , serialize_data(Arg2Type, Arg2)
+    , serialize_data(Arg3Type, Arg3)
+    , serialize_data(Arg4Type, Arg4)
+    , serialize_data(Arg5Type, Arg5)
+    , serialize_data(Arg6Type, Arg6)
+    , serialize_data(Arg7Type, Arg7)
+      | serialize_code(Rest)];
+serialize_code([ {Arg0Type, Arg0}
+               , {Arg1Type, Arg1}
+               , {Arg2Type, Arg2}
+               , {Arg3Type, Arg3}
+               , {Arg4Type, Arg4}
+               , {Arg5Type, Arg5}
+               , {Arg6Type, Arg6}
+                 | Rest]) ->
+    ArgSpec1 =
+        modifier_bits(Arg0Type) bor
+        (modifier_bits(Arg1Type) bsl 2) bor
+        (modifier_bits(Arg2Type) bsl 4) bor
+        (modifier_bits(Arg3Type) bsl 6),
+    ArgSpec2 =
+        modifier_bits(Arg4Type) bor
+        (modifier_bits(Arg5Type) bsl 2) bor
+        (modifier_bits(Arg6Type) bsl 4),
+    [ ArgSpec1
+    , ArgSpec2
+    , serialize_data(Arg0Type, Arg0)
+    , serialize_data(Arg1Type, Arg1)
+    , serialize_data(Arg2Type, Arg2)
+    , serialize_data(Arg3Type, Arg3)
+    , serialize_data(Arg4Type, Arg4)
+    , serialize_data(Arg5Type, Arg5)
+    , serialize_data(Arg6Type, Arg6)
+      | serialize_code(Rest)];
+serialize_code([ {Arg0Type, Arg0}
+               , {Arg1Type, Arg1}
+               , {Arg2Type, Arg2}
+               , {Arg3Type, Arg3}
+               , {Arg4Type, Arg4}
+               , {Arg5Type, Arg5}
+                 | Rest]) ->
+    ArgSpec1 =
+        modifier_bits(Arg0Type) bor
+        (modifier_bits(Arg1Type) bsl 2) bor
+        (modifier_bits(Arg2Type) bsl 4) bor
+        (modifier_bits(Arg3Type) bsl 6),
+    ArgSpec2 =
+        modifier_bits(Arg4Type) bor
+        (modifier_bits(Arg5Type) bsl 2),
+    [ ArgSpec1
+    , ArgSpec2
+    , serialize_data(Arg0Type, Arg0)
+    , serialize_data(Arg1Type, Arg1)
+    , serialize_data(Arg2Type, Arg2)
+    , serialize_data(Arg3Type, Arg3)
+    , serialize_data(Arg4Type, Arg4)
+    , serialize_data(Arg5Type, Arg5)
+      | serialize_code(Rest)];
+serialize_code([ {Arg0Type, Arg0}
+               , {Arg1Type, Arg1}
+               , {Arg2Type, Arg2}
+               , {Arg3Type, Arg3}
+               , {Arg4Type, Arg4}
+                 | Rest]) ->
+    ArgSpec1 =
+        modifier_bits(Arg0Type) bor
+        (modifier_bits(Arg1Type) bsl 2) bor
+        (modifier_bits(Arg2Type) bsl 4) bor
+        (modifier_bits(Arg3Type) bsl 6),
+    ArgSpec2 =
+        modifier_bits(Arg4Type),
+    [ ArgSpec1
+    , ArgSpec2
+    , serialize_data(Arg0Type, Arg0)
+    , serialize_data(Arg1Type, Arg1)
+    , serialize_data(Arg2Type, Arg2)
+    , serialize_data(Arg3Type, Arg3)
+    , serialize_data(Arg4Type, Arg4)
+      | serialize_code(Rest)];
 
 serialize_code([ {Arg0Type, Arg0}
                , {Arg1Type, Arg1}
@@ -505,34 +697,18 @@ serialize_code([ ?ELEMENT
      | serialize_code(Rest)];
 serialize_code([ ?SWITCH_VN
                , {Arg0Type, Arg0}
-               , {immediate, N}
-               | Rest]) when is_integer(N), N >= 0 ->
+               , {immediate, L}
+               | Rest]) ->
     ArgSpec =
         modifier_bits(Arg0Type) bor
         (modifier_bits(immediate) bsl 2),
-    {Serialization, Rest2} = serialize_n_ints(N, Rest),
     [?SWITCH_VN
     , ArgSpec
     , serialize_data(Arg0Type, Arg0)
-    , serialize_data(immediate, N)
-    | Serialization] ++ serialize_code(Rest2);
+    , serialize_data(immediate, L)] ++ serialize_code(Rest);
 serialize_code([B|Rest]) ->
     [B | serialize_code(Rest)];
 serialize_code([]) -> [].
-
-serialize_n_ints(N, Rest) ->
-    serialize_n_ints(N, Rest, []).
-
-serialize_n_ints(0, Rest, Acc) ->
-    %% Acc is a list of binaries.
-    {lists:reverse(Acc), Rest};
-serialize_n_ints(N, [Int|Rest], Acc) when is_integer(Int), Int >= 0 ->
-    serialize_n_ints(N - 1, Rest, [aeb_fate_encoding:serialize(Int)|Acc]);
-serialize_n_ints(_, [], _) ->
-    exit(not_enough_bbs_for_switch_vn);
-serialize_n_ints(_, _, _) ->
-    exit(bad_bbs_value_for_switch_vn).
-
 
 
 %% 00 : stack/unused (depending on instruction)

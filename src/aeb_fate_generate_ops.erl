@@ -1,7 +1,8 @@
 -module(aeb_fate_generate_ops).
 
 -export([ gen_and_halt/1
-        , generate/0]).
+        , generate/0
+        , test_asm_generator/1]).
 
 gen_and_halt([SrcDirArg, IncludeDirArg]) ->
     generate(atom_to_list(SrcDirArg),
@@ -34,7 +35,7 @@ ops_defs() ->
     , { 'JUMPIF',       16#07,    2,   true,   4, [a,ii],           jumpif, "Conditional jump to a basic block. If Arg0 then jump to Arg1."}
     , { 'SWITCH_V2',    16#08,    3,   true,   4, [a,ii,ii],        switch, "Conditional jump to a basic block on variant tag."}
     , { 'SWITCH_V3',    16#09,    4,   true,   4, [a,ii,ii,ii],     switch, "Conditional jump to a basic block on variant tag."}
-    , { 'SWITCH_VN',    16#0a,    2,   true,   4, [a,li],           switch, "Conditional jump to a basic block on variant tag."}
+    , { 'SWITCH_VN',    16#0a,    2,   true,   4, [a, li],           switch, "Conditional jump to a basic block on variant tag."}
     , { 'PUSH',         16#0b,    1,  false,   2, [a],                push, "Push argument to stack."}
     , { 'DUPA',         16#0c,    0,  false,   3, atomic,              dup, "push copy of accumulator on stack."}
     , { 'DUP',          16#0d,    1,  false,   3, [a],                 dup, "push Arg0 stack pos on top of stack."}
@@ -136,8 +137,11 @@ ops_defs() ->
     , { 'SHA256',              16#7c, 0, false,3, atomic,             sha256, ""}
     , { 'BLAKE2B',             16#7d, 0, false,3, atomic,            blake2b, ""}
 
-    , {'ABORT',         16#fb,    1,  false,   3, [a],               abort, "Abort execution (dont use all gas) with error message in Arg0."}
-    , {'EXIT',          16#fc,    1,  false,   3, [a],                exit, "Abort execution (use upp all gas) with error message in Arg0."}
+
+    , { 'DUMMY7ARG',           16#f9, 7, false,3, [a,a,a,a,a,a,a],  dummyarg, "Temporary dummy instruction to test 7 args."}
+    , { 'DUMMY8ARG',           16#fa, 8, false,3, [a,a,a,a,a,a,a,a],dummyarg, "Temporary dummy instruction to test 8 args."}
+    , { 'ABORT',         16#fb,    1,  false,   3, [a],               abort, "Abort execution (dont use all gas) with error message in Arg0."}
+    , { 'EXIT',          16#fc,    1,  false,   3, [a],                exit, "Abort execution (use upp all gas) with error message in Arg0."}
     , { 'NOP',          16#fd,    0,  false,   1, atomic,              nop, "The no op. does nothing."}
     %% FUNCTION         16#fe                                               "Function declaration and entrypoint."
     %% EXTEND           16#ff                                               "Reserved for future extensions beyond one byte opcodes."
@@ -411,8 +415,8 @@ gen_asm_pp(Module, Path, Ops) ->
               "-export([format_op/2]).\n\n"
               "format_arg(t, T) ->\n"
               "    io_lib:format(\"~~p \", [T]);\n"
-              "format_arg(li, List) ->\n"
-              "     [[\" \", E] || {immedate, E} <- List];\n"
+              "format_arg(li, {immediate, LI}) ->\n"
+              "    aeb_fate_data:format(LI);\n"
               "format_arg(_, {immediate, I}) ->\n"
               "    aeb_fate_data:format(I);\n"
               "format_arg(a, {arg, N}) -> io_lib:format(\"arg~~p\", [N]);\n"
@@ -420,7 +424,7 @@ gen_asm_pp(Module, Path, Ops) ->
               "format_arg(a, {stack, 0}) -> \"a\";\n"
               "format_arg(a, {stack, N}) -> io_lib:format(\"a~~p\", [N]).\n\n"
               "lookup(Name, Symbols) ->\n"
-              "    maps:get(Name, Symbols, Name).\n\n"
+              "    maps:get(Name, Symbols, io_lib:format(\"~~w\",[Name])).\n\n"
               "~s"
              , [Formats]),
 
@@ -497,5 +501,137 @@ gen_format(#{opname := Name, format := Args}) ->
               "\" \",  format_arg(~w, Arg4),"
               "\" \",  format_arg(~w, Arg5),"
               "\" \",  format_arg(~w, Arg6)];",
-              [Name, NameAsString, T0, T1, T2, T3, T4, T5, T6])
+              [Name, NameAsString, T0, T1, T2, T3, T4, T5, T6]);
+        [T0, T1, T2, T3, T4, T5, T6, T7] ->
+            io_lib:format(
+              "format_op({~w, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7}, _) ->\n"
+              "    [\"~s \", format_arg(~w, Arg0), "
+              "\" \",  format_arg(~w, Arg1),"
+              "\" \",  format_arg(~w, Arg2),"
+              "\" \",  format_arg(~w, Arg3),"
+              "\" \",  format_arg(~w, Arg4),"
+              "\" \",  format_arg(~w, Arg5),"
+              "\" \",  format_arg(~w, Arg6),"
+              "\" \",  format_arg(~w, Arg7)];",
+              [Name, NameAsString, T0, T1, T2, T3, T4, T5, T6, T7])
+    end.
+
+test_asm_generator(Filename) ->
+    {ok, File} = file:open(Filename, [write]),
+    Instructions = lists:flatten([gen_instruction(Op)++"\n" || Op <- gen(ops_defs())]),
+    io:format(File,
+              ";; CONTRACT all_instructions\n\n"
+              ";; Dont expect this contract to typecheck or run.\n"
+              ";; Just used to check assembler rountrip of all instruction.\n\n"
+              "FUNCTION foo () : {tuple, []}\n"
+              "~s"
+             , [Instructions]),
+    io:format(File, "  RETURNR ()\n", []),
+    file:close(File).
+
+
+gen_instruction(#{opname := Name, format := atomic}) ->
+    io_lib:format("  ~s\n", [Name]);
+gen_instruction(#{opname := Name, format := ArgTypes}) ->
+    Args = lists:flatten(lists:join(" ", [gen_arg(A) || A <- ArgTypes])),
+    I = io_lib:format("  ~s ~s\n", [Name, Args]),
+    I.
+
+%% This should be done with a Quick Check generator...
+gen_arg(a) -> any_arg();
+gen_arg(is) -> "foo";
+gen_arg(ii) -> gen_int();
+gen_arg(li) -> "[1, 2, 3]";
+gen_arg(t) -> "integer".
+
+any_arg() ->
+    element(rand:uniform(5), {"a", stack_arg(), var_arg(), arg_arg(), imm_arg()}).
+stack_arg() -> "a" ++ integer_to_list(rand:uniform(255)-1).
+arg_arg() ->  "arg" ++ integer_to_list(rand:uniform(256)-1).
+var_arg() ->  "var" ++ integer_to_list(rand:uniform(256)-1).
+imm_arg() ->
+    case rand:uniform(15) of
+        1 -> gen_int();
+        2 -> gen_int();
+        3 -> gen_int();
+        4 -> gen_int();
+        5 -> gen_int();
+        6 -> gen_int();
+        7 -> gen_int();
+        8 -> gen_address();
+        9 -> gen_boolean();
+        10 -> gen_string();
+        11 -> gen_map();
+        12 -> gen_list();
+        13 -> gen_bits();
+        14 -> gen_tuple();
+        15 -> gen_variant()
+    end.
+
+gen_key() ->
+    case rand:uniform(15) of
+        1 -> gen_int();
+        2 -> gen_int();
+        3 -> gen_int();
+        4 -> gen_int();
+        5 -> gen_int();
+        6 -> gen_int();
+        7 -> gen_int();
+        8 -> gen_address();
+        9 -> gen_boolean();
+        10 -> gen_string();
+        11 -> gen_string();
+        12 -> gen_list();
+        13 -> gen_bits();
+        14 -> gen_tuple();
+        15 -> gen_variant()
+    end.
+
+gen_boolean() ->
+    element(rand:uniform(2), {"true", "false"}).
+
+gen_int() ->
+    element(rand:uniform(4),
+            { integer_to_list(rand:uniform(round(math:pow(10,40))))
+            , integer_to_list(rand:uniform(10))
+            , integer_to_list(rand:uniform(100))
+            , io_lib:format("0x~.16b",[rand:uniform(round(math:pow(10,10)))])}).
+
+gen_address() -> "#nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv".
+gen_string() -> "\"foo\"".
+gen_map() -> "{ " ++ gen_key() ++ " => " ++ imm_arg() ++ "}".
+gen_list() ->
+    case rand:uniform(4) of
+        1 -> "[]";
+        2 -> "[" ++ lists:join(", ", gen_list_elements()) ++ " ]";
+        3 -> "[ " ++ imm_arg() ++ " ]";
+        4 -> "[ " ++ imm_arg() ++ ", " ++ imm_arg() ++ " ]"
+    end.
+
+%% Not type correct.
+gen_list_elements() ->
+    case rand:uniform(3) of
+        1 -> [imm_arg() |  gen_list_elements()];
+        2 -> [];
+        3 -> [imm_arg()]
+    end.
+
+gen_bits() ->
+    element(rand:uniform(3),
+            {"<>"
+            ,"!<>"
+            , "101010"}).
+
+gen_tuple() ->
+    case rand:uniform(3) of
+        1 -> "()";
+        2 -> "(42)";
+        3 -> "(" ++ imm_arg() ++ ")"
+    end.
+
+gen_variant() ->
+    case rand:uniform(3) of
+        1 -> "(| 5 | 2 | (1, \"foo\", ()) |)";
+        2 -> "(| 2 | 1 | ( " ++ imm_arg() ++ " ) |)";
+        3 -> "(| 2 | 0 | ( " ++ imm_arg() ++ ", " ++ imm_arg() ++ " ) |)"
     end.

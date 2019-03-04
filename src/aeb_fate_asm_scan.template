@@ -55,8 +55,8 @@ FUNCTION       : {token, {function, TokenLine, 'FUNCTION' }}.
 \:    : {token, {to, TokenLine}}.
 
 \=\>  : {token, {arrow, TokenLine}}.
-\(\|  : {token, {start_varaint, TokenLine}}.
-\|\)  : {token, {end_varaint, TokenLine}}.
+\(\|  : {token, {start_variant, TokenLine}}.
+\|\)  : {token, {end_variant, TokenLine}}.
 
 ,   : {token, {',', TokenLine}}.
 \(  : {token, {'(', TokenLine}}.

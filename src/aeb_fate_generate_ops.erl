@@ -3,6 +3,7 @@
 -export([ gen_and_halt/1
         , generate/0
         , generate_documentation/1
+        , get_ops/0
         , test_asm_generator/1]).
 
 gen_and_halt([SrcDirArg, IncludeDirArg]) ->
@@ -10,11 +11,12 @@ gen_and_halt([SrcDirArg, IncludeDirArg]) ->
              atom_to_list(IncludeDirArg)),
     halt().
 
-generate() ->
-    generate("src/", "include/").
+generate() -> generate("src/", "include/").
+
+get_ops()  -> gen(ops_defs()).
 
 generate(Src, Include) ->
-    Ops = gen(ops_defs()),
+    Ops = get_ops(),
     %% io:format("ops: ~p\n", [Ops]),
     HrlFile = Include ++ "aeb_fate_opcodes.hrl",
     generate_header_file(HrlFile, Ops),
@@ -519,7 +521,7 @@ gen_format(#{opname := Name, format := Args}) ->
 
 test_asm_generator(Filename) ->
     {ok, File} = file:open(Filename, [write]),
-    Instructions = lists:flatten([gen_instruction(Op)++"\n" || Op <- gen(ops_defs())]),
+    Instructions = lists:flatten([gen_instruction(Op)++"\n" || Op <- get_ops()]),
     io:format(File,
               ";; CONTRACT all_instructions\n\n"
               ";; Dont expect this contract to typecheck or run.\n"
@@ -641,7 +643,7 @@ gen_variant() ->
 %% TODO: add gas cost.
 generate_documentation(Filename) ->
     {ok, File} = file:open(Filename, [write]),
-    Instructions = lists:flatten([gen_doc(Op)++"\n" || Op <- gen(ops_defs())]),
+    Instructions = lists:flatten([gen_doc(Op)++"\n" || Op <- get_ops()]),
     io:format(File,
               "### Operations\n\n"
               "| OpCode | Name | Args | Description |\n"

@@ -2,6 +2,7 @@
 
 -export([ gen_and_halt/1
         , generate/0
+        , generate_documentation/1
         , test_asm_generator/1]).
 
 gen_and_halt([SrcDirArg, IncludeDirArg]) ->
@@ -635,3 +636,52 @@ gen_variant() ->
         2 -> "(| 2 | 1 | ( " ++ imm_arg() ++ " ) |)";
         3 -> "(| 2 | 0 | ( " ++ imm_arg() ++ ", " ++ imm_arg() ++ " ) |)"
     end.
+
+
+%% TODO: add gas cost.
+generate_documentation(Filename) ->
+    {ok, File} = file:open(Filename, [write]),
+    Instructions = lists:flatten([gen_doc(Op)++"\n" || Op <- gen(ops_defs())]),
+    io:format(File,
+              "### Operations\n\n"
+              "| OpCode | Name | Args | Description |\n"
+              "| ---    | ---  | ---  |        ---  |\n"
+              "~s"
+             , [Instructions]),
+    io:format(File, "\n", []),
+    file:close(File).
+
+gen_doc(#{ opname            := Name
+         , opcode            := OpCode
+         , args              := Args
+         , end_bb            := EndBB
+         , format            := FateFormat
+         , macro             := Macro
+         , type_name         := TypeName
+         , doc               := Doc
+         , gas               := Gas
+         , type              := Type
+         , constructor       := Constructor
+         , constructor_type  := ConstructorType
+         }) ->
+    Arguments =
+        case FateFormat of
+            atomic -> "";
+            _ ->  lists:join(" ",
+                             [format_arg_doc(A) ||
+                                 A <-
+                                     lists:zip(FateFormat,
+                                               lists:seq(0,length(FateFormat)-1))])
+        end,
+    io_lib:format("| 0x~.16b | ~w | ~s | ~s |\n",
+                  [ OpCode
+                  , Name
+                  , Arguments
+                  , Doc]).
+
+format_arg_doc({a, N}) -> io_lib:format("Arg~w", [N]);
+format_arg_doc({is,N}) -> "Identifier";
+format_arg_doc({ii,N}) -> "Integer";
+format_arg_doc({li,N}) -> "[Integers]";
+format_arg_doc({t,N}) -> "Type".
+

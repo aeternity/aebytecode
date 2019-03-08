@@ -61,6 +61,7 @@ sources() ->
          "0123456789012345678901234567890123456789">>), %% Magic concat 80 char string.
      aeb_fate_data:make_tuple({True, FortyTwo}),
      aeb_fate_data:make_tuple(list_to_tuple(make_int_list(65))),
+     aeb_fate_data:make_tuple(list_to_tuple(make_int_list(16))),
      aeb_fate_data:make_map(#{ aeb_fate_data:make_integer(1) => True, aeb_fate_data:make_integer(2) => False}),
      aeb_fate_data:make_map(#{ aeb_fate_data:make_string(<<"foo">>) => aeb_fate_data:make_tuple({FortyTwo, True})}),
      aeb_fate_data:make_list(make_int_list(3)),

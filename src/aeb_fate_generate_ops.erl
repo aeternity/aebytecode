@@ -62,7 +62,7 @@ ops_defs() ->
     , { 'OR',           16#27,    3,  false,   3, [a,a,a],           or_op, "Arg0 := Arg1  or Arg2."}
     , { 'NOT',          16#28,    2,  false,   3, [a,a],            not_op, "Arg0 := not Arg1."}
     , { 'TUPLE',        16#29,    1,  false,   3, [ii],              tuple, "Create a tuple of size = Arg0. Elements on stack."}
-    , { 'ELEMENT',      16#2a,    4,  false,   3, [t,a,a,a],    element_op, "Arg1 := element(Arg2, Arg3). The element should be of type Arg1"}
+    , { 'ELEMENT',      16#2a,    3,  false,   3, [a,a,a],      element_op, "Arg1 := element(Arg2, Arg3)."}
     , { 'MAP_EMPTY',    16#2b,    1,  false,   3, [a],           map_empty, "Arg0 := #{}."}
     , { 'MAP_LOOKUP',   16#2c,    3,  false,   3, [a,a,a],      map_lookup, "Arg0 := lookup key Arg2 in map Arg1."}
     , { 'MAP_LOOKUPD',  16#2d,    4,  false,   3, [a,a,a,a],    map_lookup, "Arg0 := lookup key Arg2 in map Arg1 if key exists in map otherwise Arg0 := Arg3."}
@@ -653,16 +653,16 @@ generate_documentation(Filename) ->
 
 gen_doc(#{ opname            := Name
          , opcode            := OpCode
-         , args              := Args
-         , end_bb            := EndBB
+         , args              := _Args
+         , end_bb            := _EndBB
          , format            := FateFormat
-         , macro             := Macro
-         , type_name         := TypeName
+         , macro             := _Macro
+         , type_name         := _TypeName
          , doc               := Doc
-         , gas               := Gas
-         , type              := Type
-         , constructor       := Constructor
-         , constructor_type  := ConstructorType
+         , gas               := _Gas
+         , type              := _Type
+         , constructor       := _Constructor
+         , constructor_type  := _ConstructorType
          }) ->
     Arguments =
         case FateFormat of
@@ -680,8 +680,8 @@ gen_doc(#{ opname            := Name
                   , Doc]).
 
 format_arg_doc({a, N}) -> io_lib:format("Arg~w", [N]);
-format_arg_doc({is,N}) -> "Identifier";
-format_arg_doc({ii,N}) -> "Integer";
-format_arg_doc({li,N}) -> "[Integers]";
-format_arg_doc({t,N}) -> "Type".
+format_arg_doc({is,_N}) -> "Identifier";
+format_arg_doc({ii,_N}) -> "Integer";
+format_arg_doc({li,_N}) -> "[Integers]";
+format_arg_doc({t,_N}) -> "Type".
 

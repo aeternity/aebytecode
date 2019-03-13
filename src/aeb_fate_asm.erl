@@ -322,21 +322,6 @@ deserialize(<<>>, #{ function := {F, Sig}
         , code => #{}
         , functions => Funs#{F => {Sig, FunctionCode}}}.
 
-deserialize_op(?ELEMENT, Rest, Code) ->
-    {Type, Rest2} = deserialize_type(Rest),
-    <<ArgType:8, Rest3/binary>> = Rest2,
-    {Arg0, Rest4} = aeb_fate_encoding:deserialize_one(Rest3),
-    {Arg1, Rest5} = aeb_fate_encoding:deserialize_one(Rest4),
-    {Arg2, Rest6} = aeb_fate_encoding:deserialize_one(Rest5),
-    Modifier0 = bits_to_modifier(ArgType band 2#11),
-    Modifier1 = bits_to_modifier((ArgType bsr 2) band 2#11),
-    Modifier2 = bits_to_modifier((ArgType bsr 4) band 2#11),
-    {Rest6, [{ aeb_fate_opcodes:mnemonic(?ELEMENT)
-             , Type
-             , {Modifier0, Arg0}
-             , {Modifier1, Arg1}
-             , {Modifier2, Arg2}}
-             | Code]};
 deserialize_op(?SWITCH_VN, Rest, Code) ->
     <<ArgType:8, Rest2/binary>> = Rest,
     {Arg0, Rest3} = aeb_fate_encoding:deserialize_one(Rest2),
@@ -689,12 +674,6 @@ serialize_code([ {Arg0Type, Arg0} | Rest]) ->
     [ArgSpec
     , serialize_data(Arg0Type, Arg0)
      | serialize_code(Rest)];
-serialize_code([ ?ELEMENT
-               , ResType
-               | Rest]) ->
-    [?ELEMENT,
-     serialize_type(ResType)
-     | serialize_code(Rest)];
 serialize_code([ ?SWITCH_VN
                , {Arg0Type, Arg0}
                , {immediate, L}
@@ -790,10 +769,6 @@ to_bytecode([{function,_line, 'FUNCTION'}|Rest], Address, Env, Code, Opts) ->
     Env2 = insert_fun(Address, Code, Env),
     {Fun, Rest2} = to_fun_def(Rest),
     to_bytecode(Rest2, Fun, Env2, [], Opts);
-to_bytecode([{mnemonic,_line, 'ELEMENT'}|Rest], Address, Env, Code, Opts) ->
-    OpCode = aeb_fate_opcodes:m_to_op('ELEMENT'),
-    {RetType, Rest2} = to_type(Rest),
-    to_bytecode(Rest2, Address, Env, [RetType, OpCode|Code], Opts);
 to_bytecode([{mnemonic,_line, Op}|Rest], Address, Env, Code, Opts) ->
     OpCode = aeb_fate_opcodes:m_to_op(Op),
     to_bytecode(Rest, Address, Env, [OpCode|Code], Opts);

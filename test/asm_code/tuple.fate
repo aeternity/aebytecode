@@ -26,10 +26,10 @@ FUNCTION element1(integer, integer): integer
   PUSH            arg0
   PUSH            arg1
   TUPLE              2
-  ELEMENT integer    a 1 a
+  ELEMENT        a 1 a
   RETURN
 
 FUNCTION element({tuple, [integer, integer]}, integer): integer
 ;; BB : 0
-  ELEMENT integer a arg1 arg0
+  ELEMENT  a arg1 arg0
   RETURN

@@ -414,8 +414,6 @@ gen_asm_pp(Module, Path, Ops) ->
     io:format(File, "-module(~w).\n\n", [Module]),
     io:format(File,
               "-export([format_op/2]).\n\n"
-              "format_arg(t, T) ->\n"
-              "    io_lib:format(\"~~p \", [T]);\n"
               "format_arg(li, {immediate, LI}) ->\n"
               "    aeb_fate_data:format(LI);\n"
               "format_arg(_, {immediate, I}) ->\n"

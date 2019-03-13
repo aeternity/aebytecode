@@ -1,0 +1,33 @@
+;; CONTRACT map
+FUNCTION make_empty_map():{map, integer, boolean}
+  MAP_EMPTY a
+  RETURN
+
+FUNCTION map_update({map, integer, boolean}, integer, boolean):{map, integer, boolean}
+  MAP_UPDATE a arg0 arg1 arg2
+  RETURN
+
+FUNCTION map_lookup({map, integer, boolean}, integer):boolean
+  MAP_LOOKUP a arg0 arg1
+  RETURN
+
+FUNCTION map_lookup_default({map, integer, boolean}, integer): boolean
+  MAP_LOOKUPD a arg0 arg1 false
+  RETURN
+
+FUNCTION map_member({map, integer, boolean}, integer):boolean
+  MAP_MEMBER a arg0 arg1
+  RETURN
+
+FUNCTION map_delete({map, integer, boolean}, integer):{map, integer, boolean}
+  MAP_DELETE a arg0 arg1
+  RETURN
+
+FUNCTION map_member({map, integer, boolean}, integer) : boolean
+        MAP_MEMBER a arg0 arg1
+        RETURN
+
+FUNCTION map_from_list({list, {tuple, [integer, boolean]}}) : {map, integer, boolean}
+        MAP_FROM_LIST a arg0
+        RETURN
+

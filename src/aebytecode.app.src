@@ -1,10 +1,13 @@
 {application, aebytecode,
- [{description, "Bytecode definitions for AEthernity VM shared with compiler."},
-  {vsn, "1.0.0"},
+ [{description, "Bytecode definitions, serialization and deserialization for aeternity."},
+  {vsn, "2.0.1"},
   {registered, []},
   {applications,
    [kernel,
-    stdlib
+    stdlib,
+    eblake2,
+    aeserialization,
+    getopt
    ]},
   {env,[]},
   {modules, []},

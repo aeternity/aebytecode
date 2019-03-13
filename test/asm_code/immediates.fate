@@ -1,0 +1,77 @@
+;; CONTRACT immediates
+
+FUNCTION integer() : integer
+         RETURNR 42
+
+FUNCTION neg_integer() : integer
+         RETURNR -2374683271468723648732648736498712634876147
+
+FUNCTION hex_integer() : integer
+         RETURNR 0x0deadbeef0
+
+FUNCTION bool() : boolean
+         RETURNR true
+
+FUNCTION bool_f() : boolean
+         RETURNR false
+
+FUNCTION string() : string
+         RETURNR "Hello"
+
+FUNCTION map() : {map, integer, boolean}
+         RETURNR {}
+
+FUNCTION map2() : {map, integer, boolean}
+         RETURNR {1 => true}
+
+FUNCTION map3() : {map, integer, boolean}
+         RETURNR {1 => true,
+                  2 => false}
+
+FUNCTION map4() : {map, integer, {map, string, boolean}}
+         RETURNR {1 => { "foo" => true, "bar" => false},
+                  2 => {},
+                  3 => { "foo" => false}}
+
+FUNCTION nil() : {list, integer}
+         RETURNR []
+
+FUNCTION list1() : {list, integer}
+         RETURNR [1]
+
+FUNCTION list2() : {list, integer}
+         RETURNR [1, 2]
+
+
+FUNCTION no_bits() : bits
+         RETURNR <>
+
+FUNCTION all_bits() : bits
+         RETURNR !<>
+
+FUNCTION some_bits() : bits
+         RETURNR <101010>
+
+FUNCTION many_bits() : bits
+         RETURNR !<010101>
+
+FUNCTION group_bits() : bits
+         RETURNR <1010 1010 0011 1001>
+
+FUNCTION unit() : {tuple, []}
+         RETURNR ()
+
+FUNCTION tuple() : {tuple, [integer, boolean, string, {tuple, [integer, integer]}]}
+         RETURNR (42, true, "FooBar", (1, 2))
+
+
+FUNCTION address() : address
+         RETURNR #deadbeef
+
+;; Option(integer) = NONE | SOME(integer)
+FUNCTION variant_none() : {variant, [{tuple, []}, {tuple, [integer]}]}
+         RETURNR (| 2 | 0 | () |)
+
+;; Option(integer) = NONE | SOME(integer)
+FUNCTION variant_some() : {variant, [{tuple, []}, {tuple, [integer]}]}
+         RETURNR (| 2 | 1 | (42) |)

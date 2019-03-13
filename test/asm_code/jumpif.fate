@@ -1,0 +1,11 @@
+;; CONTRACT jumpif
+FUNCTION skip(integer, integer) : integer
+;; BB : 0
+  PUSH arg1
+  PUSH 0
+  EQ a a arg0
+  JUMPIF a 2
+;; BB : 1
+  INCA
+  JUMP 2
+  RETURN

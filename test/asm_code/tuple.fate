@@ -1,0 +1,35 @@
+FUNCTION make_0tuple():{tuple, []}
+;; BB : 0
+  TUPLE   0
+  RETURN
+
+FUNCTION make_2tuple(integer, integer):{tuple, [integer, integer]}
+;; BB : 0
+  PUSH       arg0
+  PUSH       arg1
+  TUPLE         2
+  RETURN
+
+FUNCTION make_5tuple(integer, integer, integer, integer, integer):
+                {tuple, [integer, integer, integer, integer, integer]}
+;; BB : 0
+  PUSH       arg0
+  PUSH       arg1
+  PUSH       arg2
+  PUSH       arg3
+  PUSH       arg4
+  TUPLE         5
+  RETURN
+
+FUNCTION element1(integer, integer): integer
+;; BB : 0
+  PUSH            arg0
+  PUSH            arg1
+  TUPLE              2
+  ELEMENT integer    a 1 a
+  RETURN
+
+FUNCTION element({tuple, [integer, integer]}, integer): integer
+;; BB : 0
+  ELEMENT integer a arg1 arg0
+  RETURN

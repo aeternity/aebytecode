@@ -1,0 +1,7 @@
+;; CONTRACT mapofmap
+FUNCTION map() : {map, integer, {map, string, boolean}}
+         RETURNR {1 => { "foo" => true, "bar" => false},
+                  2 => {},
+                  3 => { "foo" => false}}
+
+

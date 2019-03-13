@@ -1,0 +1,142 @@
+%%% -*- erlang-indent-level:4; indent-tabs-mode: nil -*-
+%%%-------------------------------------------------------------------
+%%% @copyright (C) 2019, aeternity Anstalt
+%%% @doc
+%%%     Handling FATE code.
+%%% @end
+###REPLACEWITHNOTE###
+%%%-------------------------------------------------------------------
+
+Definitions.
+DIGIT    = [0-9]
+HEXDIGIT = [0-9a-fA-F]
+LOWER    = [a-z_]
+UPPER    = [A-Z]
+BASE58   = [123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]
+INT      = {DIGIT}+
+HEX      = 0x{HEXDIGIT}+
+HASH     = #{BASE58}+
+WS       = [\000-\s]
+ID       = {LOWER}[a-zA-Z0-9_]*
+STRING   = "[^"]*"
+BITS     = (\!)?\<[\s01]*\>
+
+Rules.
+arg{INT}       : {token, {arg, TokenLine, parse_arg(TokenChars)}}.
+var{INT}       : {token, {var, TokenLine, parse_var(TokenChars)}}.
+a              : {token, {stack, TokenLine, 0}}.
+a{INT}         : {token, {stack, TokenLine, parse_acc(TokenChars)}}.
+
+true           : {token, {boolean, TokenLine, true}}.
+false          : {token, {boolean, TokenLine, false}}.
+
+###REPLACEWITHOPTOKENS###
+
+FUNCTION       : {token, {function, TokenLine, 'FUNCTION' }}.
+
+{ID} :
+ {token, {id, TokenLine, TokenChars}}.
+{HEX} :
+ {token, {int, TokenLine, parse_hex(TokenChars)}}.
+{INT} :
+ {token, {int, TokenLine, parse_int(TokenChars)}}.
+-{INT} :
+ {token, {int, TokenLine, parse_int(TokenChars)}}.
+{HASH} :
+ {token, {address, TokenLine, parse_hash(TokenChars)}}.
+{STRING} :
+ {token, {string, TokenLine, list_to_binary(TokenChars)}}.
+{BITS} :
+ {token, {bits, TokenLine, bits(TokenChars)}}.
+
+
+%% Symbols
+\-\>  : {token, {to, TokenLine}}.
+\:    : {token, {to, TokenLine}}.
+
+\=\>  : {token, {arrow, TokenLine}}.
+\(\|  : {token, {start_variant, TokenLine}}.
+\|\)  : {token, {end_variant, TokenLine}}.
+
+,   : {token, {',', TokenLine}}.
+\(  : {token, {'(', TokenLine}}.
+\)  : {token, {')', TokenLine}}.
+\[  : {token, {'[', TokenLine}}.
+\]  : {token, {']', TokenLine}}.
+\{  : {token, {'{', TokenLine}}.
+\}  : {token, {'}', TokenLine}}.
+\|  : {token, {'|', TokenLine}}.
+
+;;.* :
+ {token, {comment, TokenLine, drop_prefix($;, TokenChars)}}.
+
+\.  : skip_token.
+
+
+%% Whitespace ignore
+{WS} : skip_token.
+
+%% Comments (TODO: nested comments)
+
+
+. : {error, "Unexpected token: " ++ TokenChars}.
+
+Erlang code.
+
+-export([scan/1]).
+
+-dialyzer({nowarn_function, yyrev/2}).
+
+-ignore_xref([format_error/1, string/2, token/2, token/3, tokens/2, tokens/3]).
+
+-include_lib("aebytecode/include/aeb_fate_opcodes.hrl").
+
+
+parse_hex("0x" ++ Chars) -> list_to_integer(Chars, 16).
+
+parse_int(Chars) -> list_to_integer(Chars).
+
+parse_arg("arg" ++ N) -> list_to_integer(N).
+parse_var("var" ++ N) -> list_to_integer(N).
+parse_acc("a" ++ N) -> list_to_integer(N).
+
+
+parse_hash("#" ++ Chars) ->
+    base58_to_address(Chars).
+
+scan(S) ->
+    string(S).
+
+drop_prefix(C, [C|Rest]) ->
+    drop_prefix(C, Rest);
+drop_prefix(_, Tail) -> Tail.
+
+bits([$!, $< | Rest]) ->
+    bits(Rest, -1);
+bits([$< | Rest]) ->
+    bits(Rest, 0).
+
+bits([$> |_Rest], Acc) -> Acc;
+bits([$0 | Rest], Acc) -> bits(Rest, Acc bsl 1);
+bits([$1 | Rest], Acc) -> bits(Rest, (Acc bsl 1) bor 1);
+bits([$  | Rest], Acc) -> bits(Rest, Acc).
+
+char_to_base58(C) ->
+    binary:at(<<0,1,2,3,4,5,6,7,8,0,0,0,0,0,0,0,9,10,11,12,13,14,15,16,0,17,
+                18,19,20,21,0,22,23,24,25,26,27,28,29,30,31,32,0,0,0,0,0,0,
+                33,34,35,36,37,38,39,40,41,42,43,0,44,45,46,47,48,49,50,51,
+                52,53,54,55,56,57>>,  C-$1).
+
+base58_to_integer(C, []) -> C;
+base58_to_integer(C, [X | Xs]) ->
+	base58_to_integer(C * 58 + char_to_base58(X), Xs).
+
+base58_to_integer([]) -> error;
+base58_to_integer([Char]) -> char_to_base58(Char);
+base58_to_integer([Char | Str]) ->
+	base58_to_integer(char_to_base58(Char), Str).
+
+base58_to_address(Base58) ->
+    I = base58_to_integer(Base58),
+    Bin = <<I:256>>,
+    Bin.

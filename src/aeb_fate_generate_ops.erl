@@ -393,9 +393,9 @@ gen_token(#{opname := OpName}) ->
     io_lib:format("~-28s: {token, {mnemonic, TokenLine, ~w}}.\n",
                   [Name, OpName]).
 
-insert_tokens_in_template(<<"###REPLACEWITHOPTOKENS###", Rest/binary >>, Tokens) ->
+insert_tokens_in_template(<<"%% ###REPLACEWITHOPTOKENS###", Rest/binary >>, Tokens) ->
     [Tokens, Rest];
-insert_tokens_in_template(<<"###REPLACEWITHNOTE###", Rest/binary >>, Tokens) ->
+insert_tokens_in_template(<<"%%% ###REPLACEWITHNOTE###", Rest/binary >>, Tokens) ->
     [
      "%%%\n"
      "%%%   === ===  N O T E :   This file is generated do not edit. === ===\n"

@@ -37,7 +37,9 @@
 
 -export([ deserialize/1
         , deserialize_one/1
+        , deserialize_type/1
         , serialize/1
+        , serialize_type/1
         ]).
 
 -include("aeb_fate_data.hrl").
@@ -47,38 +49,62 @@
 
 -define(SMALL_INT    ,        2#0). %% sxxxxxx 0 - 6 bit integer with sign bit
 %%                                             1 Set below
--define(LONG_STRING  , 2#00000001). %% 000000 01 - RLP encoded array, size >= 64
--define(SHORT_STRING ,       2#01). %% xxxxxx 01 - [bytes], 0 < xxxxxx:size < 64
+-define(LONG_STRING  , 2#00000001). %% 000000 01 | RLP encoded array - when size >= 64
+-define(SHORT_STRING ,       2#01). %% xxxxxx 01 | [bytes] - when 0 < xxxxxx:size < 64
 %%                                            11  Set below
--define(SHORT_LIST   ,     2#0011). %% xxxx 0011 - [encoded elements],  0 < length < 16
-%%                                     xxxx 0111 - FREE (For typedefs in future)
--define(LONG_TUPLE   , 2#00001011). %% 0000 1011 - RLP encoded (size - 16) + [encoded elements],
--define(SHORT_TUPLE  ,     2#1011). %% xxxx 1011 - [encoded elements], 0  <  size < 16
+-define(SHORT_LIST   ,     2#0011). %% xxxx 0011 | [encoded elements] when  0 < length < 16
+%%                                     xxxx 0111
+-define(TYPE_INTEGER , 2#00000111). %% 0000 0111 - Integer typedef
+-define(TYPE_BOOLEAN , 2#00010111). %% 0001 0111 - Boolean typedef
+-define(TYPE_LIST    , 2#00100111). %% 0010 0111 | Type
+-define(TYPE_TUPLE   , 2#00110111). %% 0011 0111 | Size | [Element Types]
+-define(TYPE_OBJECT  , 2#01000111). %% 0100 0111 | ObjectType
+-define(TYPE_BITS    , 2#01010111). %% 0101 0111 - Bits typedef
+-define(TYPE_MAP     , 2#01100111). %% 0110 0111 | Type | Type
+-define(TYPE_STRING  , 2#01110111). %% 0111 0111 - string typedef
+-define(TYPE_VARIANT , 2#10000111). %% 1000 0111 | Size | [Type]
+                                    %% 1001 0111
+                                    %% 1010 0111
+                                    %% 1011 0111
+                                    %% 1100 0111
+                                    %% 1101 0111
+                                    %% 1110 0111
+                                    %% 1111 0111
+-define(LONG_TUPLE   , 2#00001011). %% 0000 1011 | RLP encoded (size - 16) | [encoded elements],
+-define(SHORT_TUPLE  ,     2#1011). %% xxxx 1011 | [encoded elements] when 0  <  size < 16
 %%                                          1111 Set below
--define(LONG_LIST    , 2#00011111). %% 0001 1111 - RLP encoded (length - 16) + [Elements]
--define(MAP          , 2#00101111). %% 0010 1111 - RLP encoded size + [encoded key, encoded value]
+-define(LONG_LIST    , 2#00011111). %% 0001 1111 | RLP encoded (length - 16) | [encoded lements]
+-define(MAP          , 2#00101111). %% 0010 1111 | RLP encoded size | [encoded key, encoded value]
 -define(EMPTY_TUPLE  , 2#00111111). %% 0011 1111
--define(POS_BITS     , 2#01001111). %% 0100 1111 - RLP encoded integer (to be interpreted as bitfield)
+-define(POS_BITS     , 2#01001111). %% 0100 1111 | RLP encoded integer (to be interpreted as bitfield)
 -define(EMPTY_STRING , 2#01011111). %% 0101 1111
--define(POS_BIG_INT  , 2#01101111). %% 0110 1111 - RLP encoded (integer - 64)
+-define(POS_BIG_INT  , 2#01101111). %% 0110 1111 | RLP encoded (integer - 64)
 -define(FALSE        , 2#01111111). %% 0111 1111
 %%                                  %% 1000 1111 - FREE (Possibly for bytecode in the future.)
--define(ADDRESS      , 2#10011111). %% 1001 1111 - [32 bytes]
--define(VARIANT      , 2#10101111). %% 1010 1111 - encoded size + encoded tag + encoded values
+-define(OBJECT       , 2#10011111). %% 1001 1111 | ObjectType | RLP encoded Array
+-define(VARIANT      , 2#10101111). %% 1010 1111 | encoded size | encoded tag | [encoded values]
 -define(NIL          , 2#10111111). %% 1011 1111 - Empty list
--define(NEG_BITS     , 2#11001111). %% 1100 1111 - RLP encoded integer (infinite 1:s bitfield)
+-define(NEG_BITS     , 2#11001111). %% 1100 1111 | RLP encoded integer (infinite 1:s bitfield)
 -define(EMPTY_MAP    , 2#11011111). %% 1101 1111
--define(NEG_BIG_INT  , 2#11101111). %% 1110 1111 - RLP encoded (integer - 64)
+-define(NEG_BIG_INT  , 2#11101111). %% 1110 1111 | RLP encoded (integer - 64)
 -define(TRUE         , 2#11111111). %% 1111 1111
 
--define(SHORT_TUPLE_SIZE, 16).
--define(SHORT_LIST_SIZE , 16).
--define(SMALL_INT_SIZE  , 64).
+-define(SHORT_TUPLE_SIZE,  16).
+-define(SHORT_LIST_SIZE,   16).
+-define(SMALL_INT_SIZE,    64).
 -define(SHORT_STRING_SIZE, 64).
 
 -define(POS_SIGN, 0).
 -define(NEG_SIGN, 1).
 
+%% Object types
+-define(OTYPE_ADDRESS,   0).
+-define(OTYPE_HASH,      1).
+-define(OTYPE_SIGNATURE, 2).
+-define(OTYPE_CONTRACT,  3).
+-define(OTYPE_ORACLE,    4).
+-define(OTYPE_NAME,      5).
+-define(OTYPE_CHANNEL,   6).
 
 %% --------------------------------------------------
 %% Serialize
@@ -106,7 +132,19 @@ serialize(String) when ?IS_FATE_STRING(String),
     Bytes = ?FATE_STRING_VALUE(String),
     <<?LONG_STRING, (aeser_rlp:encode(Bytes))/binary>>;
 serialize(?FATE_ADDRESS(Address)) when is_binary(Address) ->
-    <<?ADDRESS, (aeser_rlp:encode(Address))/binary>>;
+    <<?OBJECT, ?OTYPE_ADDRESS, (aeser_rlp:encode(Address))/binary>>;
+serialize(?FATE_HASH(Address)) when is_binary(Address) ->
+    <<?OBJECT, ?OTYPE_HASH, (aeser_rlp:encode(Address))/binary>>;
+serialize(?FATE_SIGNATURE(Address)) when is_binary(Address) ->
+    <<?OBJECT, ?OTYPE_SIGNATURE, (aeser_rlp:encode(Address))/binary>>;
+serialize(?FATE_CONTRACT(Address)) when is_binary(Address) ->
+    <<?OBJECT, ?OTYPE_CONTRACT, (aeser_rlp:encode(Address))/binary>>;
+serialize(?FATE_ORACLE(Address)) when is_binary(Address) ->
+    <<?OBJECT, ?OTYPE_ORACLE, (aeser_rlp:encode(Address))/binary>>;
+serialize(?FATE_NAME(Address)) when is_binary(Address) ->
+    <<?OBJECT, ?OTYPE_NAME, (aeser_rlp:encode(Address))/binary>>;
+serialize(?FATE_CHANNEL(Address)) when is_binary(Address) ->
+    <<?OBJECT, ?OTYPE_CHANNEL, (aeser_rlp:encode(Address))/binary>>;
 serialize(?FATE_TUPLE(T)) when size(T) > 0 ->
     S = size(T),
     L = tuple_to_list(T),
@@ -141,6 +179,79 @@ serialize(?FATE_VARIANT(Size, Tag, Values)) when 0 < Size, Size < 256,
     <<?VARIANT, Size:8, Tag:8,
       (serialize(?FATE_TUPLE(Values)))/binary
     >>.
+
+%% -----------------------------------------------------
+
+-spec serialize_type(aeb_fate_data:fate_type_type()) -> [byte()].
+serialize_type(integer)     -> [?TYPE_INTEGER];
+serialize_type(boolean)     -> [?TYPE_BOOLEAN];
+serialize_type({list, T})   -> [?TYPE_LIST | serialize_type(T)];
+serialize_type({tuple, Ts}) ->
+    case length(Ts) of
+        N when N =< 255 ->
+            [?TYPE_TUPLE, N | [serialize_type(T) || T <- Ts]]
+    end;
+serialize_type(address)     -> [?TYPE_OBJECT, ?OTYPE_ADDRESS];
+serialize_type(hash)        -> [?TYPE_OBJECT, ?OTYPE_HASH];
+serialize_type(signature)   -> [?TYPE_OBJECT, ?OTYPE_SIGNATURE];
+serialize_type(contract)    -> [?TYPE_OBJECT, ?OTYPE_CONTRACT];
+serialize_type(oracle)      -> [?TYPE_OBJECT, ?OTYPE_ORACLE];
+serialize_type(name)        -> [?TYPE_OBJECT, ?OTYPE_NAME];
+serialize_type(channel)     -> [?TYPE_OBJECT, ?OTYPE_CHANNEL];
+serialize_type(bits)        -> [?TYPE_BITS];
+serialize_type({map, K, V}) -> [?TYPE_MAP
+                                | serialize_type(K) ++ serialize_type(V)];
+serialize_type(string)      -> [?TYPE_STRING];
+serialize_type({variant, ListOfVariants}) ->
+    Size = length(ListOfVariants),
+    if Size < 256 ->
+            [?TYPE_VARIANT, Size | [serialize_type(T) || T <- ListOfVariants]]
+    end.
+
+
+-spec deserialize_type(binary()) -> {aeb_fate_data:fate_type_type(), binary()}.
+deserialize_type(<<?TYPE_INTEGER, Rest/binary>>) -> {integer, Rest};
+deserialize_type(<<?TYPE_BOOLEAN, Rest/binary>>) -> {boolean, Rest};
+deserialize_type(<<?TYPE_LIST, Rest/binary>>) ->
+    {T, Rest2} = deserialize_type(Rest),
+    {{list, T}, Rest2};
+deserialize_type(<<?TYPE_TUPLE, N, Rest/binary>>) ->
+    {Ts, Rest2} = deserialize_types(N, Rest, []),
+    {{tuple, Ts}, Rest2};
+deserialize_type(<<TYPE_OBJECT, ObjectType, Rest/binary>>) ->
+    case ObjectType of
+        ?OTYPE_ADDRESS   -> {address, Rest};
+        ?OTYPE_HASH      -> {hash, Rest};
+        ?OTYPE_SIGNATURE -> {signature, Rest};
+        ?OTYPE_CONTRACT  -> {contract, Rest};
+        ?OTYPE_ORACLE    -> {oracle, Rest};
+        ?OTYPE_NAME      -> {name, Rest};
+        ?OTYPE_CHANNEL   -> {channel, Rest}
+    end;
+deserialize_type(<<?TYPE_BITS, Rest/binary>>) -> {bits, Rest};
+deserialize_type(<<?TYPE_MAP, Rest/binary>>) ->
+    {K, Rest2} = deserialize_type(Rest),
+    {V, Rest3} = deserialize_type(Rest2),
+    {{map, K, V}, Rest3};
+deserialize_type(<<?TYPE_STRING, Rest/binary>>) ->
+    {string, Rest};
+deserialize_type(<<?TYPE_VARIANT, Size, Rest/binary>>) ->
+    {Variants, Rest2} = deserialize_variants(Size, Rest, []),
+    {{variant, Variants}, Rest2}.
+
+deserialize_variants(0, Rest, Variants) ->
+    {lists:reverse(Variants), Rest};
+deserialize_variants(N, Rest, Variants) ->
+    {T, Rest2} = deserialize_type(Rest),
+    deserialize_variants(N-1, Rest2, [T|Variants]).
+
+
+
+deserialize_types(0, Binary, Acc) ->
+    {lists:reverse(Acc), Binary};
+deserialize_types(N, Binary, Acc) ->
+    {T, Rest} = deserialize_type(Binary),
+    deserialize_types(N-1, Rest, [T | Acc]).
 
 
 %% -----------------------------------------------------
@@ -205,9 +316,19 @@ deserialize2(<<S:6, ?SHORT_STRING:2, Rest/binary>>) ->
     String = binary:part(Rest, 0, S),
     Rest2 = binary:part(Rest, byte_size(Rest), - (byte_size(Rest) - S)),
     {?MAKE_FATE_STRING(String), Rest2};
-deserialize2(<<?ADDRESS, Rest/binary>>) ->
+deserialize2(<<?OBJECT, ObjectType, Rest/binary>>) ->
     {A, Rest2} = aeser_rlp:decode_one(Rest),
-    {?FATE_ADDRESS(A), Rest2};
+    Val =
+        case ObjectType of
+            ?OTYPE_ADDRESS   -> ?FATE_ADDRESS(A);
+            ?OTYPE_HASH      -> ?FATE_HASH(A);
+            ?OTYPE_SIGNATURE -> ?FATE_SIGNATURE(A);
+            ?OTYPE_CONTRACT  -> ?FATE_CONTRACT(A);
+            ?OTYPE_ORACLE    -> ?FATE_ORACLE(A);
+            ?OTYPE_NAME      -> ?FATE_NAME(A);
+            ?OTYPE_CHANNEL   -> ?FATE_CHANNEL(A)
+        end,
+    {Val, Rest2};
 deserialize2(<<?TRUE, Rest/binary>>) ->
     {?FATE_TRUE, Rest};
 deserialize2(<<?FALSE, Rest/binary>>) ->

@@ -4,18 +4,22 @@
 
 -module(aeb_fate_data).
 
--type fate_integer() :: ?FATE_INTEGER_T.
--type fate_boolean() :: ?FATE_BOOLEAN_T.
--type fate_nil()     :: ?FATE_NIL_T.
--type fate_list()    :: ?FATE_LIST_T.
--type fate_unit()    :: ?FATE_UNIT_T.
--type fate_map()     :: ?FATE_MAP_T.
--type fate_string()  :: ?FATE_STRING_T.
--type fate_address() :: ?FATE_ADDRESS_T.
-
--type fate_variant() :: ?FATE_VARIANT_T.
-
--type fate_tuple()   :: ?FATE_TUPLE_T.
+-type fate_integer()   :: ?FATE_INTEGER_T.
+-type fate_boolean()   :: ?FATE_BOOLEAN_T.
+-type fate_nil()       :: ?FATE_NIL_T.
+-type fate_list()      :: ?FATE_LIST_T.
+-type fate_unit()      :: ?FATE_UNIT_T.
+-type fate_map()       :: ?FATE_MAP_T.
+-type fate_string()    :: ?FATE_STRING_T.
+-type fate_address()   :: ?FATE_ADDRESS_T.
+-type fate_hash()      :: ?FATE_HASH_T.
+-type fate_contract()  :: ?FATE_CONTRACT_T.
+-type fate_oracle()    :: ?FATE_ORACLE_T.
+-type fate_name()      :: ?FATE_NAME_T.
+-type fate_channel()   :: ?FATE_CHANNEL_T.
+-type fate_signature() :: ?FATE_SIGNATURE_T.
+-type fate_variant()   :: ?FATE_VARIANT_T.
+-type fate_tuple()     :: ?FATE_TUPLE_T.
 
 -type fate_type_type() :: integer
                         | boolean
@@ -23,6 +27,12 @@
                         | {map, fate_type(), fate_type()}
                         | {tuple, [fate_type()]}
                         | address
+                        | hash
+                        | signature
+                        | contract
+                        | oracle
+                        | name
+                        | channel
                         | bits
                         | {variant, integer()}.
 
@@ -36,6 +46,12 @@
       | fate_tuple()
       | fate_string()
       | fate_address()
+      | fate_hash()
+      | fate_signature()
+      | fate_contract()
+      | fate_oracle()
+      | fate_name()
+      | fate_channel()
       | fate_variant()
       | fate_map()
       | fate_type_type().
@@ -49,6 +65,12 @@
              , fate_tuple/0
              , fate_string/0
              , fate_address/0
+             , fate_hash/0
+             , fate_signature/0
+             , fate_contract/0
+             , fate_oracle/0
+             , fate_name/0
+             , fate_channel/0
              , fate_variant/0
              , fate_map/0
              , fate_type_type/0
@@ -62,6 +84,12 @@
         , make_string/1
         , make_map/1
         , make_address/1
+        , make_hash/1
+        , make_signature/1
+        , make_contract/1
+        , make_oracle/1
+        , make_name/1
+        , make_channel/1
         , make_bits/1
         , make_unit/0
         , tuple_to_list/1
@@ -71,19 +99,26 @@
 -export([format/1]).
 
 
-make_integer(I) when is_integer(I) -> ?MAKE_FATE_INTEGER(I).
+
 make_boolean(true)  -> ?FATE_TRUE;
 make_boolean(false) -> ?FATE_FALSE.
-make_list([]) -> ?FATE_NIL;
-make_list(L) -> ?MAKE_FATE_LIST(L).
-make_string(S) when is_list(S) ->
+make_list([]) ->       ?FATE_NIL;
+make_list(L) ->        ?MAKE_FATE_LIST(L).
+make_unit() ->         ?FATE_UNIT.
+make_tuple(T) ->       ?FATE_TUPLE(T).
+make_map(M) ->         ?MAKE_FATE_MAP(M).
+make_address(X) ->     ?FATE_ADDRESS(X).
+make_hash(X) ->        ?FATE_HASH(X).
+make_signature(X) ->   ?FATE_SIGNATURE(X).
+make_contract(X) ->    ?FATE_CONTRACT(X).
+make_oracle(X) ->      ?FATE_ORACLE(X).
+make_name(X) ->        ?FATE_NAME(X).
+make_channel(X) ->     ?FATE_CHANNEL(X).
+make_integer(I) when is_integer(I) -> ?MAKE_FATE_INTEGER(I).
+make_bits(I)    when is_integer(I) -> ?FATE_BITS(I).
+make_string(S)  when is_list(S) ->
     ?FATE_STRING(list_to_binary(lists:flatten(S)));
-make_string(S) when is_binary(S) -> ?FATE_STRING(S).
-make_unit() -> ?FATE_UNIT.
-make_tuple(T) -> ?FATE_TUPLE(T).
-make_map(M) -> ?MAKE_FATE_MAP(M).
-make_address(A) -> ?FATE_ADDRESS(A).
-make_bits(I) when is_integer(I) -> ?FATE_BITS(I).
+make_string(S)  when is_binary(S) -> ?FATE_STRING(S).
 
 make_variant(Size, Tag, Values) when is_integer(Size), is_integer(Tag)
                                      , 0 =< Size
@@ -103,6 +138,22 @@ encode({bits, Term}) when is_integer(Term) -> make_bits(Term);
 encode({address, B}) when is_binary(B)  -> make_address(B);
 encode({address, I}) when is_integer(I)  -> B = <<I:256>>, make_address(B);
 encode({address, S}) when is_list(S)  -> make_address(base58_to_address(S));
+encode({hash, H}) when is_binary(H)  -> make_hash(H);
+encode({hash, H}) when is_list(H)  -> make_hash(base64:decode(H));
+encode({signature, S}) when is_binary(S)  -> make_signature(S);
+encode({signature, S}) when is_list(S)  -> make_signature(base64:decode(S));
+encode({contract, B}) when is_binary(B)  -> make_contract(B);
+encode({contract, I}) when is_integer(I)  -> B = <<I:256>>, make_contract(B);
+encode({contract, S}) when is_list(S)  -> make_contract(base58_to_address(S));
+encode({oracle, B}) when is_binary(B)  -> make_oracle(B);
+encode({oracle, I}) when is_integer(I)  -> B = <<I:256>>, make_oracle(B);
+encode({oracle, S}) when is_list(S)  -> make_oracle(base58_to_address(S));
+encode({name, B}) when is_binary(B)  -> make_name(B);
+encode({name, I}) when is_integer(I)  -> B = <<I:256>>, make_name(B);
+encode({name, S}) when is_list(S)  -> make_name(base58_to_address(S));
+encode({channel, B}) when is_binary(B)  -> make_channel(B);
+encode({channel, I}) when is_integer(I)  -> B = <<I:256>>, make_channel(B);
+encode({channel, S}) when is_list(S)  -> make_channel(base58_to_address(S));
 encode({variant, Size, Tag, Values}) -> make_variant(Size, Tag, Values);
 encode(Term) when is_integer(Term) -> make_integer(Term);
 encode(Term) when is_boolean(Term) -> make_boolean(Term);
@@ -120,8 +171,14 @@ decode(?FATE_TRUE)  -> true;
 decode(?FATE_FALSE) -> false;
 decode(L) when ?IS_FATE_LIST(L) -> [decode(E) || E <- L];
 decode(?FATE_ADDRESS(<<Address:256>>)) -> {address, Address};
-decode(?FATE_BITS(Bits)) -> {bits, Bits};
-decode(?FATE_TUPLE(T)) -> erlang:list_to_tuple([decode(E) || E <- T]);
+decode(?FATE_HASH(H))      -> {hash, H};
+decode(?FATE_SIGNATURE(S)) -> {signature, S};
+decode(?FATE_CONTRACT(X))  -> {contract, X};
+decode(?FATE_ORACLE(X))    -> {oracle, X};
+decode(?FATE_NAME(X))      -> {name, X};
+decode(?FATE_CHANNEL(X))   -> {channel, X};
+decode(?FATE_BITS(Bits))   -> {bits, Bits};
+decode(?FATE_TUPLE(T))     -> erlang:list_to_tuple([decode(E) || E <- T]);
 decode(?FATE_VARIANT(Size, Tag, Values)) -> {variant, Size, Tag, Values};
 decode(S) when ?IS_FATE_STRING(S) -> binary_to_list(S);
 decode(M) when ?IS_FATE_MAP(M) ->
@@ -148,7 +205,13 @@ format(?FATE_VARIANT(Size, Tag, T)) ->
      " |)"];
 format(M) when ?IS_FATE_MAP(M) ->
     ["{ ", format_kvs(maps:to_list(?FATE_MAP_VALUE(M))), " }"];
-format(?FATE_ADDRESS(Address)) -> ["#", address_to_base58(Address)];
+format(?FATE_ADDRESS(Address))  -> [address_to_base58(Address)];
+format(?FATE_HASH(X))           -> ["#", base64:encode(X)];
+format(?FATE_SIGNATURE(X))      -> ["$", base64:encode(X)];
+format(?FATE_CONTRACT(X))       -> ["ct_", address_to_base58(X)];
+format(?FATE_ORACLE(X))         -> ["ok_", address_to_base58(X)];
+format(?FATE_NAME(X))           -> ["nm_", address_to_base58(X)];
+format(?FATE_CHANNEL(X))        -> ["ch_", address_to_base58(X)];
 format(V) -> exit({not_a_fate_type, V}).
 
 format_bits(0, Acc) -> Acc;

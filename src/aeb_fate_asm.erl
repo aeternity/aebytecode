@@ -40,9 +40,12 @@
 %%%          -2374683271468723648732648736498712634876147
 %%%      1b. Integers as Hexadecimals::  0x{Hexdigits}
 %%%          0x0deadbeef0
-%%%       2. addresses, a base58 encoded string starting with #{base58char}
-%%%          followed by up to 64 hex chars
-%%%          #00000deadbeef
+%%%      2a. addresses, a base58 encoded string prefixed with @
+%%%          @foo
+%%%      2b. contract addresse: ct_{base58char}+
+%%%      2c. oracle addresse: ok_{base58char}+
+%%%      2d. name addresse: nm_{base58char}+
+%%%      2e. channel addresse: ch_{base58char}+
 %%%       3. Boolean  true or false
 %%%          true
 %%%          false
@@ -708,49 +711,16 @@ serialize_data(_, Data) ->
     aeb_fate_encoding:serialize(Data).
 
 serialize_signature({Args, RetType}) ->
-    [serialize_type({tuple, Args}) |
-     serialize_type(RetType)].
+    [aeb_fate_encoding:serialize_type({tuple, Args}) |
+     aeb_fate_encoding:serialize_type(RetType)].
 
 
 
 deserialize_signature(Binary) ->
-    {{tuple, Args}, Rest}  = deserialize_type(Binary),
-    {RetType, Rest2} = deserialize_type(Rest),
+    {{tuple, Args}, Rest}  = aeb_fate_encoding:deserialize_type(Binary),
+    {RetType, Rest2} = aeb_fate_encoding:deserialize_type(Rest),
     {{Args, RetType}, Rest2}.
 
-deserialize_type(<<0, Rest/binary>>) -> {integer, Rest};
-deserialize_type(<<1, Rest/binary>>) -> {boolean, Rest};
-deserialize_type(<<2, Rest/binary>>) ->
-    {T, Rest2} = deserialize_type(Rest),
-    {{list, T}, Rest2};
-deserialize_type(<<3, N, Rest/binary>>) ->
-    {Ts, Rest2} = deserialize_types(N, Rest, []),
-    {{tuple, Ts}, Rest2};
-deserialize_type(<<4, Rest/binary>>) -> {address, Rest};
-deserialize_type(<<5, Rest/binary>>) -> {bits, Rest};
-deserialize_type(<<6, Rest/binary>>) ->
-    {K, Rest2} = deserialize_type(Rest),
-    {V, Rest3} = deserialize_type(Rest2),
-    {{map, K, V}, Rest3};
-deserialize_type(<<7, Rest/binary>>) ->
-    {string, Rest};
-deserialize_type(<<8, Size, Rest/binary>>) ->
-    {Variants, Rest2} = deserialize_variants(Size, Rest, []),
-    {{variant, Variants}, Rest2}.
-
-deserialize_variants(0, Rest, Variants) ->
-    {lists:reverse(Variants), Rest};
-deserialize_variants(N, Rest, Variants) ->
-    {T, Rest2} = deserialize_type(Rest),
-    deserialize_variants(N-1, Rest2, [T|Variants]).
-
-
-
-deserialize_types(0, Binary, Acc) ->
-    {lists:reverse(Acc), Binary};
-deserialize_types(N, Binary, Acc) ->
-    {T, Rest} = deserialize_type(Binary),
-    deserialize_types(N-1, Rest, [T | Acc]).
 
 
 to_hexstring(ByteList) ->
@@ -786,9 +756,40 @@ to_bytecode([{string,_line, String}|Rest], Address, Env, Code, Opts) ->
     to_bytecode(Rest, Address, Env,
                 [{immediate, aeb_fate_data:make_string(String)}|Code],
                 Opts);
-to_bytecode([{address,_line, Value}|Rest], Address, Env, Code, Opts) ->
+to_bytecode([{address,_line, {address, Value}}|Rest],
+            Address, Env, Code, Opts) ->
     to_bytecode(Rest, Address, Env,
                 [{immediate, aeb_fate_data:make_address(Value)}|Code],
+                Opts);
+to_bytecode([{address,_line, {contract, Value}}|Rest],
+            Address, Env, Code, Opts) ->
+    to_bytecode(Rest, Address, Env,
+                [{immediate, aeb_fate_data:make_contract(Value)}|Code],
+                Opts);
+to_bytecode([{address,_line, {oracle, Value}}|Rest],
+            Address, Env, Code, Opts) ->
+    to_bytecode(Rest, Address, Env,
+                [{immediate, aeb_fate_data:make_oracle(Value)}|Code],
+                Opts);
+to_bytecode([{address,_line, {name, Value}}|Rest],
+            Address, Env, Code, Opts) ->
+    to_bytecode(Rest, Address, Env,
+                [{immediate, aeb_fate_data:make_name(Value)}|Code],
+                Opts);
+to_bytecode([{address,_line, {channel, Value}}|Rest],
+            Address, Env, Code, Opts) ->
+    to_bytecode(Rest, Address, Env,
+                [{immediate, aeb_fate_data:make_contract(Value)}|Code],
+                Opts);
+to_bytecode([{hash,_line, Value}|Rest],
+            Address, Env, Code, Opts) ->
+    to_bytecode(Rest, Address, Env,
+                [{immediate, aeb_fate_data:make_hash(Value)}|Code],
+                Opts);
+to_bytecode([{signature,_line, Value}|Rest],
+            Address, Env, Code, Opts) ->
+    to_bytecode(Rest, Address, Env,
+                [{immediate, aeb_fate_data:make_signature(Value)}|Code],
                 Opts);
 to_bytecode([{id,_line, ID}|Rest], Address, Env, Code, Opts) ->
     {Hash, Env2} = insert_symbol(ID, Env),
@@ -878,7 +879,6 @@ parse_variant([{start_variant,_line}
 
 parse_value([{int,_line, Int} | Rest]) -> {Int, Rest};
 parse_value([{boolean,_line, Bool} | Rest]) -> {Bool, Rest};
-parse_value([{hash,_line, Hash} | Rest]) -> {Hash, Rest};
 parse_value([{'{',_line} | Rest]) -> parse_map(Rest);
 parse_value([{'[',_line} | Rest]) -> parse_list(Rest);
 parse_value([{'(',_line} | Rest]) ->
@@ -892,8 +892,20 @@ parse_value([{start_variant,_line}|_] = Tokens) ->
     {Variant, Rest};
 parse_value([{string,_line, String} | Rest]) ->
     {aeb_fate_data:make_string(String), Rest};
-parse_value([{address,_line, Address} | Rest]) ->
-    {aeb_fate_data:make_address(Address), Rest}.
+parse_value([{address,_line, {address, Address}} | Rest]) ->
+    {aeb_fate_data:make_address(Address), Rest};
+parse_value([{address,_line, {contract, Address}} | Rest]) ->
+    {aeb_fate_data:make_contract(Address), Rest};
+parse_value([{address,_line, {oracle, Address}} | Rest]) ->
+    {aeb_fate_data:make_oracle(Address), Rest};
+parse_value([{address,_line, {name, Address}} | Rest]) ->
+    {aeb_fate_data:make_name(Address), Rest};
+parse_value([{address,_line, {channel, Address}} | Rest]) ->
+    {aeb_fate_data:make_channel(Address), Rest};
+parse_value([{hash,_line, Hash} | Rest]) ->
+    {aeb_fate_data:make_hash(Hash), Rest};
+parse_value([{signature,_line, Hash} | Rest]) ->
+    {aeb_fate_data:make_signature(Hash), Rest}.
 
 to_fun_def([{id, _, Name}, {'(', _} | Rest]) ->
     {ArgsType, [{'to', _} | Rest2]} = to_arg_types(Rest),
@@ -913,11 +925,17 @@ to_arg_types(Tokens) ->
 
 %% Type handling
 
-to_type([{id, _, "integer"} | Rest]) -> {integer, Rest};
-to_type([{id, _, "boolean"} | Rest]) -> {boolean, Rest};
-to_type([{id, _, "string"}  | Rest]) -> {string, Rest};
-to_type([{id, _, "address"} | Rest]) -> {address, Rest};
-to_type([{id, _, "bits"}    | Rest]) -> {bits, Rest};
+to_type([{id, _, "integer"}   | Rest]) -> {integer, Rest};
+to_type([{id, _, "boolean"}   | Rest]) -> {boolean, Rest};
+to_type([{id, _, "string"}    | Rest]) -> {string, Rest};
+to_type([{id, _, "address"}   | Rest]) -> {address, Rest};
+to_type([{id, _, "contract"}  | Rest]) -> {contract, Rest};
+to_type([{id, _, "oracle"}    | Rest]) -> {oracle, Rest};
+to_type([{id, _, "name"}      | Rest]) -> {name, Rest};
+to_type([{id, _, "channel"}   | Rest]) -> {channel, Rest};
+to_type([{id, _, "hash"}      | Rest]) -> {hash, Rest};
+to_type([{id, _, "signature"} | Rest]) -> {signature, Rest};
+to_type([{id, _, "bits"}      | Rest]) -> {bits, Rest};
 to_type([{'{', _}, {id, _, "list"}, {',', _} | Rest]) ->
     %% TODO: Error handling
     {ListType, [{'}', _}| Rest2]} = to_type(Rest),
@@ -949,25 +967,6 @@ to_list_of_types(Tokens) ->
             {[Type|MoreTypes], Rest2};
         {Type, [{']', _} |  Rest]} ->
             {[Type], Rest}
-    end.
-
--spec serialize_type(aeb_fate_data:fate_type_type()) -> [byte()].
-serialize_type(integer) -> [0];
-serialize_type(boolean) -> [1];
-serialize_type({list, T}) -> [2 | serialize_type(T)];
-serialize_type({tuple, Ts}) ->
-    case length(Ts) of
-        N when N =< 255 ->
-            [3, N | [serialize_type(T) || T <- Ts]]
-    end;
-serialize_type(address) -> [4];
-serialize_type(bits) -> [5];
-serialize_type({map, K, V}) -> [6 | serialize_type(K) ++ serialize_type(V)];
-serialize_type(string) -> [7];
-serialize_type({variant, ListOfVariants}) ->
-    Size = length(ListOfVariants),
-    if Size < 256 ->
-            [8, Size | [serialize_type(T) || T <- ListOfVariants]]
     end.
 
 

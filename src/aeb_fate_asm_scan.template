@@ -4,7 +4,7 @@
 %%% @doc
 %%%     Handling FATE code.
 %%% @end
-###REPLACEWITHNOTE###
+%%% ###REPLACEWITHNOTE###
 %%%-------------------------------------------------------------------
 
 Definitions.
@@ -13,9 +13,13 @@ HEXDIGIT = [0-9a-fA-F]
 LOWER    = [a-z_]
 UPPER    = [A-Z]
 BASE58   = [123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]
+BASE64   = [ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxy0123456789+/=]
 INT      = {DIGIT}+
 HEX      = 0x{HEXDIGIT}+
-HASH     = #{BASE58}+
+OBJECT   = [a-z][a-z]_{BASE58}+
+ADDRESS  = @{BASE58}+
+HASH     = #{BASE64}+
+SIG      = \${BASE64}+
 WS       = [\000-\s]
 ID       = {LOWER}[a-zA-Z0-9_]*
 STRING   = "[^"]*"
@@ -30,7 +34,7 @@ a{INT}         : {token, {stack, TokenLine, parse_acc(TokenChars)}}.
 true           : {token, {boolean, TokenLine, true}}.
 false          : {token, {boolean, TokenLine, false}}.
 
-###REPLACEWITHOPTOKENS###
+%% ###REPLACEWITHOPTOKENS###
 
 FUNCTION       : {token, {function, TokenLine, 'FUNCTION' }}.
 
@@ -43,7 +47,13 @@ FUNCTION       : {token, {function, TokenLine, 'FUNCTION' }}.
 -{INT} :
  {token, {int, TokenLine, parse_int(TokenChars)}}.
 {HASH} :
- {token, {address, TokenLine, parse_hash(TokenChars)}}.
+ {token, {hash, TokenLine, parse_hash(TokenChars)}}.
+{SIG} :
+ {token, {signature, TokenLine, parse_signature(TokenChars)}}.
+{ADDRESS} :
+ {token, {address, TokenLine, {address, parse_address(TokenChars)}}}.
+{OBJECT} :
+ {token, {object, TokenLine, parse_object(TokenChars)}}.
 {STRING} :
  {token, {string, TokenLine, list_to_binary(TokenChars)}}.
 {BITS} :
@@ -102,7 +112,25 @@ parse_acc("a" ++ N) -> list_to_integer(N).
 
 
 parse_hash("#" ++ Chars) ->
+    base64:decode(Chars).
+
+parse_signature("$" ++ Chars) ->
+    base64:decode(Chars).
+
+parse_address("@" ++ Chars) ->
     base58_to_address(Chars).
+
+parse_object("ct_" ++ Chars) ->
+    {contract, base58_to_address(Chars)};
+parse_object("ok_" ++ Chars) ->
+    {oracle, base58_to_address(Chars)};
+parse_object("nm_" ++ Chars) ->
+    {name, base58_to_address(Chars)};
+parse_object("ch_" ++ Chars) ->
+    {channel, base58_to_address(Chars)};
+parse_object("ak_" ++ Chars) ->
+    {address, base58_to_address(Chars)}.
+
 
 scan(S) ->
     string(S).

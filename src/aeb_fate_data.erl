@@ -205,7 +205,7 @@ format(?FATE_VARIANT(Size, Tag, T)) ->
      " |)"];
 format(M) when ?IS_FATE_MAP(M) ->
     ["{ ", format_kvs(maps:to_list(?FATE_MAP_VALUE(M))), " }"];
-format(?FATE_ADDRESS(Address))  -> [address_to_base58(Address)];
+format(?FATE_ADDRESS(Address))  -> ["@", address_to_base58(Address)];
 format(?FATE_HASH(X))           -> ["#", base64:encode(X)];
 format(?FATE_SIGNATURE(X))      -> ["$", base64:encode(X)];
 format(?FATE_CONTRACT(X))       -> ["ct_", address_to_base58(X)];

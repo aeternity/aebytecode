@@ -218,7 +218,7 @@ deserialize_type(<<?TYPE_LIST, Rest/binary>>) ->
 deserialize_type(<<?TYPE_TUPLE, N, Rest/binary>>) ->
     {Ts, Rest2} = deserialize_types(N, Rest, []),
     {{tuple, Ts}, Rest2};
-deserialize_type(<<TYPE_OBJECT, ObjectType, Rest/binary>>) ->
+deserialize_type(<<?TYPE_OBJECT, ObjectType, Rest/binary>>) ->
     case ObjectType of
         ?OTYPE_ADDRESS   -> {address, Rest};
         ?OTYPE_HASH      -> {hash, Rest};

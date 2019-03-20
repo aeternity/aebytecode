@@ -10,8 +10,7 @@
 -module(aeb_abi).
 -define(HASH_SIZE, 32).
 
--export([ old_create_calldata/3
-        , create_calldata/4
+-export([ create_calldata/4
         , check_calldata/2
         , function_type_info/3
         , function_type_hash/3
@@ -45,14 +44,6 @@ create_calldata(FunName, Args, ArgTypes0, RetType) ->
         function_type_hash(list_to_binary(FunName), ArgTypes, RetType),
     Data = aeb_heap:to_binary({TypeHashInt, list_to_tuple(Args)}),
     {ok, Data, {tuple, [word, ArgTypes]}, RetType}.
-
-get_type_info_and_hash(#{type_info := TypeInfo}, FunName) ->
-    FunBin = list_to_binary(FunName),
-    case type_hash_from_function_name(FunBin, TypeInfo) of
-        {ok, <<TypeHashInt:?HASH_SIZE/unit:8>>} -> {ok, TypeInfo, TypeHashInt};
-        {ok, _}                   -> {error, bad_type_hash};
-        {error, _} = Err          -> Err
-    end.
 
 -spec check_calldata(binary(), type_info()) ->
                         {'ok', typerep(), typerep()} | {'error', atom()}.
@@ -157,53 +148,3 @@ type_hash_from_function_name(Name, TypeInfo) ->
         false ->
             {error, unknown_function}
     end.
-
-%% -- Old calldata creation. Kept for backwards compatibility. ---------------
-
-old_create_calldata(Contract, Function, Argument) when is_map(Contract) ->
-    case aeb_constants:string(Argument) of
-        {ok, {tuple, _, _} = Tuple} ->
-            old_encode_call(Contract, Function, Tuple);
-        {ok, {unit, _} = Tuple} ->
-            old_encode_call(Contract, Function, Tuple);
-        {ok, ParsedArgument} ->
-            %% The Sophia compiler does not parse a singleton tuple (42) as a tuple,
-            %% Wrap it in a tuple.
-            old_encode_call(Contract, Function, {tuple, [], [ParsedArgument]});
-        {error, _} ->
-            {error, argument_syntax_error}
-    end.
-
-%% Call takes one arument.
-%% Use a tuple to pass multiple arguments.
-old_encode_call(Contract, Function, ArgumentAst) ->
-    Argument = old_ast_to_erlang(ArgumentAst),
-    case get_type_info_and_hash(Contract, Function) of
-        {ok, TypeInfo, TypeHashInt} ->
-            Data = aeb_heap:to_binary({TypeHashInt, Argument}),
-            case check_calldata(Data, TypeInfo) of
-                {ok, CallDataType, OutType} ->
-                    {ok, Data, CallDataType, OutType};
-                {error, _} = Err ->
-                    Err
-            end;
-        {error, _} = Err -> Err
-    end.
-
-old_ast_to_erlang({int, _, N}) -> N;
-old_ast_to_erlang({hash, _, <<N:?HASH_SIZE/unit:8>>}) -> N;
-old_ast_to_erlang({hash, _, <<Hi:256, Lo:256>>}) -> {Hi, Lo};    %% signature
-old_ast_to_erlang({bool, _, true}) -> 1;
-old_ast_to_erlang({bool, _, false}) -> 0;
-old_ast_to_erlang({string, _, Bin}) -> Bin;
-old_ast_to_erlang({unit, _}) -> {};
-old_ast_to_erlang({con, _, "None"}) -> none;
-old_ast_to_erlang({app, _, {con, _, "Some"}, [A]}) -> {some, old_ast_to_erlang(A)};
-old_ast_to_erlang({tuple, _, Elems}) ->
-    list_to_tuple(lists:map(fun old_ast_to_erlang/1, Elems));
-old_ast_to_erlang({list, _, Elems}) ->
-    lists:map(fun old_ast_to_erlang/1, Elems);
-old_ast_to_erlang({map, _, Elems}) ->
-    maps:from_list([ {old_ast_to_erlang(element(1, Elem)), old_ast_to_erlang(element(2, Elem))}
-                        || Elem <- Elems ]).
-

@@ -34,7 +34,7 @@
 %%%          stack1
 %%%          a
 %%%
-%%%      Immediate values can be of 9 types:
+%%%      Immediate values can be of 11 types:
 %%%      1a. Integers as decimals: {Digits} or -{Digits}
 %%%          42
 %%%          -2374683271468723648732648736498712634876147
@@ -42,7 +42,7 @@
 %%%          0x0deadbeef0
 %%%      2a. addresses, a base58 encoded string prefixed with @
 %%%          @foo
-%%%      2b. contract addresse: ct_{base58char}+
+%%%      2b. contract address: ct_{base58char}+
 %%%      2c. oracle addresse: ok_{base58char}+
 %%%      2d. name addresse: nm_{base58char}+
 %%%      2e. channel addresse: ch_{base58char}+
@@ -67,10 +67,15 @@
 %%%          (1, "foo")
 %%%       9. Variants: (| Size | Tag | ( Elements ) |)
 %%%          (| 42 | 12 | ( "foo", 12) |)
+%%%      10. Hashes: #{base64char}+
+%%%          #AQIDCioLFQ==
+%%%      11. Signatures: ${base64char}+
+%%%          $AQIDCioLFQ==
 %%%
 %%%       Where Digits: [0123456789]
 %%%             Hexdigits:  [0123456789abcdef]
 %%%             base58char:  [123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]
+%%%             base64char:  [ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxy0123456789+/=]
 %%%             Characters any printable ascii character 0..255 (except " no quoting yet)
 %%%             Key: any value except for a map
 %%%             Bits: 01 or space

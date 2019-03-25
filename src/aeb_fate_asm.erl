@@ -43,9 +43,9 @@
 %%%      2a. addresses, a base58 encoded string prefixed with @
 %%%          @foo
 %%%      2b. contract address: ct_{base58char}+
-%%%      2c. oracle addresse: ok_{base58char}+
-%%%      2d. name addresse: nm_{base58char}+
-%%%      2e. channel addresse: ch_{base58char}+
+%%%      2c. oracle address: ok_{base58char}+
+%%%      2d. name address: nm_{base58char}+
+%%%      2e. channel address: ch_{base58char}+
 %%%       3. Boolean  true or false
 %%%          true
 %%%          false

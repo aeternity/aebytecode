@@ -66,13 +66,13 @@ Immediate values can be of 11 types:
 2b. Contract address: ct_{base58char}+
  `ct_nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv`
 
-2c. Oracle addresse: ok_{base58char}+
+2c. Oracle address: ok_{base58char}+
  `ok_nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv`
 
-2d. Name addresse: nm_{base58char}+
+2d. Name address: nm_{base58char}+
  `nm_nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv`
 
-2e. Channel addresse: ch_{base58char}+
+2e. Channel address: ch_{base58char}+
  `ch_nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv`
 
 3. Boolean  true or false

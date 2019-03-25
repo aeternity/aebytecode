@@ -219,7 +219,7 @@ format(?FATE_SIGNATURE(X))  ->
 format(?FATE_CONTRACT(X))   ->
     ["@", aeser_api_encoder:encode(contract_pubkey, X)];
 format(?FATE_ORACLE(X))     ->
-    ["@", eser_api_encoder:encode(oracle_pubkey, X)];
+    ["@", aeser_api_encoder:encode(oracle_pubkey, X)];
 format(?FATE_NAME(X))       ->
     ["@", aeser_api_encoder:encode(name, X)];
 format(?FATE_CHANNEL(X))    ->

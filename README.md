@@ -49,7 +49,7 @@ or start with stack followed by an integer
 `stack1`
 `a`
 
-Immediate values can be of 9 types:
+Immediate values can be of 11 types:
 
 1. Integers as decimals: {Digits} or -{Digits}
  `42`
@@ -57,8 +57,24 @@ Immediate values can be of 9 types:
   And integers as Hexadecimals::  0x{Hexdigits}
  `0x0deadbeef0`
 
-2. addresses, a base58 encoded string starting with # followed by a number of base58chars
- `#nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv`
+2. Chain Objects. These are all addresses to different types of chain objects.
+   Each address is a 256 bits number encoded in base58 with checksum
+   with a prefix of "@" plus a type prefix followed by "_".
+
+2a. Account Address: a base58c encoded number starting with @ak_ followed by a number of base58chars
+ '@ak_nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv`
+
+2b. Contract address: @ct_{base58char}+
+ `@ct_nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv`
+
+2c. Oracle address: @ok_{base58char}+
+ `@ok_nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv`
+
+2d. Name address: @nm_{base58char}+
+ `@nm_nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv`
+
+2e. Channel address: @ch_{base58char}+
+ `@ch_nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv`
 
 3. Boolean  true or false
  `true`
@@ -88,6 +104,12 @@ Immediate values can be of 9 types:
 9. Variants: (| Size | Tag | ( Elements ) |)
  `(| 42 | 12 | ( "foo", 12) |)`
 
+10. Hashes: #{base64char}+
+ `#AQIDCioLFQ==`
+
+11. Signatures: $sg_{base58char}+
+
+
 Where
 
 Digits: [0123456789]
@@ -95,6 +117,8 @@ Digits: [0123456789]
 Hexdigits:  [0123456789abcdef]
 
 base58char:  [123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]
+
+base64char:  [ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxy0123456789+/=]
 
 Characters: any printable ascii character 0..255 (except " no quoting yet)
 

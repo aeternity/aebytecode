@@ -4,7 +4,7 @@
 %%% @doc
 %%%     Handling FATE code.
 %%% @end
-###REPLACEWITHNOTE###
+%%% ###REPLACEWITHNOTE###
 %%%-------------------------------------------------------------------
 
 Definitions.
@@ -13,9 +13,12 @@ HEXDIGIT = [0-9a-fA-F]
 LOWER    = [a-z_]
 UPPER    = [A-Z]
 BASE58   = [123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]
+BASE64   = [ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxy0123456789+/=]
 INT      = {DIGIT}+
 HEX      = 0x{HEXDIGIT}+
-HASH     = #{BASE58}+
+OBJECT   = @[a-z][a-z]_{BASE58}+
+HASH     = #{BASE64}+
+SIG      = \$\sg_{BASE58}+
 WS       = [\000-\s]
 ID       = {LOWER}[a-zA-Z0-9_]*
 STRING   = "[^"]*"
@@ -30,10 +33,16 @@ a{INT}         : {token, {stack, TokenLine, parse_acc(TokenChars)}}.
 true           : {token, {boolean, TokenLine, true}}.
 false          : {token, {boolean, TokenLine, false}}.
 
-###REPLACEWITHOPTOKENS###
+%% ###REPLACEWITHOPTOKENS###
 
 FUNCTION       : {token, {function, TokenLine, 'FUNCTION' }}.
 
+{HASH} :
+ {token, {hash, TokenLine, parse_hash(TokenChars)}}.
+{SIG} :
+ {token, {signature, TokenLine, parse_object(TokenChars)}}.
+{OBJECT} :
+ {token, {object, TokenLine, parse_object(TokenChars)}}.
 {ID} :
  {token, {id, TokenLine, TokenChars}}.
 {HEX} :
@@ -42,8 +51,6 @@ FUNCTION       : {token, {function, TokenLine, 'FUNCTION' }}.
  {token, {int, TokenLine, parse_int(TokenChars)}}.
 -{INT} :
  {token, {int, TokenLine, parse_int(TokenChars)}}.
-{HASH} :
- {token, {address, TokenLine, parse_hash(TokenChars)}}.
 {STRING} :
  {token, {string, TokenLine, list_to_binary(TokenChars)}}.
 {BITS} :
@@ -102,7 +109,17 @@ parse_acc("a" ++ N) -> list_to_integer(N).
 
 
 parse_hash("#" ++ Chars) ->
-    base58_to_address(Chars).
+    base64:decode(Chars).
+
+parse_object([_|Chars]) ->
+    case aeser_api_encoder:decode(list_to_binary(Chars)) of
+       {account_pubkey, Bin}  -> {address, Bin};
+       {contract_pubkey, Bin} -> {contract, Bin};
+       {oracle_pubkey, Bin}   -> {oracle, Bin};
+       {name, Bin}            -> {name, Bin};
+       {channel, Bin}         -> {channel, Bin};
+       {signature, Bin}       -> {signature, Bin}
+    end.
 
 scan(S) ->
     string(S).
@@ -120,23 +137,3 @@ bits([$> |_Rest], Acc) -> Acc;
 bits([$0 | Rest], Acc) -> bits(Rest, Acc bsl 1);
 bits([$1 | Rest], Acc) -> bits(Rest, (Acc bsl 1) bor 1);
 bits([$  | Rest], Acc) -> bits(Rest, Acc).
-
-char_to_base58(C) ->
-    binary:at(<<0,1,2,3,4,5,6,7,8,0,0,0,0,0,0,0,9,10,11,12,13,14,15,16,0,17,
-                18,19,20,21,0,22,23,24,25,26,27,28,29,30,31,32,0,0,0,0,0,0,
-                33,34,35,36,37,38,39,40,41,42,43,0,44,45,46,47,48,49,50,51,
-                52,53,54,55,56,57>>,  C-$1).
-
-base58_to_integer(C, []) -> C;
-base58_to_integer(C, [X | Xs]) ->
-	base58_to_integer(C * 58 + char_to_base58(X), Xs).
-
-base58_to_integer([]) -> error;
-base58_to_integer([Char]) -> char_to_base58(Char);
-base58_to_integer([Char | Str]) ->
-	base58_to_integer(char_to_base58(Char), Str).
-
-base58_to_address(Base58) ->
-    I = base58_to_integer(Base58),
-    Bin = <<I:256>>,
-    Bin.

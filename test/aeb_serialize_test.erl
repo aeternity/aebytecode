@@ -47,6 +47,11 @@ sources() ->
     [aeb_fate_data:make_integer(0),
      aeb_fate_data:make_integer(1),
      True, False, Unit, Nil, EmptyString, EmptyMap,
+     aeb_fate_data:make_hash(<<1,2,3,4,5>>),
+     aeb_fate_data:make_signature(<<1,2,3,4,5>>),
+     aeb_fate_data:make_contract(<<1,2,3,4,5>>),
+     aeb_fate_data:make_name(<<1,2,3,4,5>>),
+     aeb_fate_data:make_channel(<<1,2,3,4,5>>),
      aeb_fate_data:make_list([True]),
      aeb_fate_data:make_address(
        <<0,1,2,3,4,5,6,7,8,9,

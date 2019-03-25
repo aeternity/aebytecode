@@ -112,7 +112,7 @@ FUNCTION foo () : {tuple, []}
 
   ADDR_TO_STR a arg216
 
-  STR_REVERSE a174 @nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv
+  STR_REVERSE a174  @ak_nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv
 
   INT_TO_ADDR arg127 var207
 
@@ -180,11 +180,11 @@ FUNCTION foo () : {tuple, []}
 
   LOG3 arg255 arg15 arg211 var139 arg44
 
-  LOG4 @nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv a247 a 9 a38 a
+  LOG4 @ak_nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv a247 a 9 a38 a
 
   DEACTIVATE
 
-  SPEND @nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv var136
+  SPEND @ak_nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv var136
 
   ORACLE_REGISTER arg29 48 ((| 5 | 2 | (1, "foo", ()) |)) arg65 { <> => false} <>
 

@@ -40,12 +40,11 @@
 %%%          -2374683271468723648732648736498712634876147
 %%%      1b. Integers as Hexadecimals::  0x{Hexdigits}
 %%%          0x0deadbeef0
-%%%      2a. addresses, a base58 encoded string prefixed with @
-%%%          @foo
-%%%      2b. contract address: ct_{base58char}+
-%%%      2c. oracle address: ok_{base58char}+
-%%%      2d. name address: nm_{base58char}+
-%%%      2e. channel address: ch_{base58char}+
+%%%      2a. account addresses, a base58c encoded string prefixed with @ak_
+%%%      2b. contract address: @ct_{base58char}+
+%%%      2c. oracle address:   @ok_{base58char}+
+%%%      2d. name address:     @nm_{base58char}+
+%%%      2e. channel address:  @ch_{base58char}+
 %%%       3. Boolean  true or false
 %%%          true
 %%%          false
@@ -69,8 +68,7 @@
 %%%          (| 42 | 12 | ( "foo", 12) |)
 %%%      10. Hashes: #{base64char}+
 %%%          #AQIDCioLFQ==
-%%%      11. Signatures: ${base64char}+
-%%%          $AQIDCioLFQ==
+%%%      11. Signatures: $sg_{base58char}+
 %%%
 %%%       Where Digits: [0123456789]
 %%%             Hexdigits:  [0123456789abcdef]
@@ -761,27 +759,27 @@ to_bytecode([{string,_line, String}|Rest], Address, Env, Code, Opts) ->
     to_bytecode(Rest, Address, Env,
                 [{immediate, aeb_fate_data:make_string(String)}|Code],
                 Opts);
-to_bytecode([{address,_line, {address, Value}}|Rest],
+to_bytecode([{object,_line, {address, Value}}|Rest],
             Address, Env, Code, Opts) ->
     to_bytecode(Rest, Address, Env,
                 [{immediate, aeb_fate_data:make_address(Value)}|Code],
                 Opts);
-to_bytecode([{address,_line, {contract, Value}}|Rest],
+to_bytecode([{object,_line, {contract, Value}}|Rest],
             Address, Env, Code, Opts) ->
     to_bytecode(Rest, Address, Env,
                 [{immediate, aeb_fate_data:make_contract(Value)}|Code],
                 Opts);
-to_bytecode([{address,_line, {oracle, Value}}|Rest],
+to_bytecode([{object,_line, {oracle, Value}}|Rest],
             Address, Env, Code, Opts) ->
     to_bytecode(Rest, Address, Env,
                 [{immediate, aeb_fate_data:make_oracle(Value)}|Code],
                 Opts);
-to_bytecode([{address,_line, {name, Value}}|Rest],
+to_bytecode([{object,_line, {name, Value}}|Rest],
             Address, Env, Code, Opts) ->
     to_bytecode(Rest, Address, Env,
                 [{immediate, aeb_fate_data:make_name(Value)}|Code],
                 Opts);
-to_bytecode([{address,_line, {channel, Value}}|Rest],
+to_bytecode([{object,_line, {channel, Value}}|Rest],
             Address, Env, Code, Opts) ->
     to_bytecode(Rest, Address, Env,
                 [{immediate, aeb_fate_data:make_contract(Value)}|Code],
@@ -791,7 +789,7 @@ to_bytecode([{hash,_line, Value}|Rest],
     to_bytecode(Rest, Address, Env,
                 [{immediate, aeb_fate_data:make_hash(Value)}|Code],
                 Opts);
-to_bytecode([{signature,_line, Value}|Rest],
+to_bytecode([{signature,_line, {signature, Value}}|Rest],
             Address, Env, Code, Opts) ->
     to_bytecode(Rest, Address, Env,
                 [{immediate, aeb_fate_data:make_signature(Value)}|Code],

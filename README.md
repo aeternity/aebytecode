@@ -58,22 +58,23 @@ Immediate values can be of 11 types:
  `0x0deadbeef0`
 
 2. Chain Objects. These are all addresses to different types of chain objects.
-   Each address is a 256 bits number encoded in base64 with a prefix.
+   Each address is a 256 bits number encoded in base58 with checksum
+   with a prefix of "@" plus a type prefix followed by "_".
 
-2a. Address: a base58 encoded number starting with @ followed by a number of base58chars
- `@nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv`
+2a. Account Address: a base58c encoded number starting with @ak_ followed by a number of base58chars
+ '@ak_nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv`
 
-2b. Contract address: ct_{base58char}+
- `ct_nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv`
+2b. Contract address: @ct_{base58char}+
+ `@ct_nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv`
 
-2c. Oracle address: ok_{base58char}+
- `ok_nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv`
+2c. Oracle address: @ok_{base58char}+
+ `@ok_nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv`
 
-2d. Name address: nm_{base58char}+
- `nm_nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv`
+2d. Name address: @nm_{base58char}+
+ `@nm_nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv`
 
-2e. Channel address: ch_{base58char}+
- `ch_nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv`
+2e. Channel address: @ch_{base58char}+
+ `@ch_nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv`
 
 3. Boolean  true or false
  `true`
@@ -106,8 +107,7 @@ Immediate values can be of 11 types:
 10. Hashes: #{base64char}+
  `#AQIDCioLFQ==`
 
-11. Signatures: ${base64char}+
- `$AQIDCioLFQ==`
+11. Signatures: $sg_{base58char}+
 
 
 Where

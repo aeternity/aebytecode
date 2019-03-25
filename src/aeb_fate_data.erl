@@ -137,23 +137,29 @@ encode({bits, Term}) when is_integer(Term) -> make_bits(Term);
 %% TODO: check that each byte is in base58
 encode({address, B}) when is_binary(B)  -> make_address(B);
 encode({address, I}) when is_integer(I)  -> B = <<I:256>>, make_address(B);
-encode({address, S}) when is_list(S)  -> make_address(base58_to_address(S));
+encode({address, S}) when is_list(S)  ->
+    make_address(encode_address(account_pubkey, S));
 encode({hash, H}) when is_binary(H)  -> make_hash(H);
 encode({hash, H}) when is_list(H)  -> make_hash(base64:decode(H));
 encode({signature, S}) when is_binary(S)  -> make_signature(S);
-encode({signature, S}) when is_list(S)  -> make_signature(base64:decode(S));
+encode({signature, S}) when is_list(S)  ->
+    make_signature(encode_address(signature, S));
 encode({contract, B}) when is_binary(B)  -> make_contract(B);
 encode({contract, I}) when is_integer(I)  -> B = <<I:256>>, make_contract(B);
-encode({contract, S}) when is_list(S)  -> make_contract(base58_to_address(S));
+encode({contract, S}) when is_list(S)  ->
+    make_contract(encode_address(contract_pubkey, S));
 encode({oracle, B}) when is_binary(B)  -> make_oracle(B);
 encode({oracle, I}) when is_integer(I)  -> B = <<I:256>>, make_oracle(B);
-encode({oracle, S}) when is_list(S)  -> make_oracle(base58_to_address(S));
+encode({oracle, S}) when is_list(S)  ->
+    make_oracle(encode_address(oracle_pubkey, S));
 encode({name, B}) when is_binary(B)  -> make_name(B);
 encode({name, I}) when is_integer(I)  -> B = <<I:256>>, make_name(B);
-encode({name, S}) when is_list(S)  -> make_name(base58_to_address(S));
+encode({name, S}) when is_list(S)  ->
+    make_name(encode_address(name, S));
 encode({channel, B}) when is_binary(B)  -> make_channel(B);
 encode({channel, I}) when is_integer(I)  -> B = <<I:256>>, make_channel(B);
-encode({channel, S}) when is_list(S)  -> make_channel(base58_to_address(S));
+encode({channel, S}) when is_list(S)  ->
+    make_channel(encode_address(channel, S));
 encode({variant, Size, Tag, Values}) -> make_variant(Size, Tag, Values);
 encode(Term) when is_integer(Term) -> make_integer(Term);
 encode(Term) when is_boolean(Term) -> make_boolean(Term);
@@ -205,13 +211,19 @@ format(?FATE_VARIANT(Size, Tag, T)) ->
      " |)"];
 format(M) when ?IS_FATE_MAP(M) ->
     ["{ ", format_kvs(maps:to_list(?FATE_MAP_VALUE(M))), " }"];
-format(?FATE_ADDRESS(Address))  -> ["@", address_to_base58(Address)];
-format(?FATE_HASH(X))           -> ["#", base64:encode(X)];
-format(?FATE_SIGNATURE(X))      -> ["$", base64:encode(X)];
-format(?FATE_CONTRACT(X))       -> ["ct_", address_to_base58(X)];
-format(?FATE_ORACLE(X))         -> ["ok_", address_to_base58(X)];
-format(?FATE_NAME(X))           -> ["nm_", address_to_base58(X)];
-format(?FATE_CHANNEL(X))        -> ["ch_", address_to_base58(X)];
+format(?FATE_HASH(X))       -> ["#", base64:encode(X)];
+format(?FATE_ADDRESS(X))    ->
+    ["@", aeser_api_encoder:encode(account_pubkey, X)];
+format(?FATE_SIGNATURE(X))  ->
+    ["$", aeser_api_encoder:encode(signature, X)];
+format(?FATE_CONTRACT(X))   ->
+    ["@", aeser_api_encoder:encode(contract_pubkey, X)];
+format(?FATE_ORACLE(X))     ->
+    ["@", eser_api_encoder:encode(oracle_pubkey, X)];
+format(?FATE_NAME(X))       ->
+    ["@", aeser_api_encoder:encode(name, X)];
+format(?FATE_CHANNEL(X))    ->
+    ["@", aeser_api_encoder:encode(channel, X)];
 format(V) -> exit({not_a_fate_type, V}).
 
 format_bits(0, Acc) -> Acc;
@@ -230,42 +242,12 @@ format_list(List) ->
 format_kvs(List) ->
     lists:join(", ", [ [format(K), " => ",  format(V)] || {K, V} <- List]).
 
-
-%% -- Local base 58 library
-
-base58char(Char) ->
-    binary:at(<<"123456789ABCDEFGHJKLMNPQRSTUVWXYZ"
-                "abcdefghijkmnopqrstuvwxyz">>, Char).
-char_to_base58(C) ->
-    binary:at(<<0,1,2,3,4,5,6,7,8,0,0,0,0,0,0,0,9,10,11,12,13,14,15,16,0,17,
-                18,19,20,21,0,22,23,24,25,26,27,28,29,30,31,32,0,0,0,0,0,0,
-                33,34,35,36,37,38,39,40,41,42,43,0,44,45,46,47,48,49,50,51,
-                52,53,54,55,56,57>>,  C-$1).
-
-base58_to_integer(C, []) -> C;
-base58_to_integer(C, [X | Xs]) ->
-	base58_to_integer(C * 58 + char_to_base58(X), Xs).
-
-base58_to_integer([]) -> error;
-base58_to_integer([Char]) -> char_to_base58(Char);
-base58_to_integer([Char | Str]) ->
-	base58_to_integer(char_to_base58(Char), Str).
-
-base58_to_address(Base58) ->
-    I = base58_to_integer(Base58),
-    Bin = <<I:256>>,
-    Bin.
-
-address_to_base58(<<A:256>>) ->
-    integer_to_base58(A).
-
-integer_to_base58(0) -> <<"1">>;
-integer_to_base58(Integer) ->
-    Base58String = integer_to_base58(Integer, []),
-    list_to_binary(Base58String).
-
-integer_to_base58(0, Acc) -> Acc;
-integer_to_base58(Integer, Acc) ->
-       Quot = Integer div 58,
-       Rem = Integer rem 58,
-       integer_to_base58(Quot, [base58char(Rem)|Acc]).
+encode_address(Type, S) when is_list(S) ->
+    B = list_to_binary(S),
+    try aeser_api_encoder:decode(B) of
+        {Type, Encoding} ->
+            Encoding;
+        _ -> erlang:error({bad_address_encoding, Type, S})
+    catch _:_ ->
+            erlang:error({bad_address_encoding, Type, S})
+    end.

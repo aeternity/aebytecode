@@ -1,6 +1,6 @@
 
--record(pmap, {key_t  :: aeso_sophia:type(),
-               val_t  :: aeso_sophia:type(),
+-record(pmap, {key_t  :: aeb_aevm_data:type(),
+               val_t  :: aeb_aevm_data:type(),
                parent :: none | non_neg_integer(),
                size   = 0 :: non_neg_integer(),
                data   :: #{aeb_heap:binary_value() => aeb_heap:binary_value() | tombstone}

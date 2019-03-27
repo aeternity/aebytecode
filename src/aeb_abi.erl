@@ -23,7 +23,7 @@
 
 -type hash() :: <<_:256>>. %% 256 = ?HASH_SIZE * 8.
 -type function_name() :: binary(). %% String
--type typerep() :: aeso_sophia:type().
+-type typerep() :: aeb_aevm_data:type().
 -type function_type_info() :: { FunctionHash :: hash()
                               , FunctionName :: function_name()
                               , ArgType      :: binary() %% binary typerep

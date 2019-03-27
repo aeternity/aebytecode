@@ -92,7 +92,7 @@ heap_value_heap({_, Heap}) -> Heap#heap.heap.
     
 %% -- Value to binary --------------------------------------------------------
 
--spec to_binary(aeso_sophia:data()) -> aeso_sophia:heap().
+-spec to_binary(aeb_aevm_data:data()) -> aeb_aevm_data:heap().
 %% Encode the data as a heap where the first word is the value (for unboxed
 %% types) or a pointer to the value (for boxed types).
 to_binary(Data) ->

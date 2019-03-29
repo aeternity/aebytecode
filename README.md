@@ -101,8 +101,8 @@ Immediate values can be of 11 types:
  `()`
  `(1, "foo")`
 
-9. Variants: (| Size | Tag | ( Elements ) |)
- `(| 42 | 12 | ( "foo", 12) |)`
+9. Variants: (| [Arities] | Tag | ( Elements ) |)
+ `(| [1,3,5,2]  | 3 | ( "foo", 12) |)`
 
 10. Hashes: #{base64char}+
  `#AQIDCioLFQ==`

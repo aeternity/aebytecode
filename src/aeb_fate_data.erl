@@ -34,7 +34,7 @@
                         | name
                         | channel
                         | bits
-                        | {variant, integer()}.
+                        | {variant, list(), integer()}.
 
 
 -type fate_type() ::
@@ -120,12 +120,18 @@ make_string(S)  when is_list(S) ->
     ?FATE_STRING(list_to_binary(lists:flatten(S)));
 make_string(S)  when is_binary(S) -> ?FATE_STRING(S).
 
-make_variant(Size, Tag, Values) when is_integer(Size), is_integer(Tag)
-                                     , 0 =< Size
-                                     , 0 =< Tag
-                                     , Tag < Size
-                               , is_tuple(Values) ->
-    ?FATE_VARIANT(Size, Tag, Values).
+make_variant(Arities, Tag, Values) ->
+    Arities = [A || A <- Arities, is_integer(A), A < 256],
+    Size = length(Arities),
+    if is_integer(Tag)
+       , 0 =< Tag
+       , Tag < Size
+       , is_tuple(Values) ->
+            Arity = lists:nth(Tag+1, Arities),
+            if size(Values) =:= Arity ->
+                    ?FATE_VARIANT(Arities, Tag, Values)
+            end
+    end.
 
 tuple_to_list(?FATE_TUPLE(T)) -> erlang:tuple_to_list(T).
 
@@ -160,7 +166,7 @@ encode({channel, B}) when is_binary(B)  -> make_channel(B);
 encode({channel, I}) when is_integer(I)  -> B = <<I:256>>, make_channel(B);
 encode({channel, S}) when is_list(S)  ->
     make_channel(encode_address(channel, S));
-encode({variant, Size, Tag, Values}) -> make_variant(Size, Tag, Values);
+encode({variant, Arities, Tag, Values}) -> make_variant(Arities, Tag, Values);
 encode(Term) when is_integer(Term) -> make_integer(Term);
 encode(Term) when is_boolean(Term) -> make_boolean(Term);
 encode(Term) when is_list(Term) -> make_list([encode(E) || E <- Term]);
@@ -185,7 +191,7 @@ decode(?FATE_NAME(X))      -> {name, X};
 decode(?FATE_CHANNEL(X))   -> {channel, X};
 decode(?FATE_BITS(Bits))   -> {bits, Bits};
 decode(?FATE_TUPLE(T))     -> erlang:list_to_tuple([decode(E) || E <- T]);
-decode(?FATE_VARIANT(Size, Tag, Values)) -> {variant, Size, Tag, Values};
+decode(?FATE_VARIANT(Arities, Tag, Values)) -> {variant, Arities, Tag, Values};
 decode(S) when ?IS_FATE_STRING(S) -> binary_to_list(S);
 decode(M) when ?IS_FATE_MAP(M) ->
     maps:from_list([{decode(K), decode(V)} || {K, V} <- maps:to_list(M)]).
@@ -204,10 +210,12 @@ format(?FATE_BITS(B)) when B >= 0 ->
     ["<", format_bits(B, "") , ">"];
 format(?FATE_BITS(B)) when B < 0 ->
     ["!< ", format_nbits(-B-1, "") , " >"];
-format(?FATE_VARIANT(Size, Tag, T)) ->
+format(?FATE_VARIANT(Arities, Tag, T)) ->
     ["(| ",
-      lists:join("| ", [integer_to_list(Size), integer_to_list(Tag) |
-                        [format(make_tuple(T))]]),
+      lists:join("| ",
+                 [io_lib:format("~p", [Arities]),
+                  integer_to_list(Tag) |
+                  [format(make_tuple(T))]]),
      " |)"];
 format(M) when ?IS_FATE_MAP(M) ->
     ["{ ", format_kvs(maps:to_list(?FATE_MAP_VALUE(M))), " }"];

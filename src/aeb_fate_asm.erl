@@ -64,8 +64,8 @@
 %%%       8. Tuples ( Elements )
 %%%          ()
 %%%          (1, "foo")
-%%%       9. Variants: (| Size | Tag | ( Elements ) |)
-%%%          (| 42 | 12 | ( "foo", 12) |)
+%%%       9. Variants: (| [Arities] | Tag | ( Elements ) |)
+%%%          (| [0,1,2] | 2 | ( "foo", 12) |)
 %%%      10. Hashes: #{base64char}+
 %%%          #AQIDCioLFQ==
 %%%      11. Signatures: $sg_{base58char}+
@@ -808,8 +808,8 @@ to_bytecode([{'(',_line}|Rest], Address, Env, Code, Opts) ->
     Tuple = aeb_fate_data:make_tuple(list_to_tuple(Elements)),
     to_bytecode(Rest2, Address, Env, [{immediate, Tuple}|Code], Opts);
 to_bytecode([{start_variant,_line}|_] = Tokens, Address, Env, Code, Opts) ->
-    {Size, Tag, Values, Rest} = parse_variant(Tokens),
-    Variant = aeb_fate_data:make_variant(Size, Tag, Values),
+    {Arities, Tag, Values, Rest} = parse_variant(Tokens),
+    Variant = aeb_fate_data:make_variant(Arities, Tag, Values),
     to_bytecode(Rest, Address, Env, [{immediate, Variant}|Code], Opts);
 to_bytecode([{bits,_line, Bits}|Rest], Address, Env, Code, Opts) ->
     to_bytecode(Rest, Address, Env,
@@ -870,14 +870,25 @@ parse_tuple(Tokens) ->
 
 
 parse_variant([{start_variant,_line}
-              , {int,_line, Size}
-              , {'|',_}
-              , {int,_line, Tag}
-              , {'|',_}
-              , {'(',_}
-              | Rest]) when (Size > 0), (Tag < Size) ->
-    {Elements , [{end_variant, _} | Rest2]} = parse_tuple(Rest),
-    {Size, Tag, list_to_tuple(Elements), Rest2}.
+              , {'[', _line}
+              | Rest]) ->
+    {Arities, Rest2} = parse_list(Rest),
+    %% Make sure Arities is a list of bytes.
+    Arities = [A || A <- Arities,
+                    is_integer(A), A < 256],
+
+    [{'|',_}
+    , {int,_line, Tag}
+    , {'|',_}
+    , {'(',_} | Rest3] = Rest2,
+    {Elements , [{end_variant, _} | Rest4]} = parse_tuple(Rest3),
+    Size = length(Arities),
+    if 0 =< Tag, Tag < Size ->
+            Arity = lists:nth(Tag+1, Arities),
+            if length(Elements) =:= Arity ->
+                    {Arities, Tag, list_to_tuple(Elements), Rest4}
+            end
+    end.
 
 
 parse_value([{int,_line, Int} | Rest]) -> {Int, Rest};
@@ -890,8 +901,8 @@ parse_value([{'(',_line} | Rest]) ->
 parse_value([{bits,_line, Bits} | Rest]) ->
     {aeb_fate_data:make_bits(Bits), Rest};
 parse_value([{start_variant,_line}|_] = Tokens) ->
-    {Size, Tag, Values, Rest} = parse_variant(Tokens),
-    Variant = aeb_fate_data:make_variant(Size, Tag, Values),
+    {Arities, Tag, Values, Rest} = parse_variant(Tokens),
+    Variant = aeb_fate_data:make_variant(Arities, Tag, Values),
     {Variant, Rest};
 parse_value([{string,_line, String} | Rest]) ->
     {aeb_fate_data:make_string(String), Rest};
@@ -956,8 +967,7 @@ to_type([{'{', _}
         , {id, _, "variant"}
         , {',', _}
         , {'[', _}
-         | Rest]) ->
-    %% TODO: Error handling
+        | Rest]) ->
     {ElementTypes, [{'}', _}| Rest2]} = to_list_of_types(Rest),
     {{variant, ElementTypes}, Rest2}.
 

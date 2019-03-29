@@ -70,7 +70,7 @@ FUNCTION foo () : {tuple, []}
 
   AND var255 0x294a24f6 var189
 
-  OR (| 2 | 0 | ( (), (42) ) |) arg168 var107
+  OR (| [2,0] | 0 | ( (), (42) ) |) arg168 var107
 
   NOT arg124 a
 
@@ -136,7 +136,7 @@ FUNCTION foo () : {tuple, []}
 
   BITS_CLEAR arg98 a arg164
 
-  BITS_TEST a a242 (| 5 | 2 | (1, "foo", ()) |)
+  BITS_TEST a a242 (| [0,0,3] | 2 | (1, "foo", ()) |)
 
   BITS_SUM a244 a71
 
@@ -176,7 +176,7 @@ FUNCTION foo () : {tuple, []}
 
   LOG1 arg94 arg86 arg208
 
-  LOG2 a113 (| 5 | 2 | (1, "foo", ()) |) arg238 var108
+  LOG2 a113 (| [0,1,3] | 2 | (1, "foo", ()) |) arg238 var108
 
   LOG3 arg255 arg15 arg211 var139 arg44
 
@@ -186,7 +186,7 @@ FUNCTION foo () : {tuple, []}
 
   SPEND @ak_nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv var136
 
-  ORACLE_REGISTER arg29 48 ((| 5 | 2 | (1, "foo", ()) |)) arg65 { <> => false} <>
+  ORACLE_REGISTER arg29 48 ((| [0,1,3] | 2 | (1, "foo", ()) |)) arg65 { <> => false} <>
 
   ORACLE_QUERY
 
@@ -220,7 +220,7 @@ FUNCTION foo () : {tuple, []}
 
   BLAKE2B
 
-  DUMMY7ARG a a 7607708484837907159893701471377343595877 (| 2 | 0 | ( [], [ 45, { 1 => 3441201581501946066216994494994943246334} ] ) |) a0 var56 "foo"
+  DUMMY7ARG a a 7607708484837907159893701471377343595877 (| [2,1] | 0 | ( [], [ 45, { 1 => 3441201581501946066216994494994943246334} ] ) |) a0 var56 "foo"
 
   DUMMY8ARG 3673679924816289365509492271980889822579 a69 arg242 var237 a175 arg106 () var255
 

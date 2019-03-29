@@ -77,12 +77,13 @@ sources() ->
      aeb_fate_data:make_bits(1),
      aeb_fate_data:make_bits(-1),
      aeb_fate_data:make_list(make_int_list(65)),
-     aeb_fate_data:make_variant(2, 0, {FortyTwo}),
-     aeb_fate_data:make_variant(2, 1, {}),
-     aeb_fate_data:make_list([aeb_fate_data:make_variant(3, 0, {})]),
-     aeb_fate_data:make_variant(255, 254, {}),
-     aeb_fate_data:make_variant(5, 3, {aeb_fate_data:make_boolean(true),
-                                       aeb_fate_data:make_list(make_int_list(3)),
-                                       aeb_fate_data:make_string(<<"foo">>)})
+     aeb_fate_data:make_variant([1,2,3], 0, {FortyTwo}),
+     aeb_fate_data:make_variant([2,0], 1, {}),
+     aeb_fate_data:make_list([aeb_fate_data:make_variant([0,0,0], 0, {})]),
+     aeb_fate_data:make_variant([0|| _<-lists:seq(1,255)], 254, {}),
+     aeb_fate_data:make_variant([0,1,2,3,4,5],
+                                3, {aeb_fate_data:make_boolean(true),
+                                    aeb_fate_data:make_list(make_int_list(3)),
+                                    aeb_fate_data:make_string(<<"foo">>)})
 
     ].

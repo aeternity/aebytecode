@@ -13,7 +13,7 @@
 -define(FATE_ORACLE_T,    {oracle, <<_:256>>}).
 -define(FATE_NAME_T,      {name, <<_:256>>}).
 -define(FATE_CHANNEL_T,   {channel, <<_:256>>}).
--define(FATE_VARIANT_T,   {variant, ?FATE_BYTE_T, ?FATE_BYTE_T, tuple()}).
+-define(FATE_VARIANT_T,   {variant, [byte()], ?FATE_BYTE_T, tuple()}).
 -define(FATE_VOID_T,      void).
 -define(FATE_TUPLE_T,     {tuple, tuple()}).
 -define(FATE_BITS_T,      {bits, integer()}).
@@ -34,7 +34,7 @@
 -define(IS_FATE_VARIANT(X), (is_tuple(X)
                              andalso
                                (variant == element(1, X)
-                                andalso is_integer(element(2, X))
+                                andalso is_list(element(2, X))
                                 andalso is_integer(element(3, X))
                                 andalso is_tuple(element(4, X))
                                ))).
@@ -71,7 +71,7 @@
 -define(FATE_VOID,  void).
 -define(FATE_EMPTY_STRING, <<>>).
 -define(FATE_STRING(S), S).
--define(FATE_VARIANT(Size, Tag,T), {variant, Size, Tag, T}).
+-define(FATE_VARIANT(Arity, Tag,T), {variant, Arity, Tag, T}).
 
 -define(MAKE_FATE_INTEGER(X), X).
 -define(MAKE_FATE_LIST(X), X).

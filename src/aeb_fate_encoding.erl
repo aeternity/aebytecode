@@ -28,8 +28,6 @@
 %% TODO:
 %%   * Make the code production ready.
 %%       (add tests, document exported functions).
-%%   * Handle Variant types better.
-%%   * Handle type representations.
 %%   * Handle instructions.
 %%
 %% ------------------------------------------------------------------------
@@ -62,7 +60,7 @@
 -define(TYPE_BITS    , 2#01010111). %% 0101 0111 - Bits typedef
 -define(TYPE_MAP     , 2#01100111). %% 0110 0111 | Type | Type
 -define(TYPE_STRING  , 2#01110111). %% 0111 0111 - string typedef
--define(TYPE_VARIANT , 2#10000111). %% 1000 0111 | Size | [Type]
+-define(TYPE_VARIANT , 2#10000111). %% 1000 0111 | [Arities] | [Type]
                                     %% 1001 0111
                                     %% 1010 0111
                                     %% 1011 0111
@@ -82,7 +80,7 @@
 -define(FALSE        , 2#01111111). %% 0111 1111
 %%                                  %% 1000 1111 - FREE (Possibly for bytecode in the future.)
 -define(OBJECT       , 2#10011111). %% 1001 1111 | ObjectType | RLP encoded Array
--define(VARIANT      , 2#10101111). %% 1010 1111 | encoded size | encoded tag | [encoded values]
+-define(VARIANT      , 2#10101111). %% 1010 1111 | [encoded arities] | encoded tag | [encoded values]
 -define(NIL          , 2#10111111). %% 1011 1111 - Empty list
 -define(NEG_BITS     , 2#11001111). %% 1100 1111 | RLP encoded integer (infinite 1:s bitfield)
 -define(EMPTY_MAP    , 2#11011111). %% 1101 1111
@@ -174,11 +172,24 @@ serialize(Map) when ?IS_FATE_MAP(Map) ->
     <<?MAP,
       (rlp_integer(Size))/binary,
       (Elements)/binary>>;
-serialize(?FATE_VARIANT(Size, Tag, Values)) when 0 < Size, Size < 256,
-                                                 0 =< Tag, Tag < Size ->
-    <<?VARIANT, Size:8, Tag:8,
-      (serialize(?FATE_TUPLE(Values)))/binary
-    >>.
+serialize(?FATE_VARIANT(Arities, Tag, Values)) ->
+    Arities = [A || A <- Arities, is_integer(A), A < 256],
+    Size = length(Arities),
+    if is_integer(Tag)
+       , 0 =< Tag
+       , Tag < Size
+       , is_tuple(Values) ->
+            Arity  =  lists:nth(Tag+1, Arities),
+            if size(Values) =:= Arity ->
+                    EncodedArities = aeser_rlp:encode(list_to_binary(Arities)),
+                    <<?VARIANT,
+                      EncodedArities/binary,
+                      Tag:8,
+                      (serialize(?FATE_TUPLE(Values)))/binary
+                    >>
+            end
+    end.
+
 
 %% -----------------------------------------------------
 
@@ -363,11 +374,20 @@ deserialize2(<<?MAP, Rest/binary>>) ->
     {List, Rest2} = deserialize_elements(2*Size, Rest1),
     Map = insert_kv(List, #{}),
     {?MAKE_FATE_MAP(Map), Rest2};
-deserialize2(<<?VARIANT, Size:8, Tag:8, Rest/binary>>) ->
+deserialize2(<<?VARIANT, Rest/binary>>) ->
+    {AritiesBin, <<Tag:8, Rest2/binary>>} = aeser_rlp:decode_one(Rest),
+    Arities = binary_to_list(AritiesBin),
+    Size = length(Arities),
     if Tag > Size -> exit({too_large_tag_in_variant, Tag, Size});
        true ->
-            {?FATE_TUPLE(T), Rest2} = deserialize2(Rest),
-            {?FATE_VARIANT(Size, Tag, T), Rest2}
+            {?FATE_TUPLE(T), Rest3} = deserialize2(Rest2),
+            Arity = lists:nth(Tag+1, Arities),
+            NumElements = size(T),
+            if NumElements =/= Arity ->
+                    exit({tag_does_not_match_type_in_variant, Tag, Arity});
+               true ->
+                    {?FATE_VARIANT(Arities, Tag, T), Rest3}
+            end
     end.
 
 insert_kv([], M) -> M;

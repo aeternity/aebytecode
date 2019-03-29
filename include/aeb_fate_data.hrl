@@ -13,7 +13,7 @@
 -define(FATE_ORACLE_T,    {oracle, <<_:256>>}).
 -define(FATE_NAME_T,      {name, <<_:256>>}).
 -define(FATE_CHANNEL_T,   {channel, <<_:256>>}).
--define(FATE_VARIANT_T,   {variant, list(), ?FATE_BYTE_T, tuple()}).
+-define(FATE_VARIANT_T,   {variant, [byte()], ?FATE_BYTE_T, tuple()}).
 -define(FATE_VOID_T,      void).
 -define(FATE_TUPLE_T,     {tuple, tuple()}).
 -define(FATE_BITS_T,      {bits, integer()}).

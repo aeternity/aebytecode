@@ -21,7 +21,7 @@
 
 -export_type([binary_value/0, heap_value/0, offset/0, heap_fragment/0]).
 
--include("aeb_icode.hrl").
+-include_lib("aebytecode/include/aeb_typerep_def.hrl").
 -include_lib("aebytecode/include/aeb_heap.hrl").
 
 -type word()            :: non_neg_integer().

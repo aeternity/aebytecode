@@ -97,7 +97,7 @@ function_type_hash(Name, ArgType, OutType) when is_binary(Name) ->
                             , aeb_heap:to_binary(OutType)
                             ]),
     %% Calculate a 256 bit digest BLAKE2b hash value of a binary
-    {ok, Hash} = aeb_blake2:blake2b(?HASH_SIZE, Bin),
+    {ok, Hash} = eblake2:blake2b(?HASH_SIZE, Bin),
     Hash.
 
 -spec arg_typerep_from_function(function_name(), type_info()) ->

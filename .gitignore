@@ -18,4 +18,5 @@ src/aeb_fate_code.erl
 src/aeb_fate_opcodes.erl
 src/aeb_fate_pp.erl
 *.erl~
+*.hrl~
 *.aes~

@@ -34,7 +34,7 @@
                         | name
                         | channel
                         | bits
-                        | {variant, list(), integer()}.
+                        | {variant, list()}.
 
 
 -type fate_type() ::

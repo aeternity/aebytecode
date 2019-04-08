@@ -211,7 +211,7 @@ format(L) when ?IS_FATE_LIST(L) -> format_list(?FATE_LIST_VALUE(L));
 format(?FATE_UNIT) -> "()";
 format(?FATE_TUPLE(T)) ->
     ["( ", lists:join(", ", [ format(E) || E <- erlang:tuple_to_list(T)]), " )"];
-format(S) when ?IS_FATE_STRING(S) -> [S];
+format(S) when ?IS_FATE_STRING(S) -> ["\"", S, "\""];
 format(?FATE_BITS(B)) when B >= 0 ->
     ["<", format_bits(B, "") , ">"];
 format(?FATE_BITS(B)) when B < 0 ->

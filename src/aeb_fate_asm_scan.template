@@ -13,7 +13,7 @@ HEXDIGIT = [0-9a-fA-F]
 LOWER    = [a-z_]
 UPPER    = [A-Z]
 BASE58   = [123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]
-BASE64   = [ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxy0123456789+/=]
+BASE64   = [A-Za-z0-9+/=]
 INT      = {DIGIT}+
 HEX      = 0x{HEXDIGIT}+
 OBJECT   = @[a-z][a-z]_{BASE58}+

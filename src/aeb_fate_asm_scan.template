@@ -52,7 +52,7 @@ FUNCTION       : {token, {function, TokenLine, 'FUNCTION' }}.
 -{INT} :
  {token, {int, TokenLine, parse_int(TokenChars)}}.
 {STRING} :
- {token, {string, TokenLine, list_to_binary(TokenChars)}}.
+ {token, {string, TokenLine, unicode:characters_to_binary(TokenChars)}}.
 {BITS} :
  {token, {bits, TokenLine, bits(TokenChars)}}.
 
@@ -112,7 +112,7 @@ parse_hash("#" ++ Chars) ->
     base64:decode(Chars).
 
 parse_object([_|Chars]) ->
-    case aeser_api_encoder:decode(list_to_binary(Chars)) of
+    case aeser_api_encoder:decode(unicode:characters_to_binary(Chars)) of
        {account_pubkey, Bin}  -> {address, Bin};
        {contract_pubkey, Bin} -> {contract, Bin};
        {oracle_pubkey, Bin}   -> {oracle, Bin};

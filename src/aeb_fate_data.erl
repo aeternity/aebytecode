@@ -216,7 +216,7 @@ format(?FATE_BITS(B)) when B < 0 ->
 format(?FATE_VARIANT(Arities, Tag, T)) ->
     ["(| ",
       lists:join("| ",
-                 [io_lib:format("~p", [Arities]),
+                 [format_arities(Arities),
                   integer_to_list(Tag) |
                   [format(make_tuple(T))]]),
      " |)"];
@@ -246,6 +246,9 @@ format_nbits(0, Acc) -> Acc;
 format_nbits(N, Acc) ->
     Bit = $1 - (N band 1),
     format_nbits(N bsr 1, [Bit|Acc]).
+
+format_arities(Arities) ->
+    ["[ ", lists:join(", ", [integer_to_list(E) || E <- Arities]), " ]"].
 
 format_list(List) ->
     ["[ ", lists:join(", ", [format(E) || E <- List]), " ]"].

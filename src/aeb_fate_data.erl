@@ -120,6 +120,9 @@ make_string(S)  when is_list(S) ->
     ?FATE_STRING(list_to_binary(lists:flatten(S)));
 make_string(S)  when is_binary(S) -> ?FATE_STRING(S).
 
+%% Tag points to the selected variant (zero based)
+%% The arity of this variant is read from the list of provided arities
+%% and should match the size of the given tuple.
 make_variant(Arities, Tag, Values) ->
     Arities = [A || A <- Arities, is_integer(A), A < 256],
     Size = length(Arities),

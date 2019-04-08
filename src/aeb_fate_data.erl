@@ -20,6 +20,7 @@
 -type fate_signature() :: ?FATE_SIGNATURE_T.
 -type fate_variant()   :: ?FATE_VARIANT_T.
 -type fate_tuple()     :: ?FATE_TUPLE_T.
+-type fate_bits()      :: ?FATE_BITS_T.
 
 -type fate_type_type() :: integer
                         | boolean
@@ -54,6 +55,7 @@
       | fate_channel()
       | fate_variant()
       | fate_map()
+      | fate_bits()
       | fate_type_type().
 
 -export_type([fate_type/0
@@ -73,6 +75,7 @@
              , fate_channel/0
              , fate_variant/0
              , fate_map/0
+             , fate_bits/0
              , fate_type_type/0
              ]).
 

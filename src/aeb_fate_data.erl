@@ -55,8 +55,7 @@
       | fate_channel()
       | fate_variant()
       | fate_map()
-      | fate_bits()
-      | fate_type_type().
+      | fate_bits().
 
 -export_type([fate_type/0
              , fate_boolean/0

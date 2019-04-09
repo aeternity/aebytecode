@@ -51,8 +51,11 @@ FUNCTION       : {token, {function, TokenLine, 'FUNCTION' }}.
  {token, {int, TokenLine, parse_int(TokenChars)}}.
 -{INT} :
  {token, {int, TokenLine, parse_int(TokenChars)}}.
+
+%% Due to the definition of STRING the tokens start and end with a quote ".
 {STRING} :
- {token, {string, TokenLine, unicode:characters_to_binary(TokenChars)}}.
+ {token, {string, TokenLine, unicode:characters_to_binary(
+                lists:sublist(TokenChars, 2, length(TokenChars) - 2))}}.
 {BITS} :
  {token, {bits, TokenLine, bits(TokenChars)}}.
 

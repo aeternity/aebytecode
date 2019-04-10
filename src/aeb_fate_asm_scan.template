@@ -13,12 +13,12 @@ HEXDIGIT = [0-9a-fA-F]
 LOWER    = [a-z_]
 UPPER    = [A-Z]
 BASE58   = [123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]
-BASE64   = [ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxy0123456789+/=]
+BASE64   = [A-Za-z0-9+/=]
 INT      = {DIGIT}+
 HEX      = 0x{HEXDIGIT}+
 OBJECT   = @[a-z][a-z]_{BASE58}+
 HASH     = #{BASE64}+
-SIG      = \$\sg_{BASE58}+
+SIG      = \$sg_{BASE58}+
 WS       = [\000-\s]
 ID       = {LOWER}[a-zA-Z0-9_]*
 STRING   = "[^"]*"
@@ -51,8 +51,11 @@ FUNCTION       : {token, {function, TokenLine, 'FUNCTION' }}.
  {token, {int, TokenLine, parse_int(TokenChars)}}.
 -{INT} :
  {token, {int, TokenLine, parse_int(TokenChars)}}.
+
+%% Due to the definition of STRING the tokens start and end with a quote ".
 {STRING} :
- {token, {string, TokenLine, list_to_binary(TokenChars)}}.
+ {token, {string, TokenLine, unicode:characters_to_binary(
+                lists:sublist(TokenChars, 2, length(TokenChars) - 2))}}.
 {BITS} :
  {token, {bits, TokenLine, bits(TokenChars)}}.
 
@@ -112,7 +115,7 @@ parse_hash("#" ++ Chars) ->
     base64:decode(Chars).
 
 parse_object([_|Chars]) ->
-    case aeser_api_encoder:decode(list_to_binary(Chars)) of
+    case aeser_api_encoder:decode(unicode:characters_to_binary(Chars)) of
        {account_pubkey, Bin}  -> {address, Bin};
        {contract_pubkey, Bin} -> {contract, Bin};
        {oracle_pubkey, Bin}   -> {oracle, Bin};

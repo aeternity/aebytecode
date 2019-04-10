@@ -20,6 +20,7 @@
 -type fate_signature() :: ?FATE_SIGNATURE_T.
 -type fate_variant()   :: ?FATE_VARIANT_T.
 -type fate_tuple()     :: ?FATE_TUPLE_T.
+-type fate_bits()      :: ?FATE_BITS_T.
 
 -type fate_type_type() :: integer
                         | boolean
@@ -34,7 +35,7 @@
                         | name
                         | channel
                         | bits
-                        | {variant, list(), integer()}.
+                        | {variant, list()}.
 
 
 -type fate_type() ::
@@ -54,7 +55,7 @@
       | fate_channel()
       | fate_variant()
       | fate_map()
-      | fate_type_type().
+      | fate_bits().
 
 -export_type([fate_type/0
              , fate_boolean/0
@@ -73,6 +74,7 @@
              , fate_channel/0
              , fate_variant/0
              , fate_map/0
+             , fate_bits/0
              , fate_type_type/0
              ]).
 
@@ -120,6 +122,9 @@ make_string(S)  when is_list(S) ->
     ?FATE_STRING(list_to_binary(lists:flatten(S)));
 make_string(S)  when is_binary(S) -> ?FATE_STRING(S).
 
+%% Tag points to the selected variant (zero based)
+%% The arity of this variant is read from the list of provided arities
+%% and should match the size of the given tuple.
 make_variant(Arities, Tag, Values) ->
     Arities = [A || A <- Arities, is_integer(A), A < 256],
     Size = length(Arities),
@@ -205,7 +210,7 @@ format(L) when ?IS_FATE_LIST(L) -> format_list(?FATE_LIST_VALUE(L));
 format(?FATE_UNIT) -> "()";
 format(?FATE_TUPLE(T)) ->
     ["( ", lists:join(", ", [ format(E) || E <- erlang:tuple_to_list(T)]), " )"];
-format(S) when ?IS_FATE_STRING(S) -> [S];
+format(S) when ?IS_FATE_STRING(S) -> ["\"", S, "\""];
 format(?FATE_BITS(B)) when B >= 0 ->
     ["<", format_bits(B, "") , ">"];
 format(?FATE_BITS(B)) when B < 0 ->
@@ -213,7 +218,7 @@ format(?FATE_BITS(B)) when B < 0 ->
 format(?FATE_VARIANT(Arities, Tag, T)) ->
     ["(| ",
       lists:join("| ",
-                 [io_lib:format("~p", [Arities]),
+                 [format_arities(Arities),
                   integer_to_list(Tag) |
                   [format(make_tuple(T))]]),
      " |)"];
@@ -243,6 +248,9 @@ format_nbits(0, Acc) -> Acc;
 format_nbits(N, Acc) ->
     Bit = $1 - (N band 1),
     format_nbits(N bsr 1, [Bit|Acc]).
+
+format_arities(Arities) ->
+    ["[ ", lists:join(", ", [integer_to_list(E) || E <- Arities]), " ]"].
 
 format_list(List) ->
     ["[ ", lists:join(", ", [format(E) || E <- List]), " ]"].

@@ -20,3 +20,5 @@ src/aeb_fate_pp.erl
 *.erl~
 *.hrl~
 *.aes~
+doc
+cover

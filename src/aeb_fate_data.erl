@@ -115,7 +115,7 @@ make_channel(X) ->     ?FATE_CHANNEL(X).
 make_integer(I) when is_integer(I) -> ?MAKE_FATE_INTEGER(I).
 make_bits(I)    when is_integer(I) -> ?FATE_BITS(I).
 make_string(S)  when is_list(S) ->
-    ?FATE_STRING(list_to_binary(lists:flatten(S)));
+    ?FATE_STRING(iolist_to_binary(S));
 make_string(S)  when is_binary(S) -> ?FATE_STRING(S).
 
 %% Tag points to the selected variant (zero based)

@@ -22,3 +22,5 @@ src/aeb_fate_pp.erl
 *.aes~
 doc
 cover
+aefate
+current_counterexample.eqc

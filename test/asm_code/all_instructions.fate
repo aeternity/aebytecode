@@ -231,3 +231,8 @@ FUNCTION foo () : {tuple, []}
   NOP
 
   RETURNR ()
+
+  BALANCE_OTHER a arg0
+
+  SETELEMENT a 2 (1, "two", 3) 2
+  

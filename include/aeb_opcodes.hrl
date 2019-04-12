@@ -183,12 +183,13 @@
 -define(PRIM_CALL_MAP_TOLIST, 305).
 
 -define(PRIM_CALL_IN_CRYPTO_RANGE(__TTYPE__), (((__TTYPE__) > 399) andalso ((__TTYPE__) < 500))).
--define(PRIM_CALL_CRYPTO_ECVERIFY,       400).
--define(PRIM_CALL_CRYPTO_SHA3,           401).
--define(PRIM_CALL_CRYPTO_SHA256,         402).
--define(PRIM_CALL_CRYPTO_BLAKE2B,        403).
--define(PRIM_CALL_CRYPTO_SHA256_STRING,  404).
--define(PRIM_CALL_CRYPTO_BLAKE2B_STRING, 405).
+-define(PRIM_CALL_CRYPTO_ECVERIFY,           400).
+-define(PRIM_CALL_CRYPTO_SHA3,               401).
+-define(PRIM_CALL_CRYPTO_SHA256,             402).
+-define(PRIM_CALL_CRYPTO_BLAKE2B,            403).
+-define(PRIM_CALL_CRYPTO_SHA256_STRING,      404).
+-define(PRIM_CALL_CRYPTO_BLAKE2B_STRING,     405).
+-define(PRIM_CALL_CRYPTO_ECVERIFY_SECP256K1, 410).
 
 -define(PRIM_CALL_IN_AUTH_RANGE(__TTYPE__), (((__TTYPE__) > 499) andalso ((__TTYPE__) < 600))).
 -define(PRIM_CALL_AUTH_TX_HASH, 500).

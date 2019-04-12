@@ -140,6 +140,7 @@ ops_defs() ->
     , { 'SHA256',              16#7c, 0, false,3, atomic,             sha256, ""}
     , { 'BLAKE2B',             16#7d, 0, false,3, atomic,            blake2b, ""}
     , { 'BALANCE_OTHER',       16#7e, 2, false,3, [a,a],       balance_other, "Arg0 := The balance of address Arg1."}
+    , { 'SETELEMENT',          16#7f, 4, false,3, [a,a,a,a],      setelement, "Arg0 := a new tuple similar to Arg2, but with element number Arg1 replaced by Arg3."}
 
 
     , { 'DUMMY7ARG',           16#f9, 7, false,3, [a,a,a,a,a,a,a],  dummyarg, "Temporary dummy instruction to test 7 args."}

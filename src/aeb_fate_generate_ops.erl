@@ -100,7 +100,7 @@ ops_defs() ->
     , { 'BITS_AND',     16#57,    3,  false,   3, [a,a,a],        bits_and, "Arg0 := Arg1 ^ Arg2."}
     , { 'BITS_DIFF',    16#58,    3,  false,   3, [a,a,a],       bits_diff, "Arg0 := Arg1 - Arg2."}
     , { 'ADDRESS',      16#59,    1,  false,   3, [a],             address, "Arg0 := The current contract address."}
-    , { 'BALANCE',      16#5a,    1,  false,   3, [a],             balance, "Arg0 := The current contract address."}
+    , { 'BALANCE',      16#5a,    1,  false,   3, [a],             balance, "Arg0 := The current contract balance."}
     , { 'ORIGIN',       16#5b,    1,  false,   3, [a],              origin, "Arg0 := Address of contract called by the call transaction."}
     , { 'CALLER',       16#5c,    1,  false,   3, [a],              caller, "Arg0 := The address that signed the call transaction."}
     , { 'GASPRICE',     16#5d,    1,  false,   3, [a],            gasprice, "Arg0 := The current gas price."}
@@ -139,6 +139,7 @@ ops_defs() ->
     , { 'SHA3',                16#7b, 0, false,3, atomic,               sha3, ""}
     , { 'SHA256',              16#7c, 0, false,3, atomic,             sha256, ""}
     , { 'BLAKE2B',             16#7d, 0, false,3, atomic,            blake2b, ""}
+    , { 'BALANCE_OTHER',       16#7e, 2, false,3, [a,a],       balance_other, "Arg0 := The balance of address Arg1."}
 
 
     , { 'DUMMY7ARG',           16#f9, 7, false,3, [a,a,a,a,a,a,a],  dummyarg, "Temporary dummy instruction to test 7 args."}

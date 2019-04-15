@@ -1,6 +1,7 @@
 %%%-------------------------------------------------------------------
 %%% @copyright (C) 2019, Aeternity Anstalt
 %%% @doc Assembler for Fate machine code.
+%%% @end
 %%%
 %%%  Fate code exists in 3 formats:
 %%%
@@ -81,7 +82,6 @@
 %%%             Size: Digits
 %%%             Tag: Digits
 %%%
-%%% @end
 %%% Created : 21 Dec 2017
 %%%-------------------------------------------------------------------
 

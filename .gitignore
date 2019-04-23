@@ -24,3 +24,5 @@ doc
 cover
 aefate
 current_counterexample.eqc
+.rebar3
+ebin

@@ -38,7 +38,7 @@ maps_with_next_id(#heap{maps = #maps{next_id = N}}) ->
     #maps{ next_id = N }.
 
 -spec set_next_id(heap_fragment(), non_neg_integer()) -> heap_fragment().
-set_next_id(Heap, N) -> 
+set_next_id(Heap, N) ->
     Heap#heap{ maps = Heap#heap.maps#maps{ next_id = N } }.
 
 %% -- data type heap_fragment
@@ -47,7 +47,7 @@ set_next_id(Heap, N) ->
 heap_fragment(Heap) ->
     heap_fragment(#maps{ next_id = 0 }, 0, Heap).
 
--spec heap_fragment(#maps{}, offset(), 
+-spec heap_fragment(#maps{}, offset(),
                     binary() | #{non_neg_integer() => non_neg_integer()}) -> heap_fragment().
 heap_fragment(Maps, Offset, Heap) ->
     #heap{maps = Maps, offset = Offset, heap = Heap}.
@@ -67,12 +67,12 @@ heap_fragment_heap(#heap{heap = Heap}) ->
 
 %% -- data type heap_value
 
--spec heap_value(#maps{}, pointer(), 
+-spec heap_value(#maps{}, pointer(),
                  binary() | #{non_neg_integer() => non_neg_integer()}) -> heap_value().
 heap_value(Maps, Ptr, Heap) ->
     heap_value(Maps, Ptr, Heap, 0).
 
--spec heap_value(#maps{}, pointer(), 
+-spec heap_value(#maps{}, pointer(),
                  binary() | #{non_neg_integer() => non_neg_integer()}, offset()) -> heap_value().
 heap_value(Maps, Ptr, Heap, Offs) ->
     {Ptr, heap_fragment(Maps, Offs, Heap)}.
@@ -86,10 +86,10 @@ heap_value_maps({_, Heap}) -> Heap#heap.maps.
 -spec heap_value_offset(heap_value()) -> offset().
 heap_value_offset({_, Heap}) -> Heap#heap.offset.
 
--spec heap_value_heap(heap_value()) -> 
+-spec heap_value_heap(heap_value()) ->
                              binary() | #{non_neg_integer() => non_neg_integer()}.
 heap_value_heap({_, Heap}) -> Heap#heap.heap.
-    
+
 %% -- Value to binary --------------------------------------------------------
 
 -spec to_binary(aeb_aevm_data:data()) -> aeb_aevm_data:heap().
@@ -122,6 +122,7 @@ to_binary1(function, Address)        -> to_binary1({?TYPEREP_FUN_TAG}, Address);
 to_binary1({list, T}, Address)       -> to_binary1({?TYPEREP_LIST_TAG, T}, Address);
 to_binary1({option, T}, Address)     -> to_binary1({variant, [[], [T]]}, Address);
 to_binary1({tuple, Ts}, Address)     -> to_binary1({?TYPEREP_TUPLE_TAG, Ts}, Address);
+to_binary1({bytes, Len}, Address)    -> to_binary1({?TYPEREP_BYTES_TAG, Len}, Address);
 to_binary1({variant, Cons}, Address) -> to_binary1({?TYPEREP_VARIANT_TAG, Cons}, Address);
 to_binary1({map, K, V}, Address)     -> to_binary1({?TYPEREP_MAP_TAG, K, V}, Address);
 to_binary1({variant, Tag, Args}, Address) ->
@@ -187,6 +188,11 @@ from_binary(_, bool, _, V) ->
         0 -> false;
         1 -> true
     end;
+from_binary(_, {bytes, Len}, _Heap, V) when Len =< 32 ->
+    V;
+from_binary(Visited, {bytes, Len}, Heap, V) ->
+    Words = (31 + Len) div 32,
+    from_binary(Visited, {tuple, lists:duplicate(Words, word)}, Heap, V);
 from_binary(_, string, Heap, V) ->
     StringSize = heap_word(Heap,V),
     BitAddr = 8*(V+32),
@@ -248,7 +254,8 @@ from_binary(Visited, typerep, Heap, V) ->
         ?TYPEREP_TUPLE_TAG   -> {tuple,   Arg({list, typerep})};
         ?TYPEREP_VARIANT_TAG -> {variant, Arg({list, {list, typerep}})};
         ?TYPEREP_MAP_TAG     -> {map,     Arg(typerep), Arg1(typerep, 2)};
-        ?TYPEREP_FUN_TAG     -> function
+        ?TYPEREP_FUN_TAG     -> function;
+        ?TYPEREP_BYTES_TAG   -> {bytes,   Arg(word)}
     end.
 
 map_binary_to_value(KeyType, ValType, N, Bin, Ptr) ->

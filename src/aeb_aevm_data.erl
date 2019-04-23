@@ -8,6 +8,7 @@
               | {list,   type()}
               | {option, type()}
               | {tuple, [type()]}
+              | {bytes, non_neg_integer()}
               | {variant, [[type()]]}.
 
 

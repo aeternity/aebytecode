@@ -122,7 +122,6 @@ to_binary1(function, Address)        -> to_binary1({?TYPEREP_FUN_TAG}, Address);
 to_binary1({list, T}, Address)       -> to_binary1({?TYPEREP_LIST_TAG, T}, Address);
 to_binary1({option, T}, Address)     -> to_binary1({variant, [[], [T]]}, Address);
 to_binary1({tuple, Ts}, Address)     -> to_binary1({?TYPEREP_TUPLE_TAG, Ts}, Address);
-to_binary1({bytes, Len}, Address)    -> to_binary1({?TYPEREP_BYTES_TAG, Len}, Address);
 to_binary1({variant, Cons}, Address) -> to_binary1({?TYPEREP_VARIANT_TAG, Cons}, Address);
 to_binary1({map, K, V}, Address)     -> to_binary1({?TYPEREP_MAP_TAG, K, V}, Address);
 to_binary1({variant, Tag, Args}, Address) ->
@@ -188,11 +187,6 @@ from_binary(_, bool, _, V) ->
         0 -> false;
         1 -> true
     end;
-from_binary(_, {bytes, Len}, _Heap, V) when Len =< 32 ->
-    V;
-from_binary(Visited, {bytes, Len}, Heap, V) ->
-    Words = (31 + Len) div 32,
-    from_binary(Visited, {tuple, lists:duplicate(Words, word)}, Heap, V);
 from_binary(_, string, Heap, V) ->
     StringSize = heap_word(Heap,V),
     BitAddr = 8*(V+32),
@@ -254,8 +248,7 @@ from_binary(Visited, typerep, Heap, V) ->
         ?TYPEREP_TUPLE_TAG   -> {tuple,   Arg({list, typerep})};
         ?TYPEREP_VARIANT_TAG -> {variant, Arg({list, {list, typerep}})};
         ?TYPEREP_MAP_TAG     -> {map,     Arg(typerep), Arg1(typerep, 2)};
-        ?TYPEREP_FUN_TAG     -> function;
-        ?TYPEREP_BYTES_TAG   -> {bytes,   Arg(word)}
+        ?TYPEREP_FUN_TAG     -> function
     end.
 
 map_binary_to_value(KeyType, ValType, N, Bin, Ptr) ->

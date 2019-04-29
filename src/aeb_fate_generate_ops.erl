@@ -427,7 +427,7 @@ gen_asm_pp(Module, Path, Ops) ->
               "format_arg(a, {stack, 0}) -> \"a\";\n"
               "format_arg(a, {stack, N}) -> io_lib:format(\"a~~p\", [N]).\n\n"
               "lookup(Name, Symbols) ->\n"
-              "    maps:get(Name, Symbols, io_lib:format(\"~~w\",[Name])).\n\n"
+              "    maps:get(Name, Symbols, io_lib:format(\"~~p\",[Name])).\n\n"
               "~s"
              , [Formats]),
 

@@ -287,7 +287,7 @@ gen_arg_uses(_, []) ->
 gen_arg_uses(N, [a]) -> io_lib:format("Arg~w", [N]);
 gen_arg_uses(N, [is]) -> io_lib:format("{immediate, Arg~w}", [N]);
 gen_arg_uses(N, [ii]) -> io_lib:format("{immediate, Arg~w}", [N]);
-gen_arg_uses(N, [li]) -> io_lib:format("[{immediate, I} || I <- Arg~w]", [N]);
+gen_arg_uses(N, [li]) -> io_lib:format("{immediate, Arg~w}", [N]);
 gen_arg_uses(N, [t]) -> io_lib:format("Arg~w", [N]);
 gen_arg_uses(N, [a | Args]) ->
     io_lib:format("Arg~w, ", [N]) ++ gen_arg_uses(N+1, Args);
@@ -381,7 +381,7 @@ expand_types([T|Ts]) ->expand_type(T) ++ ", " ++ expand_types(Ts).
 expand_type(a)  -> "fate_arg()";
 expand_type(is) -> "fate_arg_immediate(aeb_fate_data:fate_string())";
 expand_type(ii) -> "fate_arg_immediate(aeb_fate_data:fate_integer())";
-expand_type(li) -> "[fate_arg_immediate(aeb_fate_data:fate_integer())]";
+expand_type(li) -> "fate_arg_immediate([aeb_fate_data:fate_integer()])";
 expand_type(t)  -> "aeb_fate_data:fate_type_type()".
 
 generate_scanner(TemplateFile, Outfile, Path, Ops) ->

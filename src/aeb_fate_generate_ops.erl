@@ -78,7 +78,7 @@ ops_defs() ->
     , { 'HD',           16#35,    2,  false,   3, [a,a],                hd, "Arg0 := head of list Arg1."}
     , { 'TL',           16#36,    2,  false,   3, [a,a],                tl, "Arg0 := tail of list Arg1."}
     , { 'LENGTH',       16#37,    2,  false,   3, [a,a],            length, "Arg0 := length of list Arg1."}
-    , { 'STR_EQ',       16#38,    3,  false,   3, [a,a,a],          str_eq, "Arg0 := true iff the strings Arg1 and Arg2 are the same."}
+    , { 'APPEND',       16#38,    3,  false,   3, [a,a,a],          append, "Arg0 := Arg1 ++ Arg2."}
     , { 'STR_JOIN',     16#39,    3,  false,   3, [a,a,a],        str_join, "Arg0 := string Arg1 followed by string Arg2."}
     , { 'INT_TO_STR',   16#40,    2,  false,   3, [a,a],        int_to_str, "Arg0 := turn integer Arg1 into a string."}
     , { 'ADDR_TO_STR',  16#41,    2,  false,   3, [a,a],       addr_to_str, "Arg0 := turn address Arg1 into a string."}

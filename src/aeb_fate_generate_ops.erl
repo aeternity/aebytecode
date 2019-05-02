@@ -104,7 +104,7 @@ ops_defs() ->
     , { 'ORIGIN',       16#5b,    1,  false,   3, [a],              origin, "Arg0 := Address of contract called by the call transaction."}
     , { 'CALLER',       16#5c,    1,  false,   3, [a],              caller, "Arg0 := The address that signed the call transaction."}
     , { 'GASPRICE',     16#5d,    1,  false,   3, [a],            gasprice, "Arg0 := The current gas price."}
-    , { 'BLOCKHASH',    16#5e,    1,  false,   3, [a],           blockhash, "Arg0 := The current blockhash."} %% TODO: Do we support has at height?
+    , { 'BLOCKHASH',    16#5e,    2,  false,   3, [a, a],        blockhash, "Arg0 := The blockhash at height."}
     , { 'BENEFICIARY',  16#5f,    1,  false,   3, [a],         beneficiary, "Arg0 := The address of the current beneficiary."}
     , { 'TIMESTAMP',    16#60,    1,  false,   3, [a],           timestamp, "Arg0 := The current timestamp. Unrelaiable, don't use for anything."}
     , { 'GENERATION',   16#61,    1,  false,   3, [a],          generation, "Arg0 := The block height of the cureent generation."}

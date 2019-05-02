@@ -24,9 +24,9 @@
 
 -type fate_type_type() :: integer
                         | boolean
-                        | {list, fate_type()}
-                        | {map, fate_type(), fate_type()}
-                        | {tuple, [fate_type()]}
+                        | {list, fate_type_type()}
+                        | {map, fate_type_type(), fate_type_type()}
+                        | {tuple, [fate_type_type()]}
                         | address
                         | hash
                         | signature
@@ -35,7 +35,8 @@
                         | name
                         | channel
                         | bits
-                        | {variant, list()}.
+                        | string
+                        | {variant, [fate_type_type()]}.
 
 
 -type fate_type() ::

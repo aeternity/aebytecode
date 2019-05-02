@@ -156,7 +156,7 @@ FUNCTION foo () : {tuple, []}
 
   GASPRICE arg119
 
-  BLOCKHASH arg110
+  BLOCKHASH a arg110
 
   BENEFICIARY var163
 
@@ -235,4 +235,3 @@ FUNCTION foo () : {tuple, []}
   BALANCE_OTHER a arg0
 
   SETELEMENT a 2 (1, "two", 3) 2
-  

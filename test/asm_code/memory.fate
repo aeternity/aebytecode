@@ -2,7 +2,7 @@
 FUNCTION call(integer):integer
   STORE var1 arg0
   PUSH  0
-  CALL  write
+  CALL  "write"
   PUSH  var1
   RETURN
 

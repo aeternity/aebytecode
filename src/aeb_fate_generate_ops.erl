@@ -30,9 +30,9 @@ ops_defs() ->
     %%  Opname,        Opcode, args, end_bb, gas, format,      Constructor, Documentation
     [ { 'RETURN',       16#00,    0,   true,   2, atomic,           return, "Return from function call pop stack to arg0. The type of the retun value has to match the return type of the function."}
     , { 'RETURNR',      16#01,    1,   true,   2, [a],             returnr, "Return from function call copy Arg0 to arg0. The type of the retun value has to match the return type of the function."}
-    , { 'CALL',         16#02,    1,   true,   4, [is],               call, "Call given function with args on stack. The types of the arguments has to match the argument typs of the function."}
+    , { 'CALL',         16#02,    1,   true,   4, [a],                call, "Call the function Arg0 with args on stack. The types of the arguments has to match the argument typs of the function."}
     , { 'CALL_R',       16#03,    2,   true,   8, [a,is],           call_r, "Remote call to given contract and function.  The types of the arguments has to match the argument typs of the function."}
-    , { 'CALL_T',       16#04,    1,   true,   4, [is],             call_t, "Tail call to given function. The types of the arguments has to match the argument typs of the function. And the return type of the called function has to match the type of the current function."}
+    , { 'CALL_T',       16#04,    1,   true,   4, [a],              call_t, "Tail call to function Arg0. The types of the arguments has to match the argument typs of the function. And the return type of the called function has to match the type of the current function."}
     , { 'CALL_TR',      16#05,    2,   true,   8, [a,is],          call_tr, "Remote tail call to given contract and function. The types of the arguments has to match the argument typs of the function. And the return type of the called function has to match the type of the current function."}
     , { 'JUMP',         16#06,    1,   true,   3, [ii],               jump, "Jump to a basic block. The basic block has to exist in the current function."}
     , { 'JUMPIF',       16#07,    2,   true,   4, [a,ii],           jumpif, "Conditional jump to a basic block. If Arg0 then jump to Arg1."}
@@ -434,10 +434,6 @@ gen_asm_pp(Module, Path, Ops) ->
     io:format(File, "format_op(Op, _Symbols) -> io_lib:format(\";; Bad Op: ~~w\\n\", [Op]).\n", []),
     file:close(File).
 
-gen_format(#{opname := Name}) when ('CALL' =:= Name) or (Name =:= 'CALL_T') ->
-    io_lib:format("format_op({~w, {immediate, Function}}, Symbols) ->\n"
-                  "[\"~s \", lookup(Function, Symbols)];",
-                  [Name, atom_to_list(Name)]);
 gen_format(#{opname := Name}) when (Name =:= 'CALL_R') or (Name =:= 'CALL_TR') ->
     io_lib:format("format_op({~w, {immediate, Contract}, {immediate, Function}}, Symbols) ->\n"
                   "[\"~s \", lookup(Contract, Symbols), \".\", lookup(Function, Symbols)];\n"

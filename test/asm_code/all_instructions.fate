@@ -8,11 +8,11 @@ FUNCTION foo () : {tuple, []}
 
   RETURNR a13
 
-  CALL foo
+  CALL "foo"
 
   CALL_R arg125 foo
 
-  CALL_T foo
+  CALL_T "foo"
 
   CALL_TR arg245 foo
 

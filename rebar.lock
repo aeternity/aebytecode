@@ -1,7 +1,7 @@
 {"1.1.0",
 [{<<"aeserialization">>,
   {git,"https://github.com/aeternity/aeserialization.git",
-       {ref,"6dce265753af4e651f77746e77ea125145c85dd3"}},
+       {ref,"816bf994ffb5cee218c3f22dc5fea296c9e0882e"}},
   0},
  {<<"base58">>,
   {git,"https://github.com/aeternity/erl-base58.git",

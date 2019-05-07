@@ -68,6 +68,18 @@ FUNCTION tuple() : {tuple, [integer, boolean, string, {tuple, [integer, integer]
 FUNCTION address() : address
          RETURNR @ak_nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv
 
+FUNCTION oracle() : oracle
+         RETURNR @ok_nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv
+
+FUNCTION contract() : contract
+         RETURNR @ct_nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv
+
+FUNCTION name() : name
+         RETURNR @nm_nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv
+
+FUNCTION channel() : channel
+         RETURNR @ch_nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv
+
 ;; Option(integer) = NONE | SOME(integer)
 FUNCTION variant_none() : {variant, [{tuple, []}, {tuple, [integer]}]}
          RETURNR (| [0,1] | 0 | () |)

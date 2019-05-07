@@ -19,14 +19,14 @@ FUNCTION inc(integer) -> integer
 
 FUNCTION call(integer) -> integer
   INCA
-  CALL inc
+  CALL "inc"
   INCA
   RETURN
 
 
 FUNCTION tailcall(integer) -> integer
   INCA
-  CALL_T inc
+  CALL_T "inc"
 
 FUNCTION remote_call(integer) : integer
   PUSH arg0

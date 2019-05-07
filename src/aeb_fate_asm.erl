@@ -906,15 +906,15 @@ parse_value([{start_variant,_line}|_] = Tokens) ->
     {Variant, Rest};
 parse_value([{string,_line, String} | Rest]) ->
     {aeb_fate_data:make_string(String), Rest};
-parse_value([{address,_line, {address, Address}} | Rest]) ->
+parse_value([{object,_line, {address, Address}} | Rest]) ->
     {aeb_fate_data:make_address(Address), Rest};
-parse_value([{address,_line, {contract, Address}} | Rest]) ->
+parse_value([{object,_line, {contract, Address}} | Rest]) ->
     {aeb_fate_data:make_contract(Address), Rest};
-parse_value([{address,_line, {oracle, Address}} | Rest]) ->
+parse_value([{object,_line, {oracle, Address}} | Rest]) ->
     {aeb_fate_data:make_oracle(Address), Rest};
-parse_value([{address,_line, {name, Address}} | Rest]) ->
+parse_value([{object,_line, {name, Address}} | Rest]) ->
     {aeb_fate_data:make_name(Address), Rest};
-parse_value([{address,_line, {channel, Address}} | Rest]) ->
+parse_value([{object,_line, {channel, Address}} | Rest]) ->
     {aeb_fate_data:make_channel(Address), Rest};
 parse_value([{hash,_line, Hash} | Rest]) ->
     {aeb_fate_data:make_hash(Hash), Rest};

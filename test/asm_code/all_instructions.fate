@@ -162,6 +162,8 @@ FUNCTION foo () : {tuple, []}
 
   BLOCKHASH a arg110
 
+  CALL_VALUE a
+
   BENEFICIARY var163
 
   TIMESTAMP a

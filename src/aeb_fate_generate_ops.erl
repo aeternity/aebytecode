@@ -143,7 +143,7 @@ ops_defs() ->
     , { 'SETELEMENT',          16#7f, 4, false,3, [a,a,a,a],      setelement, "Arg0 := a new tuple similar to Arg2, but with element number Arg1 replaced by Arg3."}
     , { 'CALL_GR',             16#80, 4,  true,8, [a,is,a,a],        call_gr, "Remote call with gas cap in Arg3. Otherwise as CALL_R."}
     , { 'CALL_GTR',            16#81, 4,  true,8, [a,is,a,a],       call_gtr, "Remote tail call with gas cap in Arg3. Otherwise as CALL_TR."}
-
+    , { 'CALL_VALUE',          16#82, 1, false,3, [a],            call_value, "The value sent in the current remote call."}
 
     , { 'DUMMY7ARG',           16#f9, 7, false,3, [a,a,a,a,a,a,a],  dummyarg, "Temporary dummy instruction to test 7 args."}
     , { 'DUMMY8ARG',           16#fa, 8, false,3, [a,a,a,a,a,a,a,a],dummyarg, "Temporary dummy instruction to test 8 args."}

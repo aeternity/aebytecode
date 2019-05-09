@@ -10,11 +10,15 @@ FUNCTION foo () : {tuple, []}
 
   CALL "foo"
 
-  CALL_R arg125 foo
+  CALL_R arg125 foo 0
 
   CALL_T "foo"
 
-  CALL_TR arg245 foo
+  CALL_TR arg245 foo 4711
+
+  CALL_GTR arg245 foo 0 100
+
+  CALL_GR arg245 foo 0 4711
 
   JUMP 5514251025295783441695716053282666408426
 
@@ -157,6 +161,8 @@ FUNCTION foo () : {tuple, []}
   GASPRICE arg119
 
   BLOCKHASH a arg110
+
+  CALL_VALUE a
 
   BENEFICIARY var163
 

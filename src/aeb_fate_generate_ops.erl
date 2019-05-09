@@ -31,9 +31,9 @@ ops_defs() ->
     [ { 'RETURN',       16#00,    0,   true,   2, atomic,           return, "Return from function call pop stack to arg0. The type of the retun value has to match the return type of the function."}
     , { 'RETURNR',      16#01,    1,   true,   2, [a],             returnr, "Return from function call copy Arg0 to arg0. The type of the retun value has to match the return type of the function."}
     , { 'CALL',         16#02,    1,   true,   4, [a],                call, "Call the function Arg0 with args on stack. The types of the arguments has to match the argument typs of the function."}
-    , { 'CALL_R',       16#03,    2,   true,   8, [a,is],           call_r, "Remote call to given contract and function.  The types of the arguments has to match the argument typs of the function."}
+    , { 'CALL_R',       16#03,    3,   true,   8, [a,is,a],         call_r, "Remote call to contract Arg0 and function Arg1 with value Arg2. The types of the arguments has to match the argument typs of the function."}
     , { 'CALL_T',       16#04,    1,   true,   4, [a],              call_t, "Tail call to function Arg0. The types of the arguments has to match the argument typs of the function. And the return type of the called function has to match the type of the current function."}
-    , { 'CALL_TR',      16#05,    2,   true,   8, [a,is],          call_tr, "Remote tail call to given contract and function. The types of the arguments has to match the argument typs of the function. And the return type of the called function has to match the type of the current function."}
+    , { 'CALL_TR',      16#05,    3,   true,   8, [a,is,a],        call_tr, "Remote tail call to contract Arg0 and function Arg1 with value Arg2. The types of the arguments has to match the argument typs of the function. And the return type of the called function has to match the type of the current function."}
     , { 'JUMP',         16#06,    1,   true,   3, [ii],               jump, "Jump to a basic block. The basic block has to exist in the current function."}
     , { 'JUMPIF',       16#07,    2,   true,   4, [a,ii],           jumpif, "Conditional jump to a basic block. If Arg0 then jump to Arg1."}
     , { 'SWITCH_V2',    16#08,    3,   true,   4, [a,ii,ii],        switch, "Conditional jump to a basic block on variant tag."}
@@ -141,7 +141,9 @@ ops_defs() ->
     , { 'BLAKE2B',             16#7d, 0, false,3, atomic,            blake2b, ""}
     , { 'BALANCE_OTHER',       16#7e, 2, false,3, [a,a],       balance_other, "Arg0 := The balance of address Arg1."}
     , { 'SETELEMENT',          16#7f, 4, false,3, [a,a,a,a],      setelement, "Arg0 := a new tuple similar to Arg2, but with element number Arg1 replaced by Arg3."}
-
+    , { 'CALL_GR',             16#80, 4,  true,8, [a,is,a,a],        call_gr, "Remote call with gas cap in Arg3. Otherwise as CALL_R."}
+    , { 'CALL_GTR',            16#81, 4,  true,8, [a,is,a,a],       call_gtr, "Remote tail call with gas cap in Arg3. Otherwise as CALL_TR."}
+    , { 'CALL_VALUE',          16#82, 1, false,3, [a],            call_value, "The value sent in the current remote call."}
 
     , { 'DUMMY7ARG',           16#f9, 7, false,3, [a,a,a,a,a,a,a],  dummyarg, "Temporary dummy instruction to test 7 args."}
     , { 'DUMMY8ARG',           16#fa, 8, false,3, [a,a,a,a,a,a,a,a],dummyarg, "Temporary dummy instruction to test 8 args."}
@@ -435,10 +437,26 @@ gen_asm_pp(Module, Path, Ops) ->
     file:close(File).
 
 gen_format(#{opname := Name}) when (Name =:= 'CALL_R') or (Name =:= 'CALL_TR') ->
-    io_lib:format("format_op({~w, {immediate, Contract}, {immediate, Function}}, Symbols) ->\n"
-                  "[\"~s \", lookup(Contract, Symbols), \".\", lookup(Function, Symbols)];\n"
-                  "format_op({~w, Contract, {immediate, Function}}, Symbols) ->\n"
-                  "[\"~s \", format_arg(a, Contract), \".\", lookup(Function, Symbols)];",
+    io_lib:format("format_op({~w, {immediate, Contract}, {immediate, Function}, Value}, Symbols) ->\n"
+                  "    [\"~s \", lookup(Contract, Symbols), \".\", "
+                  "lookup(Function, Symbols), \" \", "
+                  "format_arg(a, Value)];\n"
+                  "format_op({~w, Contract, {immediate, Function}, Value}, Symbols) ->\n"
+                  "[\"~s \", format_arg(a, Contract), \".\", "
+                  "lookup(Function, Symbols), \" \", "
+                  "format_arg(a, Value)];\n",
+                  [Name, atom_to_list(Name), Name, atom_to_list(Name)]);
+gen_format(#{opname := Name}) when (Name =:= 'CALL_GR') or (Name =:= 'CALL_GTR') ->
+    io_lib:format("format_op({~w, {immediate, Contract}, {immediate, Function}, Value, Gas}, Symbols) ->\n"
+                  "    [\"~s \", lookup(Contract, Symbols), \".\", "
+                  "lookup(Function, Symbols), \" \", "
+                  "format_arg(a, Value),  \" \", "
+                  "format_arg(a, Gas)];\n"
+                  "format_op({~w, Contract, {immediate, Function}, Value, Gas}, Symbols) ->\n"
+                  "[\"~s \", format_arg(a, Contract), \".\", "
+                  "lookup(Function, Symbols), \" \", "
+                  "format_arg(a, Value),  \" \", "
+                  "format_arg(a, Gas)];\n",
                   [Name, atom_to_list(Name), Name, atom_to_list(Name)]);
 gen_format(#{opname := Name, format := atomic}) ->
     io_lib:format("format_op(~w, _) -> [\"~s\"];", [Name, atom_to_list(Name)]);

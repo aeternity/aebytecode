@@ -30,6 +30,7 @@
 
 -define(           'SHA3', 16#20).
 
+-define(        'CREATOR', 16#2f).
 -define(        'ADDRESS', 16#30).
 -define(        'BALANCE', 16#31).
 -define(         'ORIGIN', 16#32).
@@ -165,6 +166,8 @@
 -define(PRIM_CALL_ORACLE_GET_ANSWER,   104).
 -define(PRIM_CALL_ORACLE_GET_QUESTION, 105).
 -define(PRIM_CALL_ORACLE_QUERY_FEE,    106).
+-define(PRIM_CALL_ORACLE_CHECK,        110).
+-define(PRIM_CALL_ORACLE_CHECK_QUERY,  111).
 
 -define(PRIM_CALL_IN_AENS_RANGE(__TTYPE__), (((__TTYPE__) > 199) andalso ((__TTYPE__) < 300))).
 -define(PRIM_CALL_AENS_RESOLVE,  200).
@@ -193,3 +196,7 @@
 
 -define(PRIM_CALL_IN_AUTH_RANGE(__TTYPE__), (((__TTYPE__) > 499) andalso ((__TTYPE__) < 600))).
 -define(PRIM_CALL_AUTH_TX_HASH, 500).
+
+-define(PRIM_CALL_IN_ADDRESS_RANGE(__TTYPE__), (((__TTYPE__) > 599) andalso ((__TTYPE__) < 700))).
+-define(PRIM_CALL_ADDR_IS_ORACLE,    600).
+-define(PRIM_CALL_ADDR_IS_CONTRACT,  601).

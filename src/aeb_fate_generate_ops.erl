@@ -21,7 +21,7 @@ generate(Src, Include) ->
     HrlFile = Include ++ "aeb_fate_opcodes.hrl",
     generate_header_file(HrlFile, Ops),
     generate_opcodes_ops(aeb_fate_opcodes, HrlFile, Src, Ops),
-    generate_code_ops(aeb_fate_code, Src, Ops),
+    generate_code_ops(aeb_fate_ops, Src, Ops),
     generate_scanner("aeb_fate_asm_scan.template", "aeb_fate_asm_scan.xrl", Src, Ops),
     gen_asm_pp(aeb_fate_pp, Src, Ops).
 

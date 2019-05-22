@@ -120,7 +120,7 @@ ops_defs() ->
     , { 'LOG4',         16#6a,    6,  false,   3, [a,a,a,a,a,a],       log, "Create a log message with four topics in the call object."}
     , { 'DEACTIVATE',   16#6b,    0,  false,   3, atomic,       deactivate, "Mark the current contract for deactication."}
       %% Transaction ops
-    , { 'SPEND',               16#6c, 2, false,3, [a,a],                       spend, "Transfer Arg0 tokens to account Arg1. (If the contract account has at least that many tokens."}
+    , { 'SPEND',               16#6c, 2, false,3, [a,a],                       spend, "Transfer Arg1 tokens to account Arg0. (If the contract account has at least that many tokens."}
     , { 'ORACLE_REGISTER',     16#6d, 6, false,3, [a,a,a,a,a,a],     oracle_register, "Mark the current contract for deactication."}
       %% TODO:
     , { 'ORACLE_QUERY',        16#6e, 0, false,3, atomic,       oracle_query, ""}

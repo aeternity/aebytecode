@@ -153,7 +153,7 @@ serialize_op(Opcode) ->
     [aeb_fate_opcodes:m_to_op(Opcode)].
 
 %% Argument encoding
-%% Agument Specification Byte
+%% Argument Specification Byte
 %% bitpos:  6    4    2    0
 %%         xx   xx   xx   xx
 %%       Arg3 Arg2 Arg1 Arg0

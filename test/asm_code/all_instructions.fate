@@ -6,7 +6,7 @@
 FUNCTION foo () : {tuple, []}
   RETURN
 
-  RETURNR a13
+  RETURNR a
 
   CALL "foo"
 
@@ -24,7 +24,7 @@ FUNCTION foo () : {tuple, []}
 
   JUMPIF arg196 0x12c651665
 
-  SWITCH_V2 a27 63 33
+  SWITCH_V2 a 63 33
 
   SWITCH_V3 var4 0x1d61723dd 79 7
 
@@ -36,29 +36,29 @@ FUNCTION foo () : {tuple, []}
 
   DUP a
 
-  POP a107
+  POP a
 
   STORE arg183 var225
 
   INCA
 
-  INC a25
+  INC a
 
   DECA
 
   DEC a
 
-  ADD a217 a a
+  ADD a a a
 
   SUB arg35 arg165 var74
 
   MUL 44 35 "foo"
 
-  DIV 263838340369912686645632650718169038811 a24 a
+  DIV 263838340369912686645632650718169038811 a a
 
   MOD var113 arg80 arg207
 
-  POW a176 a a123
+  POW a a a
 
   LT a 78 var81
 
@@ -66,11 +66,11 @@ FUNCTION foo () : {tuple, []}
 
   EQ 85 a arg164
 
-  ELT a161 arg226 a168
+  ELT a arg226 a
 
-  EGT a131 1 var250
+  EGT a 1 var250
 
-  NEQ a85 a a83
+  NEQ a a a
 
   AND var255 0x294a24f6 var189
 
@@ -80,35 +80,35 @@ FUNCTION foo () : {tuple, []}
 
   TUPLE 5019186157739257888756115213149493826410
 
-  ELEMENT arg148 var25 a219
+  ELEMENT arg148 var25 a
 
-  MAP_EMPTY a135
+  MAP_EMPTY a
 
-  MAP_LOOKUP a82 a a143
+  MAP_LOOKUP a a a
 
-  MAP_LOOKUPD var112 arg35 a163 var112
+  MAP_LOOKUPD var112 arg35 a var112
 
-  MAP_UPDATE false a0 a56 a
+  MAP_UPDATE false a a a
 
   MAP_DELETE arg180 a var1
 
   MAP_MEMBER a { true => 4} 94
 
-  MAP_FROM_LIST () a159
+  MAP_FROM_LIST () a
 
   NIL arg91
 
-  IS_NIL a121 var6
+  IS_NIL a var6
 
-  CONS arg185 "foo" a114
+  CONS arg185 "foo" a
 
-  HD a150 var124
+  HD a var124
 
   TL arg223 a
 
-  LENGTH var216 a143
+  LENGTH var216 a
 
-  APPEND { 203961992615221001243597889146034217896 => 0x1f53a1843} 281217554184165828643225535776787296845 a177
+  APPEND { 203961992615221001243597889146034217896 => 0x1f53a1843} 281217554184165828643225535776787296845 a
 
   STR_JOIN a a 7144184027126178769820155907121270843348
 
@@ -116,15 +116,15 @@ FUNCTION foo () : {tuple, []}
 
   ADDR_TO_STR a arg216
 
-  STR_REVERSE a174  @ak_nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv
+  STR_REVERSE a @ak_nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv
 
   INT_TO_ADDR arg127 var207
 
   VARIANT a a 0x1f7b72200 a
 
-  VARIANT_TEST a26 arg217 a
+  VARIANT_TEST a arg217 a
 
-  VARIANT_ELEMENT a86 arg103 arg108
+  VARIANT_ELEMENT a arg103 arg108
 
   BITS_NONEA
 
@@ -132,31 +132,31 @@ FUNCTION foo () : {tuple, []}
 
   BITS_ALLA
 
-  BITS_ALL a164
+  BITS_ALL a
 
-  BITS_ALL_N a221 arg135
+  BITS_ALL_N a arg135
 
-  BITS_SET arg150 a48 { 0x1a715e2a6 => 3}
+  BITS_SET arg150 a { 0x1a715e2a6 => 3}
 
   BITS_CLEAR arg98 a arg164
 
-  BITS_TEST a a242 (| [0,0,3] | 2 | (1, "foo", ()) |)
+  BITS_TEST a a (| [0,0,3] | 2 | (1, "foo", ()) |)
 
-  BITS_SUM a244 a71
+  BITS_SUM a a
 
   BITS_OR var20 var186 a
 
-  BITS_AND a187 4 arg203
+  BITS_AND a 4 arg203
 
   BITS_DIFF var200 arg247 var20
 
-  ADDRESS a237
+  ADDRESS a
 
-  BALANCE a231
+  BALANCE a
 
   ORIGIN arg216
 
-  CALLER a27
+  CALLER a
 
   GASPRICE arg119
 
@@ -178,15 +178,15 @@ FUNCTION foo () : {tuple, []}
 
   GAS var35
 
-  LOG0 a a85
+  LOG0 a a
 
   LOG1 arg94 arg86 arg208
 
-  LOG2 a113 (| [0,1,3] | 2 | (1, "foo", ()) |) arg238 var108
+  LOG2 a (| [0,1,3] | 2 | (1, "foo", ()) |) arg238 var108
 
   LOG3 arg255 arg15 arg211 var139 arg44
 
-  LOG4 @ak_nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv a247 a 9 a38 a
+  LOG4 @ak_nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv a a 9 a a
 
   DEACTIVATE
 

@@ -174,10 +174,10 @@ serialize_code([{_,_}|_] = List ) ->
     Mods = << <<(modifier_bits(Type)):2>> || {Type, _} <- pad_args(lists:reverse(Args)) >>,
     case Mods of
         <<M1:8, M2:8>> ->
-            [M1, M2 | [serialize_data(Type, Arg) || {Type, Arg} <- Args]] ++
+            [M1, M2 | [serialize_data(Type, Arg) || {Type, Arg} <- Args, Type =/= stack]] ++
                 serialize_code(Rest);
         <<M1:8>> ->
-            [M1 | [serialize_data(Type, Arg) || {Type, Arg} <- Args]] ++
+            [M1 | [serialize_data(Type, Arg) || {Type, Arg} <- Args, Type =/= stack]] ++
                 serialize_code(Rest)
     end;
 serialize_code([Op|Rest]) ->
@@ -304,15 +304,25 @@ deserialize_op(Op, Rest, Code) ->
 deserialize_n_args(N, <<M3:2, M2:2, M1:2, M0:2, Rest/binary>>) when N =< 4 ->
     ArgMods = lists:sublist([M0, M1, M2, M3], N),
     lists:mapfoldl(fun(M, Acc) ->
-                           {Arg, Acc2} = aeb_fate_encoding:deserialize_one(Acc),
-                           {{bits_to_modifier(M), Arg}, Acc2}
+                           case bits_to_modifier(M) of
+                               stack ->
+                                   {{stack, 0}, Acc};
+                               Modifier ->
+                                   {Arg, Acc2} = aeb_fate_encoding:deserialize_one(Acc),
+                                   {{Modifier, Arg}, Acc2}
+                           end
                    end, Rest, ArgMods);
 deserialize_n_args(N, <<M7:2, M6:2, M5:2, M4:2, M3:2, M2:2, M1:2, M0:2,
                         Rest/binary>>) when N =< 8 ->
     ArgMods = lists:sublist([M0, M1, M2, M3, M4, M5, M6, M7], N),
     lists:mapfoldl(fun(M, Acc) ->
-                           {Arg, Acc2} = aeb_fate_encoding:deserialize_one(Acc),
-                           {{bits_to_modifier(M), Arg}, Acc2}
+                           case bits_to_modifier(M) of
+                               stack ->
+                                   {{stack, 0}, Acc};
+                               Modifier ->
+                                   {Arg, Acc2} = aeb_fate_encoding:deserialize_one(Acc),
+                                   {{Modifier, Arg}, Acc2}
+                           end
                    end, Rest, ArgMods).
 
 deserialize_signature(Binary) ->

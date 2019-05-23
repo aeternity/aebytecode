@@ -30,9 +30,7 @@
 %%%          arg0
 %%%      References to variables/registers start with var followed by an integer
 %%%          var0
-%%%      References to stack postions is either a (for stack 0)
-%%%       or start with stack followed by an integer
-%%%          stack1
+%%%      References to the top of the stack is the letter a (for accumulator)
 %%%          a
 %%%
 %%%      Immediate values can be of 11 types:
@@ -243,8 +241,8 @@ to_bytecode([{arg,_line, N}|Rest], Address, Env, Code, Opts) ->
     to_bytecode(Rest, Address, Env, [{arg, N}|Code], Opts);
 to_bytecode([{var,_line, N}|Rest], Address, Env, Code, Opts) ->
     to_bytecode(Rest, Address, Env, [{var, N}|Code], Opts);
-to_bytecode([{stack,_line, N}|Rest], Address, Env, Code, Opts) ->
-    to_bytecode(Rest, Address, Env, [{stack, N}|Code], Opts);
+to_bytecode([{stack,_line}|Rest], Address, Env, Code, Opts) ->
+    to_bytecode(Rest, Address, Env, [{stack, 0}|Code], Opts);
 to_bytecode([{int,_line, Int}|Rest], Address, Env, Code, Opts) ->
     to_bytecode(Rest, Address, Env, [{immediate, Int}|Code], Opts);
 to_bytecode([{boolean,_line, Bool}|Rest], Address, Env, Code, Opts) ->

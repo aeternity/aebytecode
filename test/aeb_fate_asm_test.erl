@@ -25,12 +25,7 @@ read_file(File) ->
     Asm.
 
 assemble(Asm) ->
-    {Env, BC} = aeb_fate_asm:asm_to_bytecode(Asm, []),
-    {Env, BC}.
-
-disassemble(BC) ->
-    aeb_fate_asm:bytecode_to_fate_code(BC, []).
-
+    aeb_fate_asm:asm_to_bytecode(Asm, []).
 
 asm_disasm_idenity_test() ->
     check_roundtrip(identity).
@@ -58,12 +53,12 @@ sources() ->
 check_roundtrip(File) ->
     AssemblerCode = read_file(File),
     {_Env, ByteCode} = assemble(AssemblerCode),
-    FateCode = disassemble(ByteCode),
+    FateCode = aeb_fate_code:deserialize(ByteCode),
     DissasmCode = aeb_fate_asm:to_asm(FateCode),
-    io:format("~s~n", [AssemblerCode]),
-    io:format("~s~n", [DissasmCode]),
     {_Env2, ByteCode2} = assemble(DissasmCode),
+    ByteCode3 = aeb_fate_code:serialize(FateCode),
     Code1 = aeb_fate_asm:strip(ByteCode),
     Code2 = aeb_fate_asm:strip(ByteCode2),
-    io:format("~s~n", [aeb_fate_asm:to_asm(disassemble(ByteCode2))]),
-    ?assertEqual(Code1, Code2).
+    Code3 = aeb_fate_asm:strip(ByteCode3),
+    ?assertEqual(Code1, Code2),
+    ?assertEqual(Code1, Code3).

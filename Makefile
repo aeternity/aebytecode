@@ -1,4 +1,4 @@
-GENERATED_SRC = src/aeb_fate_opcodes.erl src/aeb_fate_code.erl include/aeb_fate_opcodes.hrl src/aeb_fate_asm_scan.xrl src/aeb_fate_pp.erl
+GENERATED_SRC = src/aeb_fate_opcodes.erl src/aeb_fate_ops.erl include/aeb_fate_opcodes.hrl src/aeb_fate_asm_scan.xrl src/aeb_fate_pp.erl
 GENERATOR_DEPS = ebin/aeb_fate_generate_ops.beam src/aeb_fate_asm_scan.template
 REBAR ?= rebar3
 

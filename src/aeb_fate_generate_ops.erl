@@ -43,7 +43,7 @@ ops_defs() ->
     , { 'SWITCH_VN',           16#0c,   true,   4, [a, li],           switch, "Conditional jump to a basic block on variant tag."}
     , { 'CALL_VALUE',          16#0d,  false,   3, [a],          call_value, "The value sent in the current remote call."}
     , { 'PUSH',                16#0e,  false,   2, [a],                push, "Push argument to stack."}
-    , { 'DUPA',                16#0f,  false,   3, [],                  dup, "push copy of accumulator on stack."}
+    , { 'DUPA',                16#0f,  false,   3, [],                  dup, "Duplicate top of stack."}
     , { 'DUP',                 16#10,  false,   3, [a],                 dup, "push Arg0 stack pos on top of stack."}
     , { 'POP',                 16#11,  false,   3, [a],                 pop, "Arg0 := top of stack."}
     , { 'INCA',                16#12,  false,   2, [],                  inc, "Increment accumulator."}
@@ -92,7 +92,7 @@ ops_defs() ->
     , { 'INT_TO_ADDR',         16#3d,  false,   3, [a,a],       int_to_addr, "Arg0 := turn integer Arg1 into an address."}
     , { 'VARIANT',             16#3e,  false,   3, [a,a,a,a],       variant, "Arg0 := create a variant of size Arg1 with the tag Arg2 (Arg2 < Arg1) and take Arg3 elements from the stack."}
     , { 'VARIANT_TEST',        16#3f,  false,   3, [a,a,a],    variant_test, "Arg0 := true if variant Arg1 has the tag Arg2."}
-    , { 'VARIANT_ELEMENT',     16#40,  false, 3, [a,a,a], variant_element, "Arg0 := element number Arg2 from variant Arg1."}
+    , { 'VARIANT_ELEMENT',     16#40,  false,   3, [a,a,a], variant_element, "Arg0 := element number Arg2 from variant Arg1."}
     , { 'BITS_NONEA',          16#41,  false,   3, [],            bits_none, "accumulator := empty bitmap."}
     , { 'BITS_NONE',           16#42,  false,   3, [a],           bits_none, "Arg0 := empty bitmap."}
     , { 'BITS_ALLA',           16#43,  false,   3, [],         bits_all, "accumulator := full bitmap."}
@@ -215,7 +215,7 @@ generate_code_ops(Modulename, SrcDir, Ops) ->
               "-type fate_arg_immediate(T) :: {immediate, T}.\n"
               "-type fate_arg_var()        :: {var, integer()}.\n"
               "-type fate_arg_arg()        :: {arg, integer()}.\n"
-              "-type fate_arg_stack()      :: {stack, integer()}.\n"
+              "-type fate_arg_stack()      :: {stack, 0}.\n"
               "-type fate_arg() :: fate_arg_immediate()\n"
               "                  | fate_arg_var()\n"
               "                  | fate_arg_arg()\n"
@@ -425,8 +425,7 @@ gen_asm_pp(Module, Path, Ops) ->
               "    aeb_fate_data:format(I);\n"
               "format_arg(a, {arg, N}) -> io_lib:format(\"arg~~p\", [N]);\n"
               "format_arg(a, {var, N}) -> io_lib:format(\"var~~p\", [N]);\n"
-              "format_arg(a, {stack, 0}) -> \"a\";\n"
-              "format_arg(a, {stack, N}) -> io_lib:format(\"a~~p\", [N]).\n\n"
+              "format_arg(a, {stack, 0}) -> \"a\".\n\n"
               "lookup(Name, Symbols) ->\n"
               "    maps:get(Name, Symbols, io_lib:format(\"~~p\",[Name])).\n\n"
               "~s"
@@ -562,7 +561,7 @@ gen_arg(t) -> "integer".
 
 any_arg() ->
     element(rand:uniform(5), {"a", stack_arg(), var_arg(), arg_arg(), imm_arg()}).
-stack_arg() -> "a" ++ integer_to_list(rand:uniform(255)-1).
+stack_arg() -> "a".
 arg_arg() ->  "arg" ++ integer_to_list(rand:uniform(256)-1).
 var_arg() ->  "var" ++ integer_to_list(rand:uniform(256)-1).
 imm_arg() ->

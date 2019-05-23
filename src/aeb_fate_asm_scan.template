@@ -27,8 +27,7 @@ BITS     = (\!)?\<[\s01]*\>
 Rules.
 arg{INT}       : {token, {arg, TokenLine, parse_arg(TokenChars)}}.
 var{INT}       : {token, {var, TokenLine, parse_var(TokenChars)}}.
-a              : {token, {stack, TokenLine, 0}}.
-a{INT}         : {token, {stack, TokenLine, parse_acc(TokenChars)}}.
+a              : {token, {stack, TokenLine}}.
 
 true           : {token, {boolean, TokenLine, true}}.
 false          : {token, {boolean, TokenLine, false}}.
@@ -108,7 +107,7 @@ parse_int(Chars) -> list_to_integer(Chars).
 
 parse_arg("arg" ++ N) -> list_to_integer(N).
 parse_var("var" ++ N) -> list_to_integer(N).
-parse_acc("a" ++ N) -> list_to_integer(N).
+
 
 
 parse_hash("#" ++ Chars) ->

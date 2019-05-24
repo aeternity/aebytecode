@@ -73,7 +73,8 @@
 %%%             Hexdigits:  [0123456789abcdef]
 %%%             base58char:  [123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]
 %%%             base64char:  [ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxy0123456789+/=]
-%%%             Characters any printable ascii character 0..255 (except " no quoting yet)
+%%%             Characters: as a code literal -  any printable ascii character 0..255 (except " no quoting yet)
+%%%                         the type supports an array of bytes (all values 0..255).
 %%%             Key: any value except for a map
 %%%             Bits: 01 or space
 %%%             Elements: Nothing or Value , Elements

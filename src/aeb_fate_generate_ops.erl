@@ -71,7 +71,7 @@ ops_defs() ->
     , { 'DIV',                 16#19,  false,   3, [a,a,a],          divide,                   {integer, integer}, integer, "Arg0 := Arg1 / Arg2."}
     , { 'MOD',                 16#1a,  false,   3, [a,a,a],          modulo,                   {integer, integer}, integer, "Arg0 := Arg1 mod Arg2."}
     , { 'POW',                 16#1b,  false,   3, [a,a,a],             pow,                   {integer, integer}, integer, "Arg0 := Arg1  ^ Arg2."}
-    , { 'STORE',               16#1c,  false,   3, [a,a],             store,                   {integer, integer}, integer, "Arg0 := Arg1."}
+    , { 'STORE',               16#1c,  false,   3, [a,a],             store,                                {any},     any, "Arg0 := Arg1."}
     , { 'SHA3',                16#1d,  false,   3, [a,a],              sha3,                             {string},    hash, "Arg0 := sha3(Arg1)."}
     , { 'SHA256',              16#1e,  false,   3, [a,a],            sha256,                             {string},    hash, "Arg0 := sha256(Arg1)."}
     , { 'BLAKE2B',             16#1f,  false,   3, [a,a],           blake2b,                             {string},    hash, "Arg0 := blake2b(Arg1)."}

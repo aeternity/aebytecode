@@ -97,7 +97,7 @@ serialize(#fcode{} = F) ->
     serialize(F, []).
 
 serialize(#fcode{} = F, Options) ->
-    serialize(F, iolist_to_binary(serialize_functions(F)), Options).
+    serialize(F, serialize_functions(F), Options).
 
 serialize(#fcode{} = F, Functions, Options) ->
     SymbolTable = serialize_symbol_table(F),
@@ -123,9 +123,12 @@ to_hexstring(ByteList) ->
 
 serialize_functions(#fcode{ functions = Functions }) ->
     %% Sort the functions on name to get a canonical serialisation.
-    Code = [[?FUNCTION, Name, serialize_signature(Sig), serialize_bbs(C)]  ||
-               {Name, {Sig, C}} <- lists:sort(maps:to_list(Functions))],
-    lists:flatten(Code).
+    iolist_to_binary(
+      lists:foldr(fun({Id, {Sig, C}}, Acc) when byte_size(Id) == 4 ->
+                          [[?FUNCTION, Id, serialize_signature(Sig), serialize_bbs(C)] | Acc];
+                      ({Id, _}, _) ->
+                          error({illegal_function_id, Id})
+                  end, [], lists:sort(maps:to_list(Functions)))).
 
 serialize_signature({Args, RetType}) ->
     [aeb_fate_encoding:serialize_type({tuple, Args}) |

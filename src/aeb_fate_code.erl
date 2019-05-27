@@ -154,6 +154,8 @@ serialize_bbs(BBs, N, Acc) ->
                 false ->
                     error({not_contiguous_labels, lists:sort(maps:keys(BBs))})
             end;
+        [] ->
+            error({empty_code_block, N});
         BB ->
             serialize_bbs(BBs, N + 1, [serialize_bb(BB, [])|Acc])
     end.

@@ -20,5 +20,6 @@
 
 quickcheck_test_() ->
     {setup, fun() -> eqc:start() end,
-     [ ?EQC_EUNIT(aefate_code_eqc, prop_serializes, 3000)
+     [ ?EQC_EUNIT(aefate_code_eqc, prop_opcodes, 200),
+       ?EQC_EUNIT(aefate_code_eqc, prop_serializes, 3000)
      ]}.

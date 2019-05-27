@@ -26,6 +26,11 @@
 -include("../include/aeb_fate_opcodes.hrl").
 -include("../include/aeb_fate_data.hrl").
 
+-ifdef(EQC).
+-export([update_annotations/2
+        , update_functions/2
+        , update_symbols/2]).
+-endif.
 
 -record(fcode, { functions   = #{} :: map()
                , symbols     = #{} :: map()
@@ -50,14 +55,23 @@ functions(#fcode{ functions = Fs }) ->
 symbols(#fcode{ symbols = Ss}) ->
     Ss.
 
+update_annotations(#fcode{ annotations = As } = FCode, Anns) ->
+    FCode#fcode{ annotations = maps:merge(As, Anns) }.
+
+update_functions(#fcode{ functions = Fs } = FCode, Funs) ->
+    FCode#fcode{ functions = maps:merge(Fs, Funs) }.
+
+update_symbols(#fcode{ symbols = Ss } = FCode, Symbs) ->
+    FCode#fcode{ symbols = maps:merge(Ss, Symbs) }.
+
 symbol_identifier(Bin) ->
     %% First 4 bytes of blake hash
     {ok, <<X:4/binary,_/binary>> } = eblake2:blake2b(?HASH_BYTES, Bin),
     X.
 
-insert_fun(Name, {ArgType, RetType}, #{} = BBs, #fcode{ functions = Funs } = F) ->
-    {F1, ID} = insert_symbol(Name, F),
-    F1#fcode{ functions = Funs#{ ID => {{ArgType, RetType}, BBs}} }.
+insert_fun(Name, {ArgType, RetType}, #{} = BBs, FCode) ->
+    {F1, ID} = insert_symbol(Name, FCode),
+    update_functions(F1, #{ID => {{ArgType, RetType}, BBs}}).
 
 insert_symbol(Name, #fcode{ symbols = Syms } = F) ->
     ID = symbol_identifier(Name),
@@ -67,13 +81,13 @@ insert_symbol(Name, #fcode{ symbols = Syms } = F) ->
         {ok, X} ->
             error({two_symbols_with_same_hash, Name, X});
         error ->
-            {F#fcode{symbols = Syms#{ ID => Name}}, ID}
+            {update_symbols(F, #{ID => Name}), ID}
     end.
 
-insert_annotation(comment =_Type, Line, Comment, #fcode{ annotations = Anns} = F) ->
+insert_annotation(comment =_Type, Line, Comment, FCode) ->
     Key   = aeb_fate_data:make_tuple({aeb_fate_data:make_string("comment"), Line}),
     Value = aeb_fate_data:make_string(Comment),
-    F#fcode{ annotations = Anns#{ Key => Value}}.
+    update_annotations(FCode, #{ Key => Value }).
 
 %%%===================================================================
 %%% Serialization

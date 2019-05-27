@@ -293,6 +293,9 @@ deserialize_functions(<<Op:8, Rest/binary>>,
         false ->
             deserialize_functions(Rest2, Env#{ current_bb_code => OpCode})
     end;
+deserialize_functions(<<>>, #{ function := none
+                             , functions := Funs}) ->
+    Funs;
 deserialize_functions(<<>>, #{ function := {F, Sig}
                              , bb := BB
                              , current_bb_code := Code

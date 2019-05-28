@@ -49,6 +49,19 @@ prop_serializes() ->
                                                {size, size(Binary) < 500000}]))))
                       end)).
 
+prop_fuzz() ->
+    in_parallel(
+    ?FORALL(Binary, ?LET(FateData, fate_data(), aeb_fate_encoding:serialize(FateData)),
+            ?FORALL(InjectedBin, injection(Binary),
+                    try Org = aeb_fate_encoding:deserialize(InjectedBin),
+                         NewBin = aeb_fate_coding:serialize(Org),
+                         NewOrg = aeb_fate_coding:deserialize(NewBin),
+                         ?WHENFAIL(eqc:format("Deserialize ~p gives\n~p\nSerializes to ~p\n", [InjectedBin, Org, NewOrg]),
+                                   equals(NewBin, InjectedBin))
+                    catch _:_ ->
+                            true
+                    end))).
+
 fate_data() ->
     ?SIZED(Size, ?LET(Data, fate_data(Size, [map]), eqc_symbolic:eval(Data))).
 
@@ -120,3 +133,11 @@ non_quote_string() ->
 
 char() ->
     choose(1, 255).
+
+injection(Binary) ->
+    ?LET({N, Inj}, {choose(0, byte_size(Binary) - 1), choose(0,255)},
+         begin
+             M = N * 8,
+             <<X:M, _:8, Z/binary>> = Binary,
+             <<X:M, Inj:8, Z/binary>>
+         end).

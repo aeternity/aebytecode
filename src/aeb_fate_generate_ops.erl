@@ -441,6 +441,7 @@ gen_asm_pp(Module, Path, Ops) ->
               "format_arg(_, {immediate, I}) ->\n"
               "    aeb_fate_data:format(I);\n"
               "format_arg(a, {arg, N}) -> io_lib:format(\"arg~~p\", [N]);\n"
+              "format_arg(a, {var, N}) when N < 0 -> io_lib:format(\"store~~p\", [-N]);\n"
               "format_arg(a, {var, N}) -> io_lib:format(\"var~~p\", [N]);\n"
               "format_arg(a, {stack, 0}) -> \"a\".\n\n"
               "lookup(Name, Symbols) ->\n"

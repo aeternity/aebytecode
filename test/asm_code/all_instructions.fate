@@ -1,7 +1,7 @@
 ;; CONTRACT all_instructions
 
 ;; Dont expect this contract to typecheck or run.
-;; Just used to check assembler rountrip of all instruction.
+;; Just used to check assembler rountrip of all instructions.
 
 FUNCTION foo () : {tuple, []}
   RETURN

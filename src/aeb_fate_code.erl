@@ -207,7 +207,7 @@ serialize_code([{_,_}|_] = List ) ->
     %% Take out the full argument list.
     {Args, Rest} = lists:splitwith(fun({_, _}) -> true; (_) -> false end, List),
     %% Create the appropriate number of modifier bytes.
-    Mods = << <<(modifier_bits(Type)):2>> || {Type, _} <- pad_args(lists:reverse(Args)) >>,
+    Mods = << <<(modifier_bits(Type, X)):2>> || {Type, X} <- pad_args(lists:reverse(Args)) >>,
     case Mods of
         <<M1:8, M2:8>> ->
             [M1, M2 | [serialize_data(Type, Arg) || {Type, Arg} <- Args, Type =/= stack]] ++
@@ -237,10 +237,11 @@ serialize_data(_, Data) ->
 %% 01 : argN
 %% 10 : varN
 %% 11 : immediate
-modifier_bits(immediate) -> 2#11;
-modifier_bits(var)       -> 2#10;
-modifier_bits(arg)       -> 2#01;
-modifier_bits(stack)     -> 2#00.
+modifier_bits(immediate, _) -> 2#11;
+modifier_bits(var, _)       -> 2#10;
+modifier_bits(arg, _)       -> 2#01;
+modifier_bits(stack, 0)     -> 2#00;
+modifier_bits(Type, X)      -> error({illegal_argument, Type, X}).
 
 bits_to_modifier(2#11) -> immediate;
 bits_to_modifier(2#10) -> var;

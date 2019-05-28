@@ -43,7 +43,7 @@ prop_fail_serializes() ->
                              ?FORALL(FateCode, fate_code(Failure),
                                ?FORALL(Binary, catch aeb_fate_code:serialize(FateCode),
                                          is_binary(aeb_fate_code:serialize(FateCode)))))
-                             =/= true} || Failure <- [1,2,3,4] ]).
+                             =/= true} || Failure <- [1,2,3,4, 5] ]).
 
 prop_fuzz() ->
     in_parallel(

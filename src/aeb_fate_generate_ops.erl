@@ -160,7 +160,7 @@ ops_defs() ->
     , { 'BALANCE_OTHER',       16#6f,  false,   3, [a,a],     balance_other,                           {address}, integer, "Arg0 := The balance of address Arg1."}
       %% TODO: Reorder these before documenting the specification
     , { 'MAP_SIZE',            16#70,  false,   3, [a,a],          map_size,                               {map}, integer, "Arg0 := The size of the map Arg1."}
-    , { 'MAP_TO_LIST',         16#71,  false,   3, [a,a],       map_to_list,                               {map},    list, "Arg0 := The tuple list representation of the map Arg1."}
+    , { 'MAP_TO_LIST',         16#71,  false,   3, [a,a],      map_to_list_,                               {map},    list, "Arg0 := The tuple list representation of the map Arg1."}
     , { 'STR_LENGTH',          16#72,  false,   3, [a,a],        str_length,                            {string}, integer, "Arg0 := The length of the string Arg1."}
 
     , { 'DEACTIVATE',          16#fa,  false,   3, [],           deactivate,                                  {},    none, "Mark the current contract for deactivation."}

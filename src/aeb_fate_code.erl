@@ -160,16 +160,33 @@ serialize_bbs(BBs, N, Acc) ->
             serialize_bbs(BBs, N + 1, [serialize_bb(BB, [])|Acc])
     end.
 
+serialize_bb([Op], Acc) ->
+    lists:reverse([serialize_op(true, Op)|Acc]);
 serialize_bb([Op|Rest], Acc) ->
-    serialize_bb(Rest, [serialize_op(Op)|Acc]);
-serialize_bb([], Acc) ->
-    lists:reverse(Acc).
+    serialize_bb(Rest, [serialize_op(false, Op)|Acc]).
+%% serialize_bb([], Acc) ->
+%%     lists:reverse(Acc).
 
-serialize_op(Op) when is_tuple(Op) ->
-    [Opcode|Args] = tuple_to_list(Op),
-    [aeb_fate_opcodes:m_to_op(Opcode)|serialize_code(Args)];
-serialize_op(Opcode) ->
-    [aeb_fate_opcodes:m_to_op(Opcode)].
+serialize_op(Kind, Op) ->
+    [Mnemonic|Args] =
+        case is_tuple(Op) of
+            true  -> tuple_to_list(Op);
+            false -> [Op]
+        end,
+    safe_serialize(Kind, aeb_fate_opcodes:m_to_op(Mnemonic), Args).
+
+safe_serialize(Last, Op, Args) ->
+   case length(Args) == aeb_fate_opcodes:args(Op) of
+       true ->
+           case Last == aeb_fate_opcodes:end_bb(Op) of
+               true -> [Op|serialize_code(Args)];
+               false ->
+                   error({wrong_opcode_in_bb, Op})
+           end;
+       false ->
+           error({wrong_nr_args_opcode, Op})
+   end.
+
 
 %% Argument encoding
 %% Argument Specification Byte

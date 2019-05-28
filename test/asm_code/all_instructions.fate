@@ -96,6 +96,10 @@ FUNCTION foo () : {tuple, []}
 
   MAP_FROM_LIST () a
 
+  MAP_TO_LIST a { true => 4 }
+
+  MAP_SIZE a { true => 42 }
+
   NIL arg91
 
   IS_NIL a var6
@@ -117,6 +121,8 @@ FUNCTION foo () : {tuple, []}
   ADDR_TO_STR a arg216
 
   STR_REVERSE a @ak_nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv
+
+  STR_LENGTH a "foo"
 
   INT_TO_ADDR arg127 var207
 

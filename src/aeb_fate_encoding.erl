@@ -128,7 +128,9 @@ serialize(String) when ?IS_FATE_STRING(String),
                        ?FATE_STRING_SIZE(String) > 0,
                        ?FATE_STRING_SIZE(String) >= ?SHORT_STRING_SIZE ->
     Bytes = ?FATE_STRING_VALUE(String),
-    <<?LONG_STRING, (aeser_rlp:encode(Bytes))/binary>>;
+    <<?LONG_STRING,
+      (serialize_integer(?FATE_STRING_SIZE(String) - ?SHORT_STRING_SIZE))/binary
+     , Bytes/binary>>;
 serialize(?FATE_ADDRESS(Address)) when is_binary(Address) ->
     <<?OBJECT, ?OTYPE_ADDRESS, (aeser_rlp:encode(Address))/binary>>;
 serialize(?FATE_HASH(Address)) when is_binary(Address) ->
@@ -321,8 +323,11 @@ deserialize2(<<?POS_BITS, Rest/binary>>) ->
     {Bint, Rest2} = aeser_rlp:decode_one(Rest),
     {?FATE_BITS(binary:decode_unsigned(Bint)), Rest2};
 deserialize2(<<?LONG_STRING, Rest/binary>>) ->
-    {String, Rest2} = aeser_rlp:decode_one(Rest),
-    {?MAKE_FATE_STRING(String), Rest2};
+    {S, Rest2} = deserialize_one(Rest),
+    Size = S + ?SHORT_STRING_SIZE,
+    String = binary:part(Rest2, 0, Size),
+    Rest3 = binary:part(Rest2, byte_size(Rest2), - (byte_size(Rest2) - Size)),
+    {?MAKE_FATE_STRING(String), Rest3};
 deserialize2(<<S:6, ?SHORT_STRING:2, Rest/binary>>) ->
     String = binary:part(Rest, 0, S),
     Rest2 = binary:part(Rest, byte_size(Rest), - (byte_size(Rest) - S)),

@@ -97,7 +97,8 @@ bb_code(Failure) ->
     EndBB = [ Op || Op <- valid_opcodes(), aeb_fate_opcodes:end_bb(Op) ],
     NonEndBB = valid_opcodes() -- EndBB,
     frequency(
-      [{if Failure == 3 -> 5; true -> 0 end, ?LET(Ops, non_empty(list(elements(valid_opcodes()))), bblock(Failure, Ops))},
+      [{if Failure == 3 -> 5; true -> 0 end, ?LET(Ops, non_empty(list(elements(NonEndBB))), bblock(Failure, Ops))},
+       {if Failure == 4 -> 5; true -> 0 end, ?LET({Ops, Op}, {list(elements(valid_opcodes())), elements(EndBB)}, bblock(Failure, Ops ++ [Op]))},
        {10, ?LET({Ops, Op}, {list(elements(NonEndBB)), elements(EndBB)},
                   bblock(Failure, Ops ++ [Op]))}]).
 
@@ -108,7 +109,7 @@ bblock(Failure, Ops) ->
           case Arity of
               0 -> Mnemonic;
               _ -> list_to_tuple([Mnemonic |
-                                  [ frequency([{if Failure == 4 -> 5; true -> 0 end, {stack, nat()}},
+                                  [ frequency([{if Failure == 5 -> 5; true -> 0 end, {stack, nat()}},
                                                {5, {stack, 0}},
                                                {5, {arg, nat()}},
                                                {5, {var, nat()}},

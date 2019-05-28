@@ -158,6 +158,10 @@ ops_defs() ->
     , { 'AENS_REVOKE',         16#6d,  false,   3, [],          aens_revoke,                                  {},    none, "NYI"}
     , { 'ECVERIFY',            16#6e,  false,   3, [],             ecverify,                                  {},    none, "NYI"}
     , { 'BALANCE_OTHER',       16#6f,  false,   3, [a,a],     balance_other,                           {address}, integer, "Arg0 := The balance of address Arg1."}
+      %% TODO: Reorder these before documenting the specification
+    , { 'MAP_SIZE',            16#70,  false,   3, [a,a],          map_size,                               {map}, integer, "Arg0 := The size of the map Arg1."}
+    , { 'MAP_TO_LIST',         16#71,  false,   3, [a,a],       map_to_list,                               {map},    list, "Arg0 := The tuple list representation of the map Arg1."}
+    , { 'STR_LENGTH',          16#72,  false,   3, [a,a],        str_length,                            {string}, integer, "Arg0 := The length of the string Arg1."}
 
     , { 'DEACTIVATE',          16#fa,  false,   3, [],           deactivate,                                  {},    none, "Mark the current contract for deactivation."}
     , { 'ABORT',               16#fb,   true,   3, [a],               abort,                            {string},    none, "Abort execution (dont use all gas) with error message in Arg0."}

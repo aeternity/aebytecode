@@ -44,7 +44,7 @@ prop_opcodes() ->
 
 
 valid_opcodes() ->
-    lists:seq(0, 16#6f) ++ lists:seq(16#fa, 16#ff).
+    lists:seq(0, 16#72) ++ lists:seq(16#fa, 16#ff).
 
 
 fate_code() ->

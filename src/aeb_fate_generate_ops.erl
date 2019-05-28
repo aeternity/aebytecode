@@ -84,7 +84,7 @@ ops_defs() ->
     , { 'AND',                 16#26,  false,   3, [a,a,a],          and_op,                   {boolean, boolean}, boolean, "Arg0 := Arg1 and Arg2."}
     , { 'OR',                  16#27,  false,   3, [a,a,a],           or_op,                   {boolean, boolean}, boolean, "Arg0 := Arg1  or Arg2."}
     , { 'NOT',                 16#28,  false,   3, [a,a],            not_op,                            {boolean}, boolean, "Arg0 := not Arg1."}
-    , { 'TUPLE',               16#29,  false,   3, [ii],              tuple,                            {integer},   tuple, "Create a tuple of size = Arg0. Elements on stack."}
+    , { 'TUPLE',               16#29,  false,   3, [a,ii],            tuple,                            {integer},   tuple, "Arg0 := tuple of size = Arg1. Elements on stack."}
     , { 'ELEMENT',             16#2a,  false,   3, [a,a,a],      element_op,                     {integer, tuple},     any, "Arg1 := element(Arg2, Arg3)."}
     , { 'SETELEMENT',          16#2b,  false,   3, [a,a,a,a],    setelement,               {integer, tuple, any},   tuple, "Arg0 := a new tuple similar to Arg2, but with element number Arg1 replaced by Arg3."}
     , { 'MAP_EMPTY',           16#2c,  false,   3, [a],           map_empty,                                   {},     map, "Arg0 := #{}."}
@@ -445,6 +445,7 @@ gen_asm_pp(Module, Path, Ops) ->
               "format_arg(_, {immediate, I}) ->\n"
               "    aeb_fate_data:format(I);\n"
               "format_arg(a, {arg, N}) -> io_lib:format(\"arg~~p\", [N]);\n"
+              "format_arg(a, {var, N}) when N < 0 -> io_lib:format(\"store~~p\", [-N]);\n"
               "format_arg(a, {var, N}) -> io_lib:format(\"var~~p\", [N]);\n"
               "format_arg(a, {stack, 0}) -> \"a\".\n\n"
               "lookup(Name, Symbols) ->\n"

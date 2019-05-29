@@ -152,7 +152,7 @@ serialize(?FATE_TUPLE(T)) when size(T) > 0 ->
     if S < ?SHORT_TUPLE_SIZE ->
             <<S:4, ?SHORT_TUPLE:4, Rest/binary>>;
        true ->
-            Size = rlp_integer(S - ?SHORT_TUPLE_SIZE),
+            Size = rlp_encode_int(S - ?SHORT_TUPLE_SIZE),
             <<?LONG_TUPLE:8, Size/binary, Rest/binary>>
     end;
 serialize(L) when ?IS_FATE_LIST(L) ->
@@ -162,7 +162,7 @@ serialize(L) when ?IS_FATE_LIST(L) ->
     if S < ?SHORT_LIST_SIZE ->
             <<S:4, ?SHORT_LIST:4, Rest/binary>>;
        true ->
-            Val = rlp_integer(S - ?SHORT_LIST_SIZE),
+            Val = rlp_encode_int(S - ?SHORT_LIST_SIZE),
             <<?LONG_LIST, Val/binary, Rest/binary>>
     end;
 serialize(Map) when ?IS_FATE_MAP(Map) ->
@@ -172,7 +172,7 @@ serialize(Map) when ?IS_FATE_MAP(Map) ->
     %%        check K =/= map
     Elements = << <<(serialize(K1))/binary, (serialize(V1))/binary>> || {K1,V1} <- L >>,
     <<?MAP,
-      (rlp_integer(Size))/binary,
+      (rlp_encode_int(Size))/binary,
       (Elements)/binary>>;
 serialize(?FATE_VARIANT(Arities, Tag, Values)) ->
     Arities = [A || A <- Arities, is_integer(A), A < 256],
@@ -269,8 +269,16 @@ deserialize_types(N, Binary, Acc) ->
 
 %% -----------------------------------------------------
 
-rlp_integer(S) when S >= 0 ->
+rlp_encode_int(S) when S >= 0 ->
     aeser_rlp:encode(binary:encode_unsigned(S)).
+
+rlp_decode_int(Binary) ->
+    case aeser_rlp:decode_one(Binary) of
+        {<<>>, _} ->
+            error({illegal_integer_encoding, Binary});
+        {Bin1, Rest} ->
+            {binary:decode_unsigned(Bin1), Rest}
+    end.
 
 serialize_integer(I) when ?IS_FATE_INTEGER(I) ->
     V = ?FATE_INTEGER_VALUE(I),
@@ -281,16 +289,16 @@ serialize_integer(I) when ?IS_FATE_INTEGER(I) ->
            end,
     if Abs < ?SMALL_INT_SIZE -> <<Sign:1, Abs:6, ?SMALL_INT:1>>;
        Sign =:= ?NEG_SIGN -> <<?NEG_BIG_INT,
-                               (rlp_integer(Abs - ?SMALL_INT_SIZE))/binary>>;
+                               (rlp_encode_int(Abs - ?SMALL_INT_SIZE))/binary>>;
        Sign =:= ?POS_SIGN -> <<?POS_BIG_INT,
-                               (rlp_integer(Abs - ?SMALL_INT_SIZE))/binary>>
+                               (rlp_encode_int(Abs - ?SMALL_INT_SIZE))/binary>>
     end.
 
 serialize_bits(B) when is_integer(B) ->
     Abs = abs(B),
     if
-        B < 0 -> <<?NEG_BITS, (rlp_integer(Abs))/binary>>;
-        B >= 0 -> <<?POS_BITS, (rlp_integer(Abs))/binary>>
+        B < 0 -> <<?NEG_BITS, (rlp_encode_int(Abs))/binary>>;
+        B >= 0 -> <<?POS_BITS, (rlp_encode_int(Abs))/binary>>
     end.
 
 -spec deserialize(binary()) -> aeb_fate_data:fate_type().
@@ -307,24 +315,23 @@ deserialize2(<<?NEG_SIGN:1, I:6, ?SMALL_INT:1, Rest/binary>>) ->
        I == 0 -> error({illegal_sign, I})
     end;
 deserialize2(<<?NEG_BIG_INT, Rest/binary>>) ->
-    {Bint, Rest2} = aeser_rlp:decode_one(Rest),
-    {?MAKE_FATE_INTEGER(-binary:decode_unsigned(Bint) - ?SMALL_INT_SIZE),
+    {Bint, Rest2} = rlp_decode_int(Rest),
+    {?MAKE_FATE_INTEGER(-Bint - ?SMALL_INT_SIZE),
      Rest2};
 deserialize2(<<?POS_BIG_INT, Rest/binary>>) ->
-    {Bint, Rest2} = aeser_rlp:decode_one(Rest),
-    {?MAKE_FATE_INTEGER(binary:decode_unsigned(Bint) + ?SMALL_INT_SIZE),
+    {Bint, Rest2} = rlp_decode_int(Rest),
+    {?MAKE_FATE_INTEGER(Bint + ?SMALL_INT_SIZE),
      Rest2};
 deserialize2(<<?NEG_BITS, Rest/binary>>) ->
-    {Bint, Rest2} = aeser_rlp:decode_one(Rest),
-    case binary:decode_unsigned(Bint) of
-        Pos when Pos > 0 ->
+    case rlp_decode_int(Rest) of
+        {Pos, Rest2} when Pos > 0 ->
             {?FATE_BITS(-Pos), Rest2};
-        N ->
+        {N, _} ->
             error({illegal_parameter, neg_bits, N})
     end;
 deserialize2(<<?POS_BITS, Rest/binary>>) ->
-    {Bint, Rest2} = aeser_rlp:decode_one(Rest),
-    {?FATE_BITS(binary:decode_unsigned(Bint)), Rest2};
+    {Bint, Rest2} = rlp_decode_int(Rest),
+    {?FATE_BITS(Bint), Rest2};
 deserialize2(<<?LONG_STRING, Rest/binary>>) ->
     {S, Rest2} = deserialize_one(Rest),
     Size = S + ?SHORT_STRING_SIZE,
@@ -361,24 +368,23 @@ deserialize2(<<?EMPTY_MAP, Rest/binary>>) ->
 deserialize2(<<?EMPTY_STRING, Rest/binary>>) ->
     {?FATE_EMPTY_STRING, Rest};
 deserialize2(<<?LONG_TUPLE, Rest/binary>>) ->
-    {BSize, Rest1} = aeser_rlp:decode_one(Rest),
-    N = binary:decode_unsigned(BSize) + ?SHORT_TUPLE_SIZE,
+    {Size, Rest1} = rlp_decode_int(Rest),
+    N = Size + ?SHORT_TUPLE_SIZE,
     {List, Rest2} = deserialize_elements(N, Rest1),
     {?FATE_TUPLE(list_to_tuple(List)), Rest2};
 deserialize2(<<S:4, ?SHORT_TUPLE:4, Rest/binary>>) ->
     {List, Rest1} = deserialize_elements(S, Rest),
     {?FATE_TUPLE(list_to_tuple(List)), Rest1};
 deserialize2(<<?LONG_LIST, Rest/binary>>) ->
-    {BLength, Rest1} = aeser_rlp:decode_one(Rest),
-    Length = binary:decode_unsigned(BLength) + ?SHORT_LIST_SIZE,
+    {Size, Rest1} = rlp_decode_int(Rest),
+    Length = Size + ?SHORT_LIST_SIZE,
     {List, Rest2} = deserialize_elements(Length, Rest1),
     {?MAKE_FATE_LIST(List), Rest2};
 deserialize2(<<S:4, ?SHORT_LIST:4, Rest/binary>>) ->
     {List, Rest1} = deserialize_elements(S, Rest),
     {?MAKE_FATE_LIST(List), Rest1};
 deserialize2(<<?MAP, Rest/binary>>) ->
-    {BSize, Rest1} = aeser_rlp:decode_one(Rest),
-    Size = binary:decode_unsigned(BSize),
+    {Size, Rest1} = rlp_decode_int(Rest),
     {List, Rest2} = deserialize_elements(2*Size, Rest1),
     Map = insert_kv(List, #{}),
     {?MAKE_FATE_MAP(Map), Rest2};

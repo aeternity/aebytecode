@@ -54,10 +54,11 @@ prop_fuzz() ->
     ?FORALL(Binary, ?LET(FateData, fate_data(), aeb_fate_encoding:serialize(FateData)),
             ?FORALL(InjectedBin, injection(Binary),
                     try Org = aeb_fate_encoding:deserialize(InjectedBin),
-                         NewBin = aeb_fate_coding:serialize(Org),
-                         NewOrg = aeb_fate_coding:deserialize(NewBin),
+                         NewBin = aeb_fate_encoding:serialize(Org),
+                         NewOrg = aeb_fate_encoding:deserialize(NewBin),
+                         measure(success, 1,
                          ?WHENFAIL(eqc:format("Deserialize ~p gives\n~p\nSerializes to ~p\n", [InjectedBin, Org, NewOrg]),
-                                   equals(NewBin, InjectedBin))
+                                   equals(NewBin, InjectedBin)))
                     catch _:_ ->
                             true
                     end))).

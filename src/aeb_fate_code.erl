@@ -302,7 +302,7 @@ deserialize_functions(<<?FUNCTION:8, A, B, C, D, Rest/binary>>,
                                          Program#{ BB => lists:reverse(Code)}}}},
             deserialize_functions(Rest2, Env2)
     end;
-deserialize_functions(<<Op:8, Rest/binary>>,
+deserialize_functions(<<_Op:8, _Rest/binary>>,
             #{ function := none }) ->
     error({code_without_function});
 deserialize_functions(<<Op:8, Rest/binary>>,

@@ -163,11 +163,12 @@ serialize(L) when ?IS_FATE_LIST(L) ->
             <<?LONG_LIST, Val/binary, Rest/binary>>
     end;
 serialize(Map) when ?IS_FATE_MAP(Map) ->
-    L = lists:sort(maps:to_list(?FATE_MAP_VALUE(Map))),
+    L = maps:to_list(?FATE_MAP_VALUE(Map)),
     Size = length(L),
     %% TODO:  check all K same type, and all V same type
     %%        check K =/= map
-    Elements = << <<(serialize(K1))/binary, (serialize(V1))/binary>> || {K1,V1} <- L >>,
+    Elements =
+        list_to_binary([ <<(serialize(K))/binary, (serialize(V))/binary>> || {K, V} <- sort_and_check(L) ]),
     <<?MAP,
       (rlp_encode_int(Size))/binary,
       (Elements)/binary>>;
@@ -385,8 +386,14 @@ deserialize2(<<S:4, ?SHORT_LIST:4, Rest/binary>>) ->
 deserialize2(<<?MAP, Rest/binary>>) ->
     {Size, Rest1} = rlp_decode_int(Rest),
     {List, Rest2} = deserialize_elements(2*Size, Rest1),
-    Map = insert_kv(List, #{}),
-    {?MAKE_FATE_MAP(Map), Rest2};
+    KVList = insert_kv(List),
+    case sort_and_check(KVList) == KVList of
+        true ->
+            Map = maps:from_list(KVList),
+            {?MAKE_FATE_MAP(Map), Rest2};
+        false ->
+            error({unknown_map_serialization_format, KVList})
+    end;
 deserialize2(<<?VARIANT, Rest/binary>>) ->
     {AritiesBin, <<Tag:8, Rest2/binary>>} = aeser_rlp:decode_one(Rest),
     Arities = binary_to_list(AritiesBin),
@@ -403,8 +410,8 @@ deserialize2(<<?VARIANT, Rest/binary>>) ->
             end
     end.
 
-insert_kv([], M) -> M;
-insert_kv([K,V|R], M) -> insert_kv(R, maps:put(K, V, M)).
+insert_kv([]) -> [];
+insert_kv([K, V | R]) -> [{K, V} | insert_kv(R)].
 
 deserialize_elements(0, Rest) ->
     {[], Rest};
@@ -412,3 +419,33 @@ deserialize_elements(N, Es) ->
     {E, Rest} = deserialize2(Es),
     {Tail, Rest2} = deserialize_elements(N-1, Rest),
     {[E|Tail], Rest2}.
+
+
+%% It is important to rem ove duplicated keys.
+%% For deserialize this check is needed to observe illegal duplicates.
+sort_and_check(List) ->
+    UniqKeyList =
+        lists:foldr(fun({K, V}, Acc) ->
+                            case valid_key_type(K) andalso not lists:keymember(K, 1, Acc) of
+                                true -> [{K,V}|Acc];
+                                false -> Acc
+                            end
+                    end, [], List),
+    sort(UniqKeyList).
+
+%% Sorting is used to get a unique result.
+%% Deserialization is checking whether the provided key-value pairs are sorted
+%% and raises an exception if not.
+
+sort(KVList) ->
+    SortFun = fun({K1, _}, {K2, _}) ->
+                      K1 =< K2
+              end,
+    lists:sort(SortFun, KVList).
+
+valid_key_type(K) when ?IS_FATE_MAP(K) ->
+    error({map_as_key_in_map, K});
+valid_key_type(K) when ?IS_FATE_VARIANT(K) ->
+    error({variant_as_key_in_map, K});
+valid_key_type(_K) ->
+    true.

@@ -288,13 +288,9 @@ serialize_integer(I) when ?IS_FATE_INTEGER(I) ->
 
 serialize_bits(B) when is_integer(B) ->
     Abs = abs(B),
-    Sign = case B < 0 of
-               true  -> ?NEG_SIGN;
-               false -> ?POS_SIGN
-           end,
     if
-        Sign =:= ?NEG_SIGN -> <<?NEG_BITS, (rlp_integer(Abs))/binary>>;
-        Sign =:= ?POS_SIGN -> <<?POS_BITS, (rlp_integer(Abs))/binary>>
+        B < 0 -> <<?NEG_BITS, (rlp_integer(Abs))/binary>>;
+        B >= 0 -> <<?POS_BITS, (rlp_integer(Abs))/binary>>
     end.
 
 -spec deserialize(binary()) -> aeb_fate_data:fate_type().
@@ -307,7 +303,9 @@ deserialize_one(B) -> deserialize2(B).
 deserialize2(<<?POS_SIGN:1, I:6, ?SMALL_INT:1, Rest/binary>>) ->
     {?MAKE_FATE_INTEGER(I), Rest};
 deserialize2(<<?NEG_SIGN:1, I:6, ?SMALL_INT:1, Rest/binary>>) ->
-    {?MAKE_FATE_INTEGER(-I), Rest};
+    if I =/= 0  ->  {?MAKE_FATE_INTEGER(-I), Rest};
+       I == 0 -> error({illegal_sign, I})
+    end;
 deserialize2(<<?NEG_BIG_INT, Rest/binary>>) ->
     {Bint, Rest2} = aeser_rlp:decode_one(Rest),
     {?MAKE_FATE_INTEGER(-binary:decode_unsigned(Bint) - ?SMALL_INT_SIZE),

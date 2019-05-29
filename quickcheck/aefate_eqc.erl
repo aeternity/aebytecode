@@ -64,7 +64,7 @@ prop_fuzz() ->
                     end))).
 
 fate_data() ->
-    ?SIZED(Size, ?LET(Data, fate_data(Size, [map]), eqc_symbolic:eval(Data))).
+    ?SIZED(Size, ?LET(Data, fate_data(Size, [map, variant]), eqc_symbolic:eval(Data))).
 
 fate_data(0, _Options) ->
     ?LAZY(
@@ -84,10 +84,12 @@ fate_data(0, _Options) ->
 fate_data(Size, Options) ->
     oneof([?LAZY(fate_data(Size - 1, Options)),
            ?LAZY(fate_list( fate_data(Size div 5, Options) )),
-           ?LAZY(fate_tuple( list(fate_data(Size div 5, Options)) )),
-           ?LAZY(fate_variant( list(fate_data(Size div 5, Options)))) ] ++
+           ?LAZY(fate_tuple( list(fate_data(Size div 5, Options)) ))] ++
+              [?LAZY(fate_variant( list(fate_data(Size div 5, Options))))
+               || lists:member(variant, Options)
+              ] ++
               [
-               ?LAZY(fate_map( fate_data(Size div 8, Options -- [map]),
+               ?LAZY(fate_map( fate_data(Size div 8, Options -- [map, variant]),
                                fate_data(Size div 5, Options)))
               || lists:member(map, Options)
               ]).

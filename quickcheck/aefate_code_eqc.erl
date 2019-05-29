@@ -80,8 +80,8 @@ fate_code(Failure) ->
                 {non_empty(map(if Failure == 1 -> binary(1);
                         true -> binary(4) end,
                      {{list(aefate_type_eqc:fate_type(Size div 3)), aefate_type_eqc:fate_type(Size div 3)}, bbs_code(Failure)})),
-                 map(resize(Size div 5, aefate_eqc:fate_data()), resize(Size div 3, aefate_eqc:fate_data())),
-                 map(resize(Size div 5, aefate_eqc:fate_data()), resize(Size div 4, aefate_eqc:fate_data()))},
+                 map(small_fate_data_key(5), small_fate_data(4)),
+                 map(small_fate_data_key(5), small_fate_data(4))},
                 aeb_fate_code:update_annotations(
                   aeb_fate_code:update_symbols(
                     aeb_fate_code:update_functions(
@@ -128,3 +128,6 @@ injection(Binary) ->
 
 small_fate_data(N) ->
     ?SIZED(Size, resize(Size div N, aefate_eqc:fate_data())).
+
+small_fate_data_key(N) ->
+    ?SIZED(Size, ?LET(Data, aefate_eqc:fate_data(Size div N, []), eqc_symbolic:eval(Data))).

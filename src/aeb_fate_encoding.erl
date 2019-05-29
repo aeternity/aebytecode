@@ -318,7 +318,12 @@ deserialize2(<<?POS_BIG_INT, Rest/binary>>) ->
      Rest2};
 deserialize2(<<?NEG_BITS, Rest/binary>>) ->
     {Bint, Rest2} = aeser_rlp:decode_one(Rest),
-    {?FATE_BITS(-binary:decode_unsigned(Bint)), Rest2};
+    case binary:decode_unsigned(Bint) of
+        Pos when Pos > 0 ->
+            {?FATE_BITS(-Pos), Rest2};
+        N ->
+            error({illegal_parameter, neg_bits, N})
+    end;
 deserialize2(<<?POS_BITS, Rest/binary>>) ->
     {Bint, Rest2} = aeser_rlp:decode_one(Rest),
     {?FATE_BITS(binary:decode_unsigned(Bint)), Rest2};

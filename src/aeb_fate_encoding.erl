@@ -81,7 +81,6 @@
 %%                                  %% 1000 1111 - FREE (Possibly for bytecode in the future.)
 -define(OBJECT       , 2#10011111). %% 1001 1111 | ObjectType | RLP encoded Array
 -define(VARIANT      , 2#10101111). %% 1010 1111 | [encoded arities] | encoded tag | [encoded values]
--define(NIL          , 2#10111111). %% 1011 1111 - Empty list
 -define(NEG_BITS     , 2#11001111). %% 1100 1111 | RLP encoded integer (infinite 1:s bitfield)
 -define(EMPTY_MAP    , 2#11011111). %% 1101 1111
 -define(NEG_BIG_INT  , 2#11101111). %% 1110 1111 | RLP encoded (integer - 64)
@@ -112,9 +111,7 @@
 -spec serialize(aeb_fate_data:fate_type()) -> binary().
 serialize(?FATE_TRUE)        -> <<?TRUE>>;
 serialize(?FATE_FALSE)       -> <<?FALSE>>;
-serialize(?FATE_NIL)         -> <<?NIL>>;     %% ! Untyped
 serialize(?FATE_UNIT)        -> <<?EMPTY_TUPLE>>;  %% ! Untyped
-serialize(M) when ?IS_FATE_MAP(M), ?FATE_MAP_SIZE(M) =:= 0 -> <<?EMPTY_MAP>>;  %% ! Untyped
 serialize(?FATE_EMPTY_STRING) -> <<?EMPTY_STRING>>;
 serialize(I) when ?IS_FATE_INTEGER(I) -> serialize_integer(I);
 serialize(?FATE_BITS(Bits)) when is_integer(Bits) -> serialize_bits(Bits);
@@ -156,7 +153,7 @@ serialize(?FATE_TUPLE(T)) when size(T) > 0 ->
             <<?LONG_TUPLE:8, Size/binary, Rest/binary>>
     end;
 serialize(L) when ?IS_FATE_LIST(L) ->
-    [_E|_] = List = ?FATE_LIST_VALUE(L),
+    List = ?FATE_LIST_VALUE(L),
     S = length(List),
     Rest = << <<(serialize(El))/binary>> || El <- List >>,
     if S < ?SHORT_LIST_SIZE ->
@@ -166,7 +163,7 @@ serialize(L) when ?IS_FATE_LIST(L) ->
             <<?LONG_LIST, Val/binary, Rest/binary>>
     end;
 serialize(Map) when ?IS_FATE_MAP(Map) ->
-    L = [{_K,_V}|_] = lists:sort(maps:to_list(?FATE_MAP_VALUE(Map))),
+    L = lists:sort(maps:to_list(?FATE_MAP_VALUE(Map))),
     Size = length(L),
     %% TODO:  check all K same type, and all V same type
     %%        check K =/= map
@@ -359,12 +356,8 @@ deserialize2(<<?TRUE, Rest/binary>>) ->
     {?FATE_TRUE, Rest};
 deserialize2(<<?FALSE, Rest/binary>>) ->
     {?FATE_FALSE, Rest};
-deserialize2(<<?NIL, Rest/binary>>) ->
-    {?FATE_NIL, Rest};
 deserialize2(<<?EMPTY_TUPLE, Rest/binary>>) ->
     {?FATE_UNIT, Rest};
-deserialize2(<<?EMPTY_MAP, Rest/binary>>) ->
-    {?MAKE_FATE_MAP(#{}), Rest};
 deserialize2(<<?EMPTY_STRING, Rest/binary>>) ->
     {?FATE_EMPTY_STRING, Rest};
 deserialize2(<<?LONG_TUPLE, Rest/binary>>) ->

@@ -303,6 +303,9 @@ deserialize_functions(<<?FUNCTION:8, A, B, C, D, Rest/binary>>,
             deserialize_functions(Rest2, Env2)
     end;
 deserialize_functions(<<Op:8, Rest/binary>>,
+            #{ function := none }) ->
+    error({code_without_function});
+deserialize_functions(<<Op:8, Rest/binary>>,
             #{ bb := BB
              , current_bb_code := Code
              , code := Program} = Env) ->
@@ -343,6 +346,7 @@ deserialize_op(Op, Rest, Code) ->
 
 deserialize_n_args(N, <<M3:2, M2:2, M1:2, M0:2, Rest/binary>>) when N =< 4 ->
     ArgMods = lists:sublist([M0, M1, M2, M3], N),
+    %% If N == 1 then we take M0 and don't care about the others. Should we check that the others are 0??
     lists:mapfoldl(fun(M, Acc) ->
                            case bits_to_modifier(M) of
                                stack ->

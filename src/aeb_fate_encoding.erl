@@ -269,12 +269,18 @@ deserialize_types(N, Binary, Acc) ->
 rlp_encode_int(S) when S >= 0 ->
     aeser_rlp:encode(binary:encode_unsigned(S)).
 
+
+%% first byte of the binary gives the number of bytes we need <<129>> is 1, <<130>> = 2,
+%% so <<129, 0>> is <<0>> and <<130, 0, 0>> is <<0, 0>>
 rlp_decode_int(Binary) ->
-    case aeser_rlp:decode_one(Binary) of
-        {<<>>, _} ->
-            error({illegal_integer_encoding, Binary});
-        {Bin1, Rest} ->
-            {binary:decode_unsigned(Bin1), Rest}
+    {Bin1, Rest} = aeser_rlp:decode_one(Binary),
+    Int = binary:decode_unsigned(Bin1),
+    ReEncode = rlp_encode_int(Int),
+    case <<ReEncode/binary, Rest/binary>> == Binary of
+        true ->
+            {Int, Rest};
+        false ->
+            error({none_unique_encoding, Bin1, ReEncode})
     end.
 
 serialize_integer(I) when ?IS_FATE_INTEGER(I) ->

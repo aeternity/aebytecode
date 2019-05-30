@@ -96,7 +96,10 @@
         , make_bits/1
         , make_unit/0
         ]).
--export([format/1]).
+-export([
+         elt/2
+        , lt/2
+        , format/1]).
 
 
 make_boolean(true)  -> ?FATE_TRUE;
@@ -193,3 +196,54 @@ format_list(List) ->
 
 format_kvs(List) ->
     lists:join(", ", [ [format(K), " => ",  format(V)] || {K, V} <- List]).
+
+
+%% Total order of FATE terms.
+%%  Integers < Booleans < Address < Channel < Contract < Name < Oracle
+%%   < Hash < Signature < Bits < Tuple < Map < List
+ordinal(T) when ?IS_FATE_INTEGER(T)   -> 0;
+ordinal(T) when ?IS_FATE_BOOLEAN(T)   -> 1;
+ordinal(T) when ?IS_FATE_ADDRESS(T)   -> 2;
+ordinal(T) when ?IS_FATE_CHANNEL(T)   -> 3;
+ordinal(T) when ?IS_FATE_CONTRACT(T)  -> 4;
+ordinal(T) when ?IS_FATE_NAME(T)      -> 5;
+ordinal(T) when ?IS_FATE_ORACLE(T)    -> 6;
+ordinal(T) when ?IS_FATE_HASH(T)      -> 7;
+ordinal(T) when ?IS_FATE_SIGNATURE(T) -> 8;
+ordinal(T) when ?IS_FATE_BITS(T)      -> 9;
+ordinal(T) when ?IS_FATE_TUPLE(T)     -> 10;
+ordinal(T) when ?IS_FATE_MAP(T)       -> 11;
+ordinal(T) when ?IS_FATE_LIST(T)      -> 12.
+
+
+-spec lt(fate_type(), fate_type()) -> boolean.
+%% This function assumes that all lists and maps are monomorphic,
+%% and only tests one element of a list or a map.
+%% If there is a risc that the term is not monomorphic,
+%% use safe_lt.
+lt(A, B) ->
+    O1 = ordinal(A),
+    O2 = ordinal(B),
+    if O1 == O2 -> lt(O1, A, B);
+       true -> O1 < O2
+    end.
+
+%% Integer is the smallest FATE type.
+%% Integers themselves are ordered as usual.
+lt(0, A, B) when ?IS_FATE_INTEGER(A), ?IS_FATE_INTEGER(B) ->
+    ?FATE_INTEGER_VALUE(A) < ?FATE_INTEGER_VALUE(B);
+%% Boolean is the second smallest FATE type.
+%% false is smaller than true (true also for erlang booleans).
+lt(1, A, B) when ?IS_FATE_BOOLEAN(A), ?IS_FATE_INTEGER(B) -> false;
+lt(1, A, B) when ?IS_FATE_BOOLEAN(A), ?IS_FATE_BOOLEAN(B) ->
+    ?FATE_BOOLEAN_VALUE(A) < ?FATE_BOOLEAN_VALUE(B);
+lt(_, A, B) -> A < B.
+
+
+-spec elt(fate_type(), fate_type()) -> boolean.
+elt(A, A) -> true;
+elt(A, B) ->
+    R = lt(A, B),
+    io:format("~w < ~w : ~w~n", [A, B, R]),
+    R.
+

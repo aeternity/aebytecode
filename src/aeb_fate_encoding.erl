@@ -1,21 +1,29 @@
 %% Fate data (and instruction) serialization.
 %%
-%% The FATE serialization has to fullfill the following properties:
-%% * There has to be 1 and only 1 byte sequence
-%%     representing each unique value in FATE.
-%% * A valid byte sequence has to be deserializable to a FATE value.
-%% * A valid byte sequence must not contain any trailing bytes.
-%% * A serialization is a sequence of 8-bit bytes.
-%%
-%% The serialization function should fullfill the following:
-%% * A valid FATE value should be serialized to a byte sequence.
-%% * Any other argument, not representing a valid FATE value should
+%% Assuming
+%%   S is seralize/1 (fate_type() -> binary())
+%%   D is deserialize/1 (binary) -> fate_type())
+%%   V, V1, V2 are of the type fate_type()
+%%   B is of the type binary()
+%% Then
+%%  The FATE serialization has to fullfill the following properties:
+%%   * For each value (V) in FATE there has to be a bytecode sequence (B)
+%%     representing that value.
+%%   * A valid byte sequence has to be deserializable to a FATE value.
+%%   * A valid byte sequence must not contain any trailing bytes.
+%%   * A serialization is a sequence of 8-bit bytes.
+%%  The serialization function (S) should fullfill the following:
+%%   * A valid FATE value should be serialized to a byte sequence.
+%%   * Any other argument, not representing a valid FATE value should
 %%     throw an exception
-%%
-%% The deserialization function should fullfill the following:
-%% * A valid byte sequence should be deserialized to a valid FATE value.
-%% * Any other argument, not representing a valid byte sequence should
+%%  The deserialization function (D) should fullfill the following:
+%%   * A valid byte sequence should be deserialized to a valid FATE value.
+%%   * Any other argument, not representing a valid byte sequence should
 %%     throw an exception
+%%  The following equalities should hold:
+%%   * D(S(V)) == V
+%%   * if V1 == V2 then S(V1) == S(V2)
+%%
 %%
 %% History
 %% * First draft of FATE serialization encoding/decoding.
@@ -421,7 +429,7 @@ deserialize_elements(N, Es) ->
     {[E|Tail], Rest2}.
 
 
-%% It is important to rem ove duplicated keys.
+%% It is important to remove duplicated keys.
 %% For deserialize this check is needed to observe illegal duplicates.
 sort_and_check(List) ->
     UniqKeyList =
@@ -439,7 +447,7 @@ sort_and_check(List) ->
 
 sort(KVList) ->
     SortFun = fun({K1, _}, {K2, _}) ->
-                      K1 =< K2
+                      aeb_fate_data:elt(K1, K2)
               end,
     lists:sort(SortFun, KVList).
 

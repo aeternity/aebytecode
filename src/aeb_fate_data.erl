@@ -220,10 +220,6 @@ ordinal(T) when ?IS_FATE_LIST(T)      -> 13.
 
 
 -spec lt(fate_type(), fate_type()) -> boolean().
-%% This function assumes that all lists and maps are monomorphic,
-%% and only tests one element of a list or a map.
-%% If there is a risc that the term is not monomorphic,
-%% use safe_lt.
 lt(A, B) ->
     O1 = ordinal(A),
     O2 = ordinal(B),
@@ -272,10 +268,10 @@ lt(12, ?FATE_MAP_VALUE(A), ?FATE_MAP_VALUE(B)) ->
     end;
 lt(13, ?FATE_LIST_VALUE(_), ?FATE_LIST_VALUE([])) -> false;
 lt(13, ?FATE_LIST_VALUE([]), ?FATE_LIST_VALUE(_)) -> true;
-lt(13, ?FATE_LIST_VALUE([A|_] = LA), ?FATE_LIST_VALUE([B|_] = LB)) ->
+lt(13, ?FATE_LIST_VALUE([A|RA]), ?FATE_LIST_VALUE([B|RB])) ->
     O1 = ordinal(A),
     O2 = ordinal(B),
-    if O1 == O2 -> LA < LB;
+    if O1 == O2 -> lt(RA, RB);
        true -> O1 < O2
     end;
 lt(_, A, B) -> A < B.
@@ -320,7 +316,7 @@ maps_i_lt(IA, IB) ->
             end
     end.
 
-maps_iterator(M) -> lists:sort(maps:to_list(M)).
+maps_iterator(M) -> lists:sort(fun ({K1,_}, {K2,_}) -> lt(K1, K2) end, maps:to_list(M)).
 maps_next([]) -> none;
 maps_next([{K,V}|Rest]) -> {K, V, Rest}.
 

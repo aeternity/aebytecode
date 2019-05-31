@@ -22,5 +22,6 @@ quickcheck_test_() ->
     {setup, fun() -> eqc:start() end,
      [ ?EQC_EUNIT(aefate_eqc, prop_roundtrip, 500),
        ?EQC_EUNIT(aefate_eqc, prop_format_scan, 2000),
+       ?EQC_EUNIT(aefate_eqc, prop_order, 2000),
        ?EQC_EUNIT(aefate_eqc, prop_fuzz, 2000)
      ]}.

@@ -63,6 +63,27 @@ prop_fuzz() ->
                             true
                     end))).
 
+
+prop_order() ->
+    ?FORALL({FateData1, FateData2, FateData3}, {fate_data(), fate_data(), fate_data()},
+            case aeb_fate_data:lt(FateData1, FateData2) of
+                true ->
+                    case aeb_fate_data:lt(FateData2, FateData3) of
+                        true ->
+                            equals(aeb_fate_data:lt(FateData1, FateData3), true);
+                        false ->
+                            equals(aeb_fate_data:lt(FateData2, FateData1), false)
+                    end;
+                false ->
+                    case aeb_fate_data:lt(FateData1, FateData3) of
+                        true ->
+                            equals(aeb_fate_data:lt(FateData2, FateData3), true);
+                        false ->
+                            equals(aeb_fate_data:elt(FateData2, FateData1), true)
+                    end
+            end).
+
+
 fate_data() ->
     ?SIZED(Size, ?LET(Data, fate_data(Size, [map, variant]), eqc_symbolic:eval(Data))).
 

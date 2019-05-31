@@ -201,7 +201,7 @@ format_kvs(List) ->
 
 %% Total order of FATE terms.
 %%  Integers < Booleans < Address < Channel < Contract < Name < Oracle
-%%   < Hash < Signature < Bits < String < Tuple < Map < List
+%%   < Hash < Signature < Bits < String < Tuple < Map < List < Variant
 -spec ordinal(fate_type()) -> integer().
 ordinal(T) when ?IS_FATE_INTEGER(T)   -> 0;
 ordinal(T) when ?IS_FATE_BOOLEAN(T)   -> 1;
@@ -216,7 +216,8 @@ ordinal(T) when ?IS_FATE_BITS(T)      -> 9;
 ordinal(T) when ?IS_FATE_STRING(T)    -> 10;
 ordinal(T) when ?IS_FATE_TUPLE(T)     -> 11;
 ordinal(T) when ?IS_FATE_MAP(T)       -> 12;
-ordinal(T) when ?IS_FATE_LIST(T)      -> 13.
+ordinal(T) when ?IS_FATE_LIST(T)      -> 13;
+ordinal(T) when ?IS_FATE_VARIANT(T)   -> 14.
 
 
 -spec lt(fate_type(), fate_type()) -> boolean().
@@ -273,6 +274,20 @@ lt(13, ?FATE_LIST_VALUE([A|RA]), ?FATE_LIST_VALUE([B|RB])) ->
     O2 = ordinal(B),
     if O1 == O2 -> lt(RA, RB);
        true -> O1 < O2
+    end;
+lt(14, ?FATE_VARIANT(AritiesA, TagA, TA),
+       ?FATE_VARIANT(AritiesB, TagB, TB)) ->
+    if length(AritiesA) < length(AritiesB) -> true;
+       length(AritiesB) > length(AritiesA) -> false;
+       true ->
+            if AritiesA < AritiesB -> true;
+               AritiesB < AritiesA -> false;
+               true ->
+                    if TagA < TagB -> true;
+                       TagB < TagA -> false;
+                       true -> lt(make_tuple(TA), make_tuple(TB))
+                    end
+            end
     end;
 lt(_, A, B) -> A < B.
 

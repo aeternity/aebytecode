@@ -64,6 +64,7 @@
 -define(FATE_ORACLE_VALUE(X), (element(2, X))).
 -define(FATE_NAME_VALUE(X), (element(2, X))).
 -define(FATE_CHANNEL_VALUE(X), (element(2, X))).
+-define(FATE_BITS_VALUE(X), (element(2, X))).
 -define(FATE_MAP_VALUE(X), (X)).
 -define(FATE_MAP_SIZE(X), (map_size(X))).
 -define(FATE_STRING_SIZE(X), (byte_size(X))).

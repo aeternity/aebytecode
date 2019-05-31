@@ -99,7 +99,8 @@
 -export([
          elt/2
         , lt/2
-        , format/1]).
+        , format/1
+        , ordinal/1]).
 
 
 make_boolean(true)  -> ?FATE_TRUE;
@@ -200,7 +201,8 @@ format_kvs(List) ->
 
 %% Total order of FATE terms.
 %%  Integers < Booleans < Address < Channel < Contract < Name < Oracle
-%%   < Hash < Signature < Bits < Tuple < Map < List
+%%   < Hash < Signature < Bits < String < Tuple < Map < List
+-spec ordinal(fate_type()) -> integer().
 ordinal(T) when ?IS_FATE_INTEGER(T)   -> 0;
 ordinal(T) when ?IS_FATE_BOOLEAN(T)   -> 1;
 ordinal(T) when ?IS_FATE_ADDRESS(T)   -> 2;
@@ -211,12 +213,13 @@ ordinal(T) when ?IS_FATE_ORACLE(T)    -> 6;
 ordinal(T) when ?IS_FATE_HASH(T)      -> 7;
 ordinal(T) when ?IS_FATE_SIGNATURE(T) -> 8;
 ordinal(T) when ?IS_FATE_BITS(T)      -> 9;
-ordinal(T) when ?IS_FATE_TUPLE(T)     -> 10;
-ordinal(T) when ?IS_FATE_MAP(T)       -> 11;
-ordinal(T) when ?IS_FATE_LIST(T)      -> 12.
+ordinal(T) when ?IS_FATE_STRING(T)    -> 10;
+ordinal(T) when ?IS_FATE_TUPLE(T)     -> 11;
+ordinal(T) when ?IS_FATE_MAP(T)       -> 12;
+ordinal(T) when ?IS_FATE_LIST(T)      -> 13.
 
 
--spec lt(fate_type(), fate_type()) -> boolean.
+-spec lt(fate_type(), fate_type()) -> boolean().
 %% This function assumes that all lists and maps are monomorphic,
 %% and only tests one element of a list or a map.
 %% If there is a risc that the term is not monomorphic,
@@ -228,22 +231,103 @@ lt(A, B) ->
        true -> O1 < O2
     end.
 
-%% Integer is the smallest FATE type.
-%% Integers themselves are ordered as usual.
+%% Integers are ordered as usual.
 lt(0, A, B) when ?IS_FATE_INTEGER(A), ?IS_FATE_INTEGER(B) ->
     ?FATE_INTEGER_VALUE(A) < ?FATE_INTEGER_VALUE(B);
-%% Boolean is the second smallest FATE type.
 %% false is smaller than true (true also for erlang booleans).
-lt(1, A, B) when ?IS_FATE_BOOLEAN(A), ?IS_FATE_INTEGER(B) -> false;
 lt(1, A, B) when ?IS_FATE_BOOLEAN(A), ?IS_FATE_BOOLEAN(B) ->
     ?FATE_BOOLEAN_VALUE(A) < ?FATE_BOOLEAN_VALUE(B);
+lt(9, A, B) when ?IS_FATE_BITS(A), ?IS_FATE_BITS(B) ->
+    BitsA = ?FATE_BITS_VALUE(A),
+    BitsB = ?FATE_BITS_VALUE(B),
+    if BitsA < 0 ->
+            if BitsB < 0 -> BitsA < BitsB;
+               true -> false
+            end;
+       BitsB < 0 ->
+            true;
+       true -> BitsA < BitsB
+    end;
+lt(10,?FATE_STRING(A), ?FATE_STRING(B)) ->
+    SizeA = size(A),
+    SizeB = size(B),
+    case SizeA - SizeB of
+        0 -> A < B;
+        N -> N < 0
+    end;
+
+lt(11,?FATE_TUPLE(A), ?FATE_TUPLE(B)) ->
+    SizeA = size(A),
+    SizeB = size(B),
+    case SizeA - SizeB of
+        0 -> tuple_elements_lt(0, A, B, SizeA);
+        N -> N < 0
+    end;
+lt(12, ?FATE_MAP_VALUE(A), ?FATE_MAP_VALUE(B)) ->
+    SizeA = maps:size(A),
+    SizeB = maps:size(B),
+    case SizeA - SizeB of
+        0 -> maps_lt(A, B);
+        N -> N < 0
+    end;
+lt(13, ?FATE_LIST_VALUE(_), ?FATE_LIST_VALUE([])) -> false;
+lt(13, ?FATE_LIST_VALUE([]), ?FATE_LIST_VALUE(_)) -> true;
+lt(13, ?FATE_LIST_VALUE([A|_] = LA), ?FATE_LIST_VALUE([B|_] = LB)) ->
+    O1 = ordinal(A),
+    O2 = ordinal(B),
+    if O1 == O2 -> LA < LB;
+       true -> O1 < O2
+    end;
 lt(_, A, B) -> A < B.
 
+tuple_elements_lt(N,_A,_B, N) ->
+    false;
+tuple_elements_lt(N, A, B, Size) ->
+    E = N + 1,
+    EA = element(E, A),
+    EB = element(E, B),
+    if EA =:= EB -> tuple_elements_lt(E, A, B, Size);
+       true -> lt(EA, EB)
+    end.
 
--spec elt(fate_type(), fate_type()) -> boolean.
+maps_lt(A, B) ->
+    IA = maps_iterator(A),
+    IB = maps_iterator(B),
+    maps_i_lt(IA, IB).
+
+maps_i_lt(IA, IB) ->
+    case {maps_next(IA), maps_next(IB)} of
+        {none, none} -> false;
+        {_, none} -> false;
+        {none, _} -> true;
+        {{KA1, VA1, IA2},  {KB1, VB1, IB2}} ->
+            case lt(KA1, KB1) of
+                true -> true;
+                false ->
+                    case lt(KB1, KA1) of
+                        true -> false;
+                        false ->
+                            case lt(VA1, VB1) of
+                                true -> true;
+                                false ->
+                                    case lt(VB1, VA1) of
+                                        true -> false;
+                                        false ->
+                                            maps_i_lt(IA2, IB2)
+                                    end
+                            end
+                    end
+            end
+    end.
+
+maps_iterator(M) -> lists:sort(maps:to_list(M)).
+maps_next([]) -> none;
+maps_next([{K,V}|Rest]) -> {K, V, Rest}.
+
+
+-spec elt(fate_type(), fate_type()) -> boolean().
 elt(A, A) -> true;
 elt(A, B) ->
     R = lt(A, B),
-    io:format("~w < ~w : ~w~n", [A, B, R]),
     R.
 

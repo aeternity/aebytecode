@@ -88,9 +88,17 @@ lt_max([X, Y | Rest]) ->
     end;
 lt_max([X]) -> X.
 
+prop_idempotent() ->
+    ?FORALL(Items, list({fate_data_key(), fate_data()}),
+            equals(aeb_fate_encoding:sort(Items),
+                   aeb_fate_encoding:sort(aeb_fate_encoding:sort(Items)))).
+
 
 fate_data() ->
     ?SIZED(Size, ?LET(Data, fate_data(Size, [map, variant]), eqc_symbolic:eval(Data))).
+
+fate_data_key() ->
+    ?SIZED(Size, ?LET(Data, fate_data(Size div 4, []), eqc_symbolic:eval(Data))).
 
 fate_data(0, _Options) ->
     ?LAZY(

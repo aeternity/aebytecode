@@ -21,5 +21,6 @@
 quickcheck_test_() ->
     {setup, fun() -> eqc:start() end,
      [ ?EQC_EUNIT(aefate_type_eqc, prop_roundtrip, 1000),
-       ?EQC_EUNIT(aefate_eqc, prop_serializes, 1000)
+       ?EQC_EUNIT(aefate_eqc, prop_serializes, 1000),
+       ?EQC_EUNIT(aefate_eqc, prop_idempotent, 1000)
      ]}.

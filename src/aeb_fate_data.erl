@@ -278,13 +278,13 @@ lt(13, ?FATE_LIST_VALUE([A|RA]), ?FATE_LIST_VALUE([B|RB])) ->
 lt(14, ?FATE_VARIANT(AritiesA, TagA, TA),
        ?FATE_VARIANT(AritiesB, TagB, TB)) ->
     if length(AritiesA) < length(AritiesB) -> true;
-       length(AritiesB) > length(AritiesA) -> false;
+       length(AritiesA) > length(AritiesB) -> false;
        true ->
             if AritiesA < AritiesB -> true;
-               AritiesB < AritiesA -> false;
+               AritiesA > AritiesB -> false;
                true ->
                     if TagA < TagB -> true;
-                       TagB < TagA -> false;
+                       TagA > TagB -> false;
                        true -> lt(make_tuple(TA), make_tuple(TB))
                     end
             end

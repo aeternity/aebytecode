@@ -49,8 +49,56 @@ prop_serializes() ->
                                                {size, size(Binary) < 500000}]))))
                       end)).
 
+prop_fuzz() ->
+    in_parallel(
+    ?FORALL(Binary, ?LET(FateData, ?SIZED(Size, resize(Size div 4, fate_data())), aeb_fate_encoding:serialize(FateData)),
+            ?FORALL(InjectedBin, injection(Binary),
+                    try Org = aeb_fate_encoding:deserialize(InjectedBin),
+                         NewBin = aeb_fate_encoding:serialize(Org),
+                         NewOrg = aeb_fate_encoding:deserialize(NewBin),
+                         measure(success, 1,
+                         ?WHENFAIL(eqc:format("Deserialize ~p gives\n~p\nSerializes to ~p\n", [InjectedBin, Org, NewOrg]),
+                                   equals(NewBin, InjectedBin)))
+                    catch _:_ ->
+                            true
+                    end))).
+
+
+prop_order() ->
+    ?FORALL(Items, vector(3, fate_data()),
+            begin
+                %% Use lt to take minimum
+                Min = lt_min(Items),
+                Max = lt_max(Items),
+                conjunction([ {minimum, is_empty([ {Min, '>', I} || I<-Items, aeb_fate_data:lt(I, Min)])},
+                              {maximum, is_empty([ {Max, '<', I} || I<-Items, aeb_fate_data:lt(Max, I)])}])
+            end).
+
+lt_min([X, Y | Rest]) ->
+    case aeb_fate_data:lt(X, Y) of
+        true -> lt_min([X | Rest]);
+        false -> lt_min([Y| Rest])
+    end;
+lt_min([X]) -> X.
+
+lt_max([X, Y | Rest]) ->
+    case aeb_fate_data:lt(X, Y) of
+        true -> lt_max([Y | Rest]);
+        false -> lt_max([X| Rest])
+    end;
+lt_max([X]) -> X.
+
+prop_idempotent() ->
+    ?FORALL(Items, list({fate_data_key(), fate_data()}),
+            equals(aeb_fate_encoding:sort(Items),
+                   aeb_fate_encoding:sort(aeb_fate_encoding:sort(Items)))).
+
+
 fate_data() ->
-    ?SIZED(Size, ?LET(Data, fate_data(Size, [map]), eqc_symbolic:eval(Data))).
+    ?SIZED(Size, ?LET(Data, fate_data(Size, [map, variant]), eqc_symbolic:eval(Data))).
+
+fate_data_key() ->
+    ?SIZED(Size, ?LET(Data, fate_data(Size div 4, []), eqc_symbolic:eval(Data))).
 
 fate_data(0, _Options) ->
     ?LAZY(
@@ -70,10 +118,12 @@ fate_data(0, _Options) ->
 fate_data(Size, Options) ->
     oneof([?LAZY(fate_data(Size - 1, Options)),
            ?LAZY(fate_list( fate_data(Size div 5, Options) )),
-           ?LAZY(fate_tuple( list(fate_data(Size div 5, Options)) )),
-           ?LAZY(fate_variant( list(fate_data(Size div 5, Options)))) ] ++
+           ?LAZY(fate_tuple( list(fate_data(Size div 5, Options)) ))] ++
+              [?LAZY(fate_variant( list(fate_data(Size div 5, Options))))
+               || lists:member(variant, Options)
+              ] ++
               [
-               ?LAZY(fate_map( fate_data(Size div 8, Options -- [map]),
+               ?LAZY(fate_map( fate_data(Size div 8, Options -- [map, variant]),
                                fate_data(Size div 5, Options)))
               || lists:member(map, Options)
               ]).
@@ -120,3 +170,14 @@ non_quote_string() ->
 
 char() ->
     choose(1, 255).
+
+injection(Binary) ->
+    ?LET({N, Inj}, {choose(0, byte_size(Binary) - 1), choose(0,255)},
+         begin
+             M = N * 8,
+             <<X:M, _:8, Z/binary>> = Binary,
+             <<X:M, Inj:8, Z/binary>>
+         end).
+
+is_empty(L) ->
+    ?WHENFAIL(eqc:format("~p\n", [L]), L == []).

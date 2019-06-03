@@ -26,6 +26,11 @@
 -include("../include/aeb_fate_opcodes.hrl").
 -include("../include/aeb_fate_data.hrl").
 
+-ifdef(EQC).
+-export([update_annotations/2
+        , update_functions/2
+        , update_symbols/2]).
+-endif.
 
 -record(fcode, { functions   = #{} :: map()
                , symbols     = #{} :: map()
@@ -50,14 +55,23 @@ functions(#fcode{ functions = Fs }) ->
 symbols(#fcode{ symbols = Ss}) ->
     Ss.
 
+update_annotations(#fcode{ annotations = As } = FCode, Anns) ->
+    FCode#fcode{ annotations = maps:merge(As, Anns) }.
+
+update_functions(#fcode{ functions = Fs } = FCode, Funs) ->
+    FCode#fcode{ functions = maps:merge(Fs, Funs) }.
+
+update_symbols(#fcode{ symbols = Ss } = FCode, Symbs) ->
+    FCode#fcode{ symbols = maps:merge(Ss, Symbs) }.
+
 symbol_identifier(Bin) ->
     %% First 4 bytes of blake hash
     {ok, <<X:4/binary,_/binary>> } = eblake2:blake2b(?HASH_BYTES, Bin),
     X.
 
-insert_fun(Name, {ArgType, RetType}, #{} = BBs, #fcode{ functions = Funs } = F) ->
-    {F1, ID} = insert_symbol(Name, F),
-    F1#fcode{ functions = Funs#{ ID => {{ArgType, RetType}, BBs}} }.
+insert_fun(Name, {ArgType, RetType}, #{} = BBs, FCode) ->
+    {F1, ID} = insert_symbol(Name, FCode),
+    update_functions(F1, #{ID => {{ArgType, RetType}, BBs}}).
 
 insert_symbol(Name, #fcode{ symbols = Syms } = F) ->
     ID = symbol_identifier(Name),
@@ -67,13 +81,13 @@ insert_symbol(Name, #fcode{ symbols = Syms } = F) ->
         {ok, X} ->
             error({two_symbols_with_same_hash, Name, X});
         error ->
-            {F#fcode{symbols = Syms#{ ID => Name}}, ID}
+            {update_symbols(F, #{ID => Name}), ID}
     end.
 
-insert_annotation(comment =_Type, Line, Comment, #fcode{ annotations = Anns} = F) ->
+insert_annotation(comment =_Type, Line, Comment, FCode) ->
     Key   = aeb_fate_data:make_tuple({aeb_fate_data:make_string("comment"), Line}),
     Value = aeb_fate_data:make_string(Comment),
-    F#fcode{ annotations = Anns#{ Key => Value}}.
+    update_annotations(FCode, #{ Key => Value }).
 
 %%%===================================================================
 %%% Serialization
@@ -83,7 +97,7 @@ serialize(#fcode{} = F) ->
     serialize(F, []).
 
 serialize(#fcode{} = F, Options) ->
-    serialize(F, iolist_to_binary(serialize_functions(F)), Options).
+    serialize(F, serialize_functions(F), Options).
 
 serialize(#fcode{} = F, Functions, Options) ->
     SymbolTable = serialize_symbol_table(F),
@@ -109,9 +123,12 @@ to_hexstring(ByteList) ->
 
 serialize_functions(#fcode{ functions = Functions }) ->
     %% Sort the functions on name to get a canonical serialisation.
-    Code = [[?FUNCTION, Name, serialize_signature(Sig), serialize_bbs(C)]  ||
-               {Name, {Sig, C}} <- lists:sort(maps:to_list(Functions))],
-    lists:flatten(Code).
+    iolist_to_binary(
+      lists:foldr(fun({Id, {Sig, C}}, Acc) when byte_size(Id) == 4 ->
+                          [[?FUNCTION, Id, serialize_signature(Sig), serialize_bbs(C)] | Acc];
+                      ({Id, _}, _) ->
+                          error({illegal_function_id, Id})
+                  end, [], lists:sort(maps:to_list(Functions)))).
 
 serialize_signature({Args, RetType}) ->
     [aeb_fate_encoding:serialize_type({tuple, Args}) |
@@ -137,20 +154,39 @@ serialize_bbs(BBs, N, Acc) ->
                 false ->
                     error({not_contiguous_labels, lists:sort(maps:keys(BBs))})
             end;
+        [] ->
+            error({empty_code_block, N});
         BB ->
             serialize_bbs(BBs, N + 1, [serialize_bb(BB, [])|Acc])
     end.
 
+serialize_bb([Op], Acc) ->
+    lists:reverse([serialize_op(true, Op)|Acc]);
 serialize_bb([Op|Rest], Acc) ->
-    serialize_bb(Rest, [serialize_op(Op)|Acc]);
-serialize_bb([], Acc) ->
-    lists:reverse(Acc).
+    serialize_bb(Rest, [serialize_op(false, Op)|Acc]).
+%% serialize_bb([], Acc) ->
+%%     lists:reverse(Acc).
 
-serialize_op(Op) when is_tuple(Op) ->
-    [Opcode|Args] = tuple_to_list(Op),
-    [aeb_fate_opcodes:m_to_op(Opcode)|serialize_code(Args)];
-serialize_op(Opcode) ->
-    [aeb_fate_opcodes:m_to_op(Opcode)].
+serialize_op(Kind, Op) ->
+    [Mnemonic|Args] =
+        case is_tuple(Op) of
+            true  -> tuple_to_list(Op);
+            false -> [Op]
+        end,
+    safe_serialize(Kind, aeb_fate_opcodes:m_to_op(Mnemonic), Args).
+
+safe_serialize(Last, Op, Args) ->
+   case length(Args) == aeb_fate_opcodes:args(Op) of
+       true ->
+           case Last == aeb_fate_opcodes:end_bb(Op) of
+               true -> [Op|serialize_code(Args)];
+               false ->
+                   error({wrong_opcode_in_bb, Op})
+           end;
+       false ->
+           error({wrong_nr_args_opcode, Op})
+   end.
+
 
 %% Argument encoding
 %% Argument Specification Byte
@@ -171,7 +207,7 @@ serialize_code([{_,_}|_] = List ) ->
     %% Take out the full argument list.
     {Args, Rest} = lists:splitwith(fun({_, _}) -> true; (_) -> false end, List),
     %% Create the appropriate number of modifier bytes.
-    Mods = << <<(modifier_bits(Type)):2>> || {Type, _} <- pad_args(lists:reverse(Args)) >>,
+    Mods = << <<(modifier_bits(Type, X)):2>> || {Type, X} <- pad_args(lists:reverse(Args)) >>,
     case Mods of
         <<M1:8, M2:8>> ->
             [M1, M2 | [serialize_data(Type, Arg) || {Type, Arg} <- Args, Type =/= stack]] ++
@@ -201,10 +237,11 @@ serialize_data(_, Data) ->
 %% 01 : argN
 %% 10 : varN
 %% 11 : immediate
-modifier_bits(immediate) -> 2#11;
-modifier_bits(var)       -> 2#10;
-modifier_bits(arg)       -> 2#01;
-modifier_bits(stack)     -> 2#00.
+modifier_bits(immediate, _) -> 2#11;
+modifier_bits(var, _)       -> 2#10;
+modifier_bits(arg, _)       -> 2#01;
+modifier_bits(stack, 0)     -> 2#00;
+modifier_bits(Type, X)      -> error({illegal_argument, Type, X}).
 
 bits_to_modifier(2#11) -> immediate;
 bits_to_modifier(2#10) -> var;
@@ -265,6 +302,9 @@ deserialize_functions(<<?FUNCTION:8, A, B, C, D, Rest/binary>>,
                                          Program#{ BB => lists:reverse(Code)}}}},
             deserialize_functions(Rest2, Env2)
     end;
+deserialize_functions(<<_Op:8, _Rest/binary>>,
+            #{ function := none }) ->
+    error({code_without_function});
 deserialize_functions(<<Op:8, Rest/binary>>,
             #{ bb := BB
              , current_bb_code := Code
@@ -279,6 +319,9 @@ deserialize_functions(<<Op:8, Rest/binary>>,
         false ->
             deserialize_functions(Rest2, Env#{ current_bb_code => OpCode})
     end;
+deserialize_functions(<<>>, #{ function := none
+                             , functions := Funs}) ->
+    Funs;
 deserialize_functions(<<>>, #{ function := {F, Sig}
                              , bb := BB
                              , current_bb_code := Code
@@ -302,7 +345,8 @@ deserialize_op(Op, Rest, Code) ->
     end.
 
 deserialize_n_args(N, <<M3:2, M2:2, M1:2, M0:2, Rest/binary>>) when N =< 4 ->
-    ArgMods = lists:sublist([M0, M1, M2, M3], N),
+    {ArgMods, Zeros} = lists:split(N, [M0, M1, M2, M3]),
+    assert_zero(Zeros),
     lists:mapfoldl(fun(M, Acc) ->
                            case bits_to_modifier(M) of
                                stack ->
@@ -314,7 +358,8 @@ deserialize_n_args(N, <<M3:2, M2:2, M1:2, M0:2, Rest/binary>>) when N =< 4 ->
                    end, Rest, ArgMods);
 deserialize_n_args(N, <<M7:2, M6:2, M5:2, M4:2, M3:2, M2:2, M1:2, M0:2,
                         Rest/binary>>) when N =< 8 ->
-    ArgMods = lists:sublist([M0, M1, M2, M3, M4, M5, M6, M7], N),
+    {ArgMods, Zeros} = lists:split(N, [M0, M1, M2, M3, M4, M5, M6, M7]),
+    assert_zero(Zeros),
     lists:mapfoldl(fun(M, Acc) ->
                            case bits_to_modifier(M) of
                                stack ->
@@ -337,3 +382,10 @@ deserialize_symbols(Table) ->
 deserialize_annotations(AnnotationsBin) ->
     ?FATE_MAP_VALUE(Annotations) = aeb_fate_encoding:deserialize(AnnotationsBin),
     Annotations.
+
+assert_zero([]) ->
+    true;
+assert_zero([0|Rest]) ->
+    assert_zero(Rest);
+assert_zero([_|_]) ->
+    error(argument_defined_outside_range).

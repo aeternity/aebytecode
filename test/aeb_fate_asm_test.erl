@@ -47,7 +47,7 @@ sources() ->
     , "tuple"
     , "mapofmap"
     , "immediates"
-    , "all_instructions"
+%%    , "all_instructions"
     ].
 
 check_roundtrip(File) ->

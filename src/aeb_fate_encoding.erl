@@ -1,21 +1,29 @@
 %% Fate data (and instruction) serialization.
 %%
-%% The FATE serialization has to fullfill the following properties:
-%% * There has to be 1 and only 1 byte sequence
-%%     representing each unique value in FATE.
-%% * A valid byte sequence has to be deserializable to a FATE value.
-%% * A valid byte sequence must not contain any trailing bytes.
-%% * A serialization is a sequence of 8-bit bytes.
-%%
-%% The serialization function should fullfill the following:
-%% * A valid FATE value should be serialized to a byte sequence.
-%% * Any other argument, not representing a valid FATE value should
+%% Assuming
+%%   S is seralize/1 (fate_type() -> binary())
+%%   D is deserialize/1 (binary) -> fate_type())
+%%   V, V1, V2 are of the type fate_type()
+%%   B is of the type binary()
+%% Then
+%%  The FATE serialization has to fullfill the following properties:
+%%   * For each value (V) in FATE there has to be a bytecode sequence (B)
+%%     representing that value.
+%%   * A valid byte sequence has to be deserializable to a FATE value.
+%%   * A valid byte sequence must not contain any trailing bytes.
+%%   * A serialization is a sequence of 8-bit bytes.
+%%  The serialization function (S) should fullfill the following:
+%%   * A valid FATE value should be serialized to a byte sequence.
+%%   * Any other argument, not representing a valid FATE value should
 %%     throw an exception
-%%
-%% The deserialization function should fullfill the following:
-%% * A valid byte sequence should be deserialized to a valid FATE value.
-%% * Any other argument, not representing a valid byte sequence should
+%%  The deserialization function (D) should fullfill the following:
+%%   * A valid byte sequence should be deserialized to a valid FATE value.
+%%   * Any other argument, not representing a valid byte sequence should
 %%     throw an exception
+%%  The following equalities should hold:
+%%   * D(S(V)) == V
+%%   * if V1 == V2 then S(V1) == S(V2)
+%%
 %%
 %% History
 %% * First draft of FATE serialization encoding/decoding.
@@ -39,6 +47,10 @@
         , serialize/1
         , serialize_type/1
         ]).
+
+-ifdef(EQC).
+-export([sort/1]).
+-endif.
 
 -include("aeb_fate_data.hrl").
 
@@ -81,7 +93,6 @@
 %%                                  %% 1000 1111 - FREE (Possibly for bytecode in the future.)
 -define(OBJECT       , 2#10011111). %% 1001 1111 | ObjectType | RLP encoded Array
 -define(VARIANT      , 2#10101111). %% 1010 1111 | [encoded arities] | encoded tag | [encoded values]
--define(NIL          , 2#10111111). %% 1011 1111 - Empty list
 -define(NEG_BITS     , 2#11001111). %% 1100 1111 | RLP encoded integer (infinite 1:s bitfield)
 -define(EMPTY_MAP    , 2#11011111). %% 1101 1111
 -define(NEG_BIG_INT  , 2#11101111). %% 1110 1111 | RLP encoded (integer - 64)
@@ -112,9 +123,7 @@
 -spec serialize(aeb_fate_data:fate_type()) -> binary().
 serialize(?FATE_TRUE)        -> <<?TRUE>>;
 serialize(?FATE_FALSE)       -> <<?FALSE>>;
-serialize(?FATE_NIL)         -> <<?NIL>>;     %% ! Untyped
 serialize(?FATE_UNIT)        -> <<?EMPTY_TUPLE>>;  %% ! Untyped
-serialize(M) when ?IS_FATE_MAP(M), ?FATE_MAP_SIZE(M) =:= 0 -> <<?EMPTY_MAP>>;  %% ! Untyped
 serialize(?FATE_EMPTY_STRING) -> <<?EMPTY_STRING>>;
 serialize(I) when ?IS_FATE_INTEGER(I) -> serialize_integer(I);
 serialize(?FATE_BITS(Bits)) when is_integer(Bits) -> serialize_bits(Bits);
@@ -128,7 +137,9 @@ serialize(String) when ?IS_FATE_STRING(String),
                        ?FATE_STRING_SIZE(String) > 0,
                        ?FATE_STRING_SIZE(String) >= ?SHORT_STRING_SIZE ->
     Bytes = ?FATE_STRING_VALUE(String),
-    <<?LONG_STRING, (aeser_rlp:encode(Bytes))/binary>>;
+    <<?LONG_STRING,
+      (serialize_integer(?FATE_STRING_SIZE(String) - ?SHORT_STRING_SIZE))/binary
+     , Bytes/binary>>;
 serialize(?FATE_ADDRESS(Address)) when is_binary(Address) ->
     <<?OBJECT, ?OTYPE_ADDRESS, (aeser_rlp:encode(Address))/binary>>;
 serialize(?FATE_HASH(Address)) when is_binary(Address) ->
@@ -150,27 +161,28 @@ serialize(?FATE_TUPLE(T)) when size(T) > 0 ->
     if S < ?SHORT_TUPLE_SIZE ->
             <<S:4, ?SHORT_TUPLE:4, Rest/binary>>;
        true ->
-            Size = rlp_integer(S - ?SHORT_TUPLE_SIZE),
+            Size = rlp_encode_int(S - ?SHORT_TUPLE_SIZE),
             <<?LONG_TUPLE:8, Size/binary, Rest/binary>>
     end;
 serialize(L) when ?IS_FATE_LIST(L) ->
-    [_E|_] = List = ?FATE_LIST_VALUE(L),
+    List = ?FATE_LIST_VALUE(L),
     S = length(List),
     Rest = << <<(serialize(El))/binary>> || El <- List >>,
     if S < ?SHORT_LIST_SIZE ->
             <<S:4, ?SHORT_LIST:4, Rest/binary>>;
        true ->
-            Val = rlp_integer(S - ?SHORT_LIST_SIZE),
+            Val = rlp_encode_int(S - ?SHORT_LIST_SIZE),
             <<?LONG_LIST, Val/binary, Rest/binary>>
     end;
 serialize(Map) when ?IS_FATE_MAP(Map) ->
-    L = [{_K,_V}|_] = lists:sort(maps:to_list(?FATE_MAP_VALUE(Map))),
+    L = maps:to_list(?FATE_MAP_VALUE(Map)),
     Size = length(L),
     %% TODO:  check all K same type, and all V same type
     %%        check K =/= map
-    Elements = << <<(serialize(K1))/binary, (serialize(V1))/binary>> || {K1,V1} <- L >>,
+    Elements =
+        list_to_binary([ <<(serialize(K))/binary, (serialize(V))/binary>> || {K, V} <- sort_and_check(L) ]),
     <<?MAP,
-      (rlp_integer(Size))/binary,
+      (rlp_encode_int(Size))/binary,
       (Elements)/binary>>;
 serialize(?FATE_VARIANT(Arities, Tag, Values)) ->
     Arities = [A || A <- Arities, is_integer(A), A < 256],
@@ -267,8 +279,22 @@ deserialize_types(N, Binary, Acc) ->
 
 %% -----------------------------------------------------
 
-rlp_integer(S) when S >= 0 ->
+rlp_encode_int(S) when S >= 0 ->
     aeser_rlp:encode(binary:encode_unsigned(S)).
+
+
+%% first byte of the binary gives the number of bytes we need <<129>> is 1, <<130>> = 2,
+%% so <<129, 0>> is <<0>> and <<130, 0, 0>> is <<0, 0>>
+rlp_decode_int(Binary) ->
+    {Bin1, Rest} = aeser_rlp:decode_one(Binary),
+    Int = binary:decode_unsigned(Bin1),
+    ReEncode = rlp_encode_int(Int),
+    case <<ReEncode/binary, Rest/binary>> == Binary of
+        true ->
+            {Int, Rest};
+        false ->
+            error({none_unique_encoding, Bin1, ReEncode})
+    end.
 
 serialize_integer(I) when ?IS_FATE_INTEGER(I) ->
     V = ?FATE_INTEGER_VALUE(I),
@@ -279,20 +305,16 @@ serialize_integer(I) when ?IS_FATE_INTEGER(I) ->
            end,
     if Abs < ?SMALL_INT_SIZE -> <<Sign:1, Abs:6, ?SMALL_INT:1>>;
        Sign =:= ?NEG_SIGN -> <<?NEG_BIG_INT,
-                               (rlp_integer(Abs - ?SMALL_INT_SIZE))/binary>>;
+                               (rlp_encode_int(Abs - ?SMALL_INT_SIZE))/binary>>;
        Sign =:= ?POS_SIGN -> <<?POS_BIG_INT,
-                               (rlp_integer(Abs - ?SMALL_INT_SIZE))/binary>>
+                               (rlp_encode_int(Abs - ?SMALL_INT_SIZE))/binary>>
     end.
 
 serialize_bits(B) when is_integer(B) ->
     Abs = abs(B),
-    Sign = case B < 0 of
-               true  -> ?NEG_SIGN;
-               false -> ?POS_SIGN
-           end,
     if
-        Sign =:= ?NEG_SIGN -> <<?NEG_BITS, (rlp_integer(Abs))/binary>>;
-        Sign =:= ?POS_SIGN -> <<?POS_BITS, (rlp_integer(Abs))/binary>>
+        B < 0 -> <<?NEG_BITS, (rlp_encode_int(Abs))/binary>>;
+        B >= 0 -> <<?POS_BITS, (rlp_encode_int(Abs))/binary>>
     end.
 
 -spec deserialize(binary()) -> aeb_fate_data:fate_type().
@@ -305,24 +327,33 @@ deserialize_one(B) -> deserialize2(B).
 deserialize2(<<?POS_SIGN:1, I:6, ?SMALL_INT:1, Rest/binary>>) ->
     {?MAKE_FATE_INTEGER(I), Rest};
 deserialize2(<<?NEG_SIGN:1, I:6, ?SMALL_INT:1, Rest/binary>>) ->
-    {?MAKE_FATE_INTEGER(-I), Rest};
+    if I =/= 0  ->  {?MAKE_FATE_INTEGER(-I), Rest};
+       I == 0 -> error({illegal_sign, I})
+    end;
 deserialize2(<<?NEG_BIG_INT, Rest/binary>>) ->
-    {Bint, Rest2} = aeser_rlp:decode_one(Rest),
-    {?MAKE_FATE_INTEGER(-binary:decode_unsigned(Bint) - ?SMALL_INT_SIZE),
+    {Bint, Rest2} = rlp_decode_int(Rest),
+    {?MAKE_FATE_INTEGER(-Bint - ?SMALL_INT_SIZE),
      Rest2};
 deserialize2(<<?POS_BIG_INT, Rest/binary>>) ->
-    {Bint, Rest2} = aeser_rlp:decode_one(Rest),
-    {?MAKE_FATE_INTEGER(binary:decode_unsigned(Bint) + ?SMALL_INT_SIZE),
+    {Bint, Rest2} = rlp_decode_int(Rest),
+    {?MAKE_FATE_INTEGER(Bint + ?SMALL_INT_SIZE),
      Rest2};
 deserialize2(<<?NEG_BITS, Rest/binary>>) ->
-    {Bint, Rest2} = aeser_rlp:decode_one(Rest),
-    {?FATE_BITS(-binary:decode_unsigned(Bint)), Rest2};
+    case rlp_decode_int(Rest) of
+        {Pos, Rest2} when Pos > 0 ->
+            {?FATE_BITS(-Pos), Rest2};
+        {N, _} ->
+            error({illegal_parameter, neg_bits, N})
+    end;
 deserialize2(<<?POS_BITS, Rest/binary>>) ->
-    {Bint, Rest2} = aeser_rlp:decode_one(Rest),
-    {?FATE_BITS(binary:decode_unsigned(Bint)), Rest2};
+    {Bint, Rest2} = rlp_decode_int(Rest),
+    {?FATE_BITS(Bint), Rest2};
 deserialize2(<<?LONG_STRING, Rest/binary>>) ->
-    {String, Rest2} = aeser_rlp:decode_one(Rest),
-    {?MAKE_FATE_STRING(String), Rest2};
+    {S, Rest2} = deserialize_one(Rest),
+    Size = S + ?SHORT_STRING_SIZE,
+    String = binary:part(Rest2, 0, Size),
+    Rest3 = binary:part(Rest2, byte_size(Rest2), - (byte_size(Rest2) - Size)),
+    {?MAKE_FATE_STRING(String), Rest3};
 deserialize2(<<S:6, ?SHORT_STRING:2, Rest/binary>>) ->
     String = binary:part(Rest, 0, S),
     Rest2 = binary:part(Rest, byte_size(Rest), - (byte_size(Rest) - S)),
@@ -344,36 +375,37 @@ deserialize2(<<?TRUE, Rest/binary>>) ->
     {?FATE_TRUE, Rest};
 deserialize2(<<?FALSE, Rest/binary>>) ->
     {?FATE_FALSE, Rest};
-deserialize2(<<?NIL, Rest/binary>>) ->
-    {?FATE_NIL, Rest};
 deserialize2(<<?EMPTY_TUPLE, Rest/binary>>) ->
     {?FATE_UNIT, Rest};
-deserialize2(<<?EMPTY_MAP, Rest/binary>>) ->
-    {?MAKE_FATE_MAP(#{}), Rest};
 deserialize2(<<?EMPTY_STRING, Rest/binary>>) ->
     {?FATE_EMPTY_STRING, Rest};
 deserialize2(<<?LONG_TUPLE, Rest/binary>>) ->
-    {BSize, Rest1} = aeser_rlp:decode_one(Rest),
-    N = binary:decode_unsigned(BSize) + ?SHORT_TUPLE_SIZE,
+    {Size, Rest1} = rlp_decode_int(Rest),
+    N = Size + ?SHORT_TUPLE_SIZE,
     {List, Rest2} = deserialize_elements(N, Rest1),
     {?FATE_TUPLE(list_to_tuple(List)), Rest2};
 deserialize2(<<S:4, ?SHORT_TUPLE:4, Rest/binary>>) ->
     {List, Rest1} = deserialize_elements(S, Rest),
     {?FATE_TUPLE(list_to_tuple(List)), Rest1};
 deserialize2(<<?LONG_LIST, Rest/binary>>) ->
-    {BLength, Rest1} = aeser_rlp:decode_one(Rest),
-    Length = binary:decode_unsigned(BLength) + ?SHORT_LIST_SIZE,
+    {Size, Rest1} = rlp_decode_int(Rest),
+    Length = Size + ?SHORT_LIST_SIZE,
     {List, Rest2} = deserialize_elements(Length, Rest1),
     {?MAKE_FATE_LIST(List), Rest2};
 deserialize2(<<S:4, ?SHORT_LIST:4, Rest/binary>>) ->
     {List, Rest1} = deserialize_elements(S, Rest),
     {?MAKE_FATE_LIST(List), Rest1};
 deserialize2(<<?MAP, Rest/binary>>) ->
-    {BSize, Rest1} = aeser_rlp:decode_one(Rest),
-    Size = binary:decode_unsigned(BSize),
+    {Size, Rest1} = rlp_decode_int(Rest),
     {List, Rest2} = deserialize_elements(2*Size, Rest1),
-    Map = insert_kv(List, #{}),
-    {?MAKE_FATE_MAP(Map), Rest2};
+    KVList = insert_kv(List),
+    case sort_and_check(KVList) == KVList of
+        true ->
+            Map = maps:from_list(KVList),
+            {?MAKE_FATE_MAP(Map), Rest2};
+        false ->
+            error({unknown_map_serialization_format, KVList})
+    end;
 deserialize2(<<?VARIANT, Rest/binary>>) ->
     {AritiesBin, <<Tag:8, Rest2/binary>>} = aeser_rlp:decode_one(Rest),
     Arities = binary_to_list(AritiesBin),
@@ -390,8 +422,8 @@ deserialize2(<<?VARIANT, Rest/binary>>) ->
             end
     end.
 
-insert_kv([], M) -> M;
-insert_kv([K,V|R], M) -> insert_kv(R, maps:put(K, V, M)).
+insert_kv([]) -> [];
+insert_kv([K, V | R]) -> [{K, V} | insert_kv(R)].
 
 deserialize_elements(0, Rest) ->
     {[], Rest};
@@ -399,3 +431,33 @@ deserialize_elements(N, Es) ->
     {E, Rest} = deserialize2(Es),
     {Tail, Rest2} = deserialize_elements(N-1, Rest),
     {[E|Tail], Rest2}.
+
+
+%% It is important to remove duplicated keys.
+%% For deserialize this check is needed to observe illegal duplicates.
+sort_and_check(List) ->
+    UniqKeyList =
+        lists:foldr(fun({K, V}, Acc) ->
+                            case valid_key_type(K) andalso not lists:keymember(K, 1, Acc) of
+                                true -> [{K,V}|Acc];
+                                false -> Acc
+                            end
+                    end, [], List),
+    sort(UniqKeyList).
+
+%% Sorting is used to get a unique result.
+%% Deserialization is checking whether the provided key-value pairs are sorted
+%% and raises an exception if not.
+
+sort(KVList) ->
+    SortFun = fun({K1, _}, {K2, _}) ->
+                      aeb_fate_data:elt(K1, K2)
+              end,
+    lists:sort(SortFun, KVList).
+
+valid_key_type(K) when ?IS_FATE_MAP(K) ->
+    error({map_as_key_in_map, K});
+valid_key_type(K) when ?IS_FATE_VARIANT(K) ->
+    error({variant_as_key_in_map, K});
+valid_key_type(_K) ->
+    true.

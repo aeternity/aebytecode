@@ -53,6 +53,7 @@
 
 
 -define(FATE_INTEGER_VALUE(X), (X)).
+-define(FATE_BOOLEAN_VALUE(X), (X)).
 -define(FATE_LIST_VALUE(X), (X)).
 -define(FATE_TUPLE_ELEMENTS(X), (tuple_to_list(element(2, X)))).
 -define(FATE_STRING_VALUE(X), (X)).
@@ -63,6 +64,7 @@
 -define(FATE_ORACLE_VALUE(X), (element(2, X))).
 -define(FATE_NAME_VALUE(X), (element(2, X))).
 -define(FATE_CHANNEL_VALUE(X), (element(2, X))).
+-define(FATE_BITS_VALUE(X), (element(2, X))).
 -define(FATE_MAP_VALUE(X), (X)).
 -define(FATE_MAP_SIZE(X), (map_size(X))).
 -define(FATE_STRING_SIZE(X), (byte_size(X))).

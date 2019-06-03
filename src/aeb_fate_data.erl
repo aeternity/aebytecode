@@ -272,7 +272,10 @@ lt(13, ?FATE_LIST_VALUE([]), ?FATE_LIST_VALUE(_)) -> true;
 lt(13, ?FATE_LIST_VALUE([A|RA]), ?FATE_LIST_VALUE([B|RB])) ->
     O1 = ordinal(A),
     O2 = ordinal(B),
-    if O1 == O2 -> lt(RA, RB);
+    if O1 == O2 ->
+            if A == B -> lt(RA, RB);
+               true -> A < B
+            end;
        true -> O1 < O2
     end;
 lt(14, ?FATE_VARIANT(AritiesA, TagA, TA),

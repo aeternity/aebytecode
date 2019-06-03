@@ -345,8 +345,8 @@ deserialize_op(Op, Rest, Code) ->
     end.
 
 deserialize_n_args(N, <<M3:2, M2:2, M1:2, M0:2, Rest/binary>>) when N =< 4 ->
-    ArgMods = lists:sublist([M0, M1, M2, M3], N),
-    %% If N == 1 then we take M0 and don't care about the others. Should we check that the others are 0??
+    {ArgMods, Zeros} = lists:split(N, [M0, M1, M2, M3]),
+    assert_zero(Zeros),
     lists:mapfoldl(fun(M, Acc) ->
                            case bits_to_modifier(M) of
                                stack ->
@@ -358,7 +358,8 @@ deserialize_n_args(N, <<M3:2, M2:2, M1:2, M0:2, Rest/binary>>) when N =< 4 ->
                    end, Rest, ArgMods);
 deserialize_n_args(N, <<M7:2, M6:2, M5:2, M4:2, M3:2, M2:2, M1:2, M0:2,
                         Rest/binary>>) when N =< 8 ->
-    ArgMods = lists:sublist([M0, M1, M2, M3, M4, M5, M6, M7], N),
+    {ArgMods, Zeros} = lists:split(N, [M0, M1, M2, M3, M4, M5, M6, M7]),
+    assert_zero(Zeros),
     lists:mapfoldl(fun(M, Acc) ->
                            case bits_to_modifier(M) of
                                stack ->
@@ -381,3 +382,10 @@ deserialize_symbols(Table) ->
 deserialize_annotations(AnnotationsBin) ->
     ?FATE_MAP_VALUE(Annotations) = aeb_fate_encoding:deserialize(AnnotationsBin),
     Annotations.
+
+assert_zero([]) ->
+    true;
+assert_zero([0|Rest]) ->
+    assert_zero(Rest);
+assert_zero([_|_]) ->
+    error(argument_defined_outside_range).

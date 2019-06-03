@@ -51,7 +51,7 @@ prop_serializes() ->
 
 prop_fuzz() ->
     in_parallel(
-    ?FORALL(Binary, ?LET(FateData, fate_data(), aeb_fate_encoding:serialize(FateData)),
+    ?FORALL(Binary, ?LET(FateData, ?SIZED(Size, resize(Size div 4, fate_data())), aeb_fate_encoding:serialize(FateData)),
             ?FORALL(InjectedBin, injection(Binary),
                     try Org = aeb_fate_encoding:deserialize(InjectedBin),
                          NewBin = aeb_fate_encoding:serialize(Org),

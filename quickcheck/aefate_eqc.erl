@@ -65,23 +65,28 @@ prop_fuzz() ->
 
 
 prop_order() ->
-    ?FORALL({FateData1, FateData2, FateData3}, {fate_data(), fate_data(), fate_data()},
-            case aeb_fate_data:lt(FateData1, FateData2) of
-                true ->
-                    case aeb_fate_data:lt(FateData2, FateData3) of
-                        true ->
-                            equals(aeb_fate_data:lt(FateData1, FateData3), true);
-                        false ->
-                            equals(aeb_fate_data:lt(FateData2, FateData1), false)
-                    end;
-                false ->
-                    case aeb_fate_data:lt(FateData1, FateData3) of
-                        true ->
-                            equals(aeb_fate_data:lt(FateData2, FateData3), true);
-                        false ->
-                            equals(aeb_fate_data:elt(FateData2, FateData1), true)
-                    end
+    ?FORALL(Items, vector(3, fate_data()),
+            begin
+                %% Use lt to take minimum
+                Min = lt_min(Items),
+                Max = lt_max(Items),
+                conjunction([ {minimum, is_empty([ {Min, '>', I} || I<-Items, aeb_fate_data:lt(I, Min)])},
+                              {maximum, is_empty([ {Max, '<', I} || I<-Items, aeb_fate_data:lt(Max, I)])}])
             end).
+
+lt_min([X, Y | Rest]) ->
+    case aeb_fate_data:lt(X, Y) of
+        true -> lt_min([X | Rest]);
+        false -> lt_min([Y| Rest])
+    end;
+lt_min([X]) -> X.
+
+lt_max([X, Y | Rest]) ->
+    case aeb_fate_data:lt(X, Y) of
+        true -> lt_max([Y | Rest]);
+        false -> lt_max([X| Rest])
+    end;
+lt_max([X]) -> X.
 
 
 fate_data() ->
@@ -165,3 +170,6 @@ injection(Binary) ->
              <<X:M, _:8, Z/binary>> = Binary,
              <<X:M, Inj:8, Z/binary>>
          end).
+
+is_empty(L) ->
+    ?WHENFAIL(eqc:format("~p\n", [L]), L == []).

@@ -48,6 +48,10 @@
         , serialize_type/1
         ]).
 
+-ifdef(EQC).
+-export([sort/1]).
+-endif.
+
 -include("aeb_fate_data.hrl").
 
 %% Definition of tag scheme.

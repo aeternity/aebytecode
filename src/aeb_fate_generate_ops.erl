@@ -72,9 +72,9 @@ ops_defs() ->
     , { 'MOD',                 16#1a,  false,   3, [a,a,a],          modulo,                   {integer, integer}, integer, "Arg0 := Arg1 mod Arg2."}
     , { 'POW',                 16#1b,  false,   3, [a,a,a],             pow,                   {integer, integer}, integer, "Arg0 := Arg1  ^ Arg2."}
     , { 'STORE',               16#1c,  false,   3, [a,a],             store,                                {any},     any, "Arg0 := Arg1."}
-    , { 'SHA3',                16#1d,  false,   3, [a,a],              sha3,                             {string},    hash, "Arg0 := sha3(Arg1)."}
-    , { 'SHA256',              16#1e,  false,   3, [a,a],            sha256,                             {string},    hash, "Arg0 := sha256(Arg1)."}
-    , { 'BLAKE2B',             16#1f,  false,   3, [a,a],           blake2b,                             {string},    hash, "Arg0 := blake2b(Arg1)."}
+    , { 'SHA3',                16#1d,  false,  30, [a,a],              sha3,                                {any},    hash, "Arg0 := sha3(Arg1)."}
+    , { 'SHA256',              16#1e,  false,  30, [a,a],            sha256,                                {any},    hash, "Arg0 := sha256(Arg1)."}
+    , { 'BLAKE2B',             16#1f,  false,  30, [a,a],           blake2b,                                {any},    hash, "Arg0 := blake2b(Arg1)."}
     , { 'LT',                  16#20,  false,   3, [a,a,a],              lt,                   {integer, integer}, boolean, "Arg0 := Arg1  < Arg2."}
     , { 'GT',                  16#21,  false,   3, [a,a,a],              gt,                   {integer, integer}, boolean, "Arg0 := Arg1  > Arg2."}
     , { 'EQ',                  16#22,  false,   3, [a,a,a],              eq,                   {integer, integer}, boolean, "Arg0 := Arg1  = Arg2."}
@@ -156,12 +156,14 @@ ops_defs() ->
     , { 'AENS_UPDATE',         16#6b,  false,   3, [],          aend_update,                                  {},    none, "NYI"}
     , { 'AENS_TRANSFER',       16#6c,  false,   3, [],        aens_transfer,                                  {},    none, "NYI"}
     , { 'AENS_REVOKE',         16#6d,  false,   3, [],          aens_revoke,                                  {},    none, "NYI"}
-    , { 'ECVERIFY',            16#6e,  false,   3, [],             ecverify,                                  {},    none, "NYI"}
-    , { 'BALANCE_OTHER',       16#6f,  false,   3, [a,a],     balance_other,                           {address}, integer, "Arg0 := The balance of address Arg1."}
+    , { 'BALANCE_OTHER',       16#6e,  false,   3, [a,a],     balance_other,                           {address}, integer, "Arg0 := The balance of address Arg1."}
       %% TODO: Reorder these before documenting the specification
-    , { 'MAP_SIZE',            16#70,  false,   3, [a,a],         map_size_,                               {map}, integer, "Arg0 := The size of the map Arg1."}
-    , { 'MAP_TO_LIST',         16#71,  false,   3, [a,a],       map_to_list,                               {map},    list, "Arg0 := The tuple list representation of the map Arg1."}
-    , { 'STR_LENGTH',          16#72,  false,   3, [a,a],        str_length,                            {string}, integer, "Arg0 := The length of the string Arg1."}
+    , { 'MAP_SIZE',            16#6f,  false,   3, [a,a],         map_size_,                               {map}, integer, "Arg0 := The size of the map Arg1."}
+    , { 'MAP_TO_LIST',         16#70,  false,   3, [a,a],       map_to_list,                               {map},    list, "Arg0 := The tuple list representation of the map Arg1."}
+    , { 'STR_LENGTH',          16#71,  false,   3, [a,a],        str_length,                            {string}, integer, "Arg0 := The length of the string Arg1."}
+
+    , { 'ECVERIFY',            16#72,  false, 1300, [a,a,a,a],           ecverify,    {hash, address, signature}, boolean, "Arg0 := ecverify(Hash, PubKey, Signature)"}
+    , { 'ECVERIFY_SECP256K1',  16#73,  false, 1300, [a,a,a,a], ecverify_secp256k1,  {hash, signature, signature}, boolean, "Arg0 := ecverify_secp256k1(Hash, PubKey, Signature)"}
 
     , { 'DEACTIVATE',          16#fa,  false,   3, [],           deactivate,                                  {},    none, "Mark the current contract for deactivation."}
     , { 'ABORT',               16#fb,   true,   3, [a],               abort,                            {string},    none, "Abort execution (dont use all gas) with error message in Arg0."}

@@ -78,8 +78,8 @@
                                     %% 1011 0111
                                     %% 1100 0111
                                     %% 1101 0111
-                                    %% 1110 0111
-                                    %% 1111 0111
+-define(TYPE_VAR     , 2#11100111). %% 1110 0111 | Id when 0 =< Id < 256 (type variable)
+-define(TYPE_ANY     , 2#11110111). %% 1111 0111 - Any typedef
 -define(LONG_TUPLE   , 2#00001011). %% 0000 1011 | RLP encoded (size - 16) | [encoded elements],
 -define(SHORT_TUPLE  ,     2#1011). %% xxxx 1011 | [encoded elements] when 0  <  size < 16
 %%                                          1111 Set below
@@ -208,6 +208,8 @@ serialize(?FATE_VARIANT(Arities, Tag, Values)) ->
 -spec serialize_type(aeb_fate_data:fate_type_type()) -> [byte()].
 serialize_type(integer)     -> [?TYPE_INTEGER];
 serialize_type(boolean)     -> [?TYPE_BOOLEAN];
+serialize_type(any)         -> [?TYPE_ANY];
+serialize_type({tvar, N}) when 0 =< N, N =< 255 -> [?TYPE_VAR, N];
 serialize_type({list, T})   -> [?TYPE_LIST | serialize_type(T)];
 serialize_type({tuple, Ts}) ->
     case length(Ts) of
@@ -235,6 +237,8 @@ serialize_type({variant, ListOfVariants}) ->
 -spec deserialize_type(binary()) -> {aeb_fate_data:fate_type_type(), binary()}.
 deserialize_type(<<?TYPE_INTEGER, Rest/binary>>) -> {integer, Rest};
 deserialize_type(<<?TYPE_BOOLEAN, Rest/binary>>) -> {boolean, Rest};
+deserialize_type(<<?TYPE_ANY,     Rest/binary>>) -> {any, Rest};
+deserialize_type(<<?TYPE_VAR, Id, Rest/binary>>) -> {{tvar, Id}, Rest};
 deserialize_type(<<?TYPE_LIST, Rest/binary>>) ->
     {T, Rest2} = deserialize_type(Rest),
     {{list, T}, Rest2};

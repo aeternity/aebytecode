@@ -1,0 +1,5 @@
+;; CONTRACT oracles
+
+FUNCTION register (address, integer) : oracle
+  ORACLE_REGISTER a arg0 () arg1 'string '{variant, [{tuple, []}, {tuple, [integer]}]}
+  RETURN

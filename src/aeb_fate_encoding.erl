@@ -115,6 +115,18 @@
 -define(OTYPE_NAME,      5).
 -define(OTYPE_CHANNEL,   6).
 
+-define(IS_TYPE_TAG(X), (X =:= ?TYPE_INTEGER orelse
+                         X =:= ?TYPE_BOOLEAN orelse
+                         X =:= ?TYPE_ANY orelse
+                         X =:= ?TYPE_VAR orelse
+                         X =:= ?TYPE_LIST orelse
+                         X =:= ?TYPE_TUPLE orelse
+                         X =:= ?TYPE_OBJECT orelse
+                         X =:= ?TYPE_BITS orelse
+                         X =:= ?TYPE_MAP orelse
+                         X =:= ?TYPE_STRING orelse
+                         X =:= ?TYPE_VARIANT)).
+
 %% --------------------------------------------------
 %% Serialize
 %% Serialized a Fate data value into a sequence of bytes
@@ -200,7 +212,9 @@ serialize(?FATE_VARIANT(Arities, Tag, Values)) ->
                       (serialize(?FATE_TUPLE(Values)))/binary
                     >>
             end
-    end.
+    end;
+serialize(?FATE_TYPEREP(T)) ->
+    iolist_to_binary(serialize_type(T)).
 
 
 %% -----------------------------------------------------
@@ -424,7 +438,10 @@ deserialize2(<<?VARIANT, Rest/binary>>) ->
                true ->
                     {?FATE_VARIANT(Arities, Tag, T), Rest3}
             end
-    end.
+    end;
+deserialize2(<<TypeTag, _/binary>> = Bin) when ?IS_TYPE_TAG(TypeTag) ->
+    {Type, Rest} = deserialize_type(Bin),
+    {?FATE_TYPEREP(Type), Rest}.
 
 insert_kv([]) -> [];
 insert_kv([K, V | R]) -> [{K, V} | insert_kv(R)].

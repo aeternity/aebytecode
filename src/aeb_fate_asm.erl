@@ -304,6 +304,10 @@ to_bytecode([{start_variant,_line}|_] = Tokens, Address, Env, Code, Opts) ->
     {Arities, Tag, Values, Rest} = parse_variant(Tokens),
     Variant = aeb_fate_data:make_variant(Arities, Tag, Values),
     to_bytecode(Rest, Address, Env, [{immediate, Variant}|Code], Opts);
+to_bytecode([{typerep,_line}|Rest], Address, Env, Code, Opts) ->
+    {Type, Rest1} = to_type(Rest),
+    TypeRep = aeb_fate_data:make_typerep(Type),
+    to_bytecode(Rest1, Address, Env, [{immediate, TypeRep}|Code], Opts);
 to_bytecode([{bits,_line, Bits}|Rest], Address, Env, Code, Opts) ->
     to_bytecode(Rest, Address, Env,
                 [{immediate, aeb_fate_data:make_bits(Bits)}|Code], Opts);
@@ -403,7 +407,9 @@ parse_value([{object,_line, {channel, Address}} | Rest]) ->
 parse_value([{hash,_line, Hash} | Rest]) ->
     {aeb_fate_data:make_hash(Hash), Rest};
 parse_value([{signature,_line, Hash} | Rest]) ->
-    {aeb_fate_data:make_signature(Hash), Rest}.
+    {aeb_fate_data:make_signature(Hash), Rest};
+parse_value([{typerep,_line} | Rest]) ->
+    to_type(Rest).
 
 to_fun_def([{id, _, Name}, {'(', _} | Rest]) ->
     {ArgsType, [{'to', _} | Rest2]} = to_arg_types(Rest),

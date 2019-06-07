@@ -39,6 +39,7 @@
                                 andalso is_tuple(element(4, X))
                                ))).
 -define(IS_FATE_BOOLEAN(X), is_boolean(X)).
+-define(IS_FATE_TYPEREP(X), (is_tuple(X) andalso tuple_size(X) =:= 2 andalso element(1, X) =:= typerep)).
 
 -define(FATE_UNIT,         {tuple, {}}).
 -define(FATE_TUPLE(T),     {tuple, T}).
@@ -50,7 +51,7 @@
 -define(FATE_NAME(X),      {name, X}).
 -define(FATE_CHANNEL(X),   {channel, X}).
 -define(FATE_BITS(B),      {bits, B}).
-
+-define(FATE_TYPEREP(T),   {typerep, T}).
 
 -define(FATE_INTEGER_VALUE(X), (X)).
 -define(FATE_BOOLEAN_VALUE(X), (X)).

@@ -75,6 +75,7 @@ FUNCTION       : {token, {function, TokenLine, 'FUNCTION' }}.
 \{  : {token, {'{', TokenLine}}.
 \}  : {token, {'}', TokenLine}}.
 \|  : {token, {'|', TokenLine}}.
+\'  : {token, {typerep, TokenLine}}.
 
 ;;.* :
  {token, {comment, TokenLine, drop_prefix($;, TokenChars)}}.

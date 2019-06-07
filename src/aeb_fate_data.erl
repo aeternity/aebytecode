@@ -95,6 +95,7 @@
         , make_channel/1
         , make_bits/1
         , make_unit/0
+        , make_typerep/1
         ]).
 -export([
          elt/2
@@ -122,6 +123,7 @@ make_bits(I)    when is_integer(I) -> ?FATE_BITS(I).
 make_string(S)  when is_list(S) ->
     ?FATE_STRING(iolist_to_binary(S));
 make_string(S)  when is_binary(S) -> ?FATE_STRING(S).
+make_typerep(T) -> ?FATE_TYPEREP(T).
 
 %% Tag points to the selected variant (zero based)
 %% The arity of this variant is read from the list of provided arities
@@ -177,6 +179,8 @@ format(?FATE_NAME(X))       ->
     ["@", aeser_api_encoder:encode(name, X)];
 format(?FATE_CHANNEL(X))    ->
     ["@", aeser_api_encoder:encode(channel, X)];
+format(?FATE_TYPEREP(X))    ->
+    ["'", io_lib:format("~p", [X])];
 format(V) -> exit({not_a_fate_type, V}).
 
 format_bits(0, Acc) -> Acc;

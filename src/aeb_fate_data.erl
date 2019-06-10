@@ -91,6 +91,7 @@
         , make_signature/1
         , make_contract/1
         , make_oracle/1
+        , make_oracle_query/1
         , make_name/1
         , make_channel/1
         , make_bits/1
@@ -116,6 +117,7 @@ make_hash(X) ->        ?FATE_HASH(X).
 make_signature(X) ->   ?FATE_SIGNATURE(X).
 make_contract(X) ->    ?FATE_CONTRACT(X).
 make_oracle(X) ->      ?FATE_ORACLE(X).
+make_oracle_query(X) -> ?FATE_ORACLE_Q(X).
 make_name(X) ->        ?FATE_NAME(X).
 make_channel(X) ->     ?FATE_CHANNEL(X).
 make_integer(I) when is_integer(I) -> ?MAKE_FATE_INTEGER(I).
@@ -175,6 +177,8 @@ format(?FATE_CONTRACT(X))   ->
     ["@", aeser_api_encoder:encode(contract_pubkey, X)];
 format(?FATE_ORACLE(X))     ->
     ["@", aeser_api_encoder:encode(oracle_pubkey, X)];
+format(?FATE_ORACLE_Q(X))     ->
+    ["@", aeser_api_encoder:encode(oracle_query_id, X)];
 format(?FATE_NAME(X))       ->
     ["@", aeser_api_encoder:encode(name, X)];
 format(?FATE_CHANNEL(X))    ->
@@ -221,7 +225,8 @@ ordinal(T) when ?IS_FATE_STRING(T)    -> 10;
 ordinal(T) when ?IS_FATE_TUPLE(T)     -> 11;
 ordinal(T) when ?IS_FATE_MAP(T)       -> 12;
 ordinal(T) when ?IS_FATE_LIST(T)      -> 13;
-ordinal(T) when ?IS_FATE_VARIANT(T)   -> 14.
+ordinal(T) when ?IS_FATE_VARIANT(T)   -> 14;
+ordinal(T) when ?IS_FATE_ORACLE_Q(T)  -> 15.
 
 
 -spec lt(fate_type(), fate_type()) -> boolean().

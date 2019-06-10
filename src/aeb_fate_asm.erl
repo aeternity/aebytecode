@@ -267,6 +267,11 @@ to_bytecode([{object,_line, {oracle, Value}}|Rest],
     to_bytecode(Rest, Address, Env,
                 [{immediate, aeb_fate_data:make_oracle(Value)}|Code],
                 Opts);
+to_bytecode([{object,_line, {oracle_query, Value}}|Rest],
+            Address, Env, Code, Opts) ->
+    to_bytecode(Rest, Address, Env,
+                [{immediate, aeb_fate_data:make_oracle_query(Value)}|Code],
+                Opts);
 to_bytecode([{object,_line, {name, Value}}|Rest],
             Address, Env, Code, Opts) ->
     to_bytecode(Rest, Address, Env,
@@ -400,6 +405,8 @@ parse_value([{object,_line, {contract, Address}} | Rest]) ->
     {aeb_fate_data:make_contract(Address), Rest};
 parse_value([{object,_line, {oracle, Address}} | Rest]) ->
     {aeb_fate_data:make_oracle(Address), Rest};
+parse_value([{object,_line, {oracle_query, Address}} | Rest]) ->
+    {aeb_fate_data:make_oracle_query(Address), Rest};
 parse_value([{object,_line, {name, Address}} | Rest]) ->
     {aeb_fate_data:make_name(Address), Rest};
 parse_value([{object,_line, {channel, Address}} | Rest]) ->
@@ -435,6 +442,7 @@ to_type([{id, _, "string"}    | Rest]) -> {string, Rest};
 to_type([{id, _, "address"}   | Rest]) -> {address, Rest};
 to_type([{id, _, "contract"}  | Rest]) -> {contract, Rest};
 to_type([{id, _, "oracle"}    | Rest]) -> {oracle, Rest};
+to_type([{id, _, "oracle_query"}  | Rest]) -> {oracle_query, Rest};
 to_type([{id, _, "name"}      | Rest]) -> {name, Rest};
 to_type([{id, _, "channel"}   | Rest]) -> {channel, Rest};
 to_type([{id, _, "hash"}      | Rest]) -> {hash, Rest};

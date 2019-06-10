@@ -1,5 +1,12 @@
 ;; CONTRACT oracles
 
 FUNCTION register (address, integer, {variant, [{tuple, [integer]}, {tuple, [integer]}]}) : oracle
-  ORACLE_REGISTER a () arg0 arg1 arg2 'string '{variant, [{tuple, []}, {tuple, [integer]}]}
+  ORACLE_REGISTER a "0000000000000000000000000000000000000000000000000000000000000000" arg0 arg1 arg2 'string '{variant, [{tuple, []}, {tuple, [integer]}]}
   RETURN
+
+FUNCTION query (oracle, integer, string) : oracle_query
+  ORACLE_QUERY a arg0 arg1 arg2 (| [1,1] | 0 | (100) |) (| [1,1] | 0 | (100) |)
+  RETURN
+
+FUNCTION bogus_query () : oracle_query
+  RETURNR @oq_nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv

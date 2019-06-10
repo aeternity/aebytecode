@@ -142,9 +142,11 @@ ops_defs() ->
     , { 'LOG4',                16#5f,  false,   3, [a,a,a,a,a],         log, {integer, integer, integer, integer, string},    none, "Create a log message with four topics in the call object."}
       %% Transaction ops
     , { 'SPEND',               16#60,  false,   3, [a,a],             spend,                  {address, integer},    none, "Transfer Arg1 tokens to account Arg0. (If the contract account has at least that many tokens."}
-    , { 'ORACLE_REGISTER',     16#61,  false,   3, [a,a,a,a,a,a,a], oracle_register,   {any,any,any,any,any,any},     oracle, "TODO: Document and describe types"}
+    , { 'ORACLE_REGISTER',     16#61,  false,   3, [a,a,a,a,a,a,a],
+                                                            oracle_register,           {any,any,any,any,any,any},     oracle, "TODO: Document and describe types"}
+    , { 'ORACLE_QUERY',        16#62,  false,   3, [a,a,a,a,a,a],
+                                                               oracle_query,              {any,any,any,any,any},oracle_query, "TODO: Document and describe types."}
       %% TODO:
-    , { 'ORACLE_QUERY',        16#62,  false,   3, [],         oracle_query,                                  {},    none, "NYI"}
     , { 'ORACLE_RESPOND',      16#63,  false,   3, [],       oracle_respond,                                  {},    none, "NYI"}
     , { 'ORACLE_EXTEND',       16#64,  false,   3, [],        oracle_extend,                                  {},    none, "NYI"}
     , { 'ORACLE_GET_ANSWER',   16#65,  false,   3, [],    oracle_get_answer,                                  {},    none, "NYI"}

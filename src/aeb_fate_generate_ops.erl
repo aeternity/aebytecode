@@ -165,6 +165,8 @@ ops_defs() ->
     , { 'ECVERIFY',            16#72,  false, 1300, [a,a,a,a],           ecverify,    {hash, address, signature}, boolean, "Arg0 := ecverify(Hash, PubKey, Signature)"}
     , { 'ECVERIFY_SECP256K1',  16#73,  false, 1300, [a,a,a,a], ecverify_secp256k1,  {hash, signature, signature}, boolean, "Arg0 := ecverify_secp256k1(Hash, PubKey, Signature)"}
 
+    , { 'CONTRACT_TO_ADDRESS', 16#74,  false,   3, [a,a], contract_to_address,                        {contract}, address, "Arg0 := Arg1 - A no-op type conversion"}
+
     , { 'DEACTIVATE',          16#fa,  false,   3, [],           deactivate,                                  {},    none, "Mark the current contract for deactivation."}
     , { 'ABORT',               16#fb,   true,   3, [a],               abort,                            {string},    none, "Abort execution (dont use all gas) with error message in Arg0."}
     , { 'EXIT',                16#fc,   true,   3, [a],                exit,                            {string},    none, "Abort execution (use upp all gas) with error message in Arg0."}

@@ -2,12 +2,12 @@
 %%% @copyright (C) 2017, Aeternity Anstalt
 %%% @doc
 %%%     Encode and decode data and function calls according to
-%%%     Sophia-AEVM-ABI.
+%%%     Sophia-AEVM-ABI
 %%% @end
 %%% Created : 25 Jan 2018
 %%%
 %%%-------------------------------------------------------------------
--module(aeb_abi).
+-module(aeb_aevm_abi).
 -define(HASH_SIZE, 32).
 
 -export([ create_calldata/4

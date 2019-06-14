@@ -146,10 +146,10 @@ ops_defs() ->
                                                             oracle_register,           {any,any,any,any,any,any},     oracle, "TODO: Document and describe types"}
     , { 'ORACLE_QUERY',        16#62,  false,   3, [a,a,a,a,a,a],
                                                                oracle_query,              {any,any,any,any,any},oracle_query, "TODO: Document and describe types."}
-    , { 'ORACLE_RESPOND',      16#63,  false,   3, [a,a,a,a,a],
-                                                             oracle_respond,                   {any,any,any,any},     any, "TODO: Document and describe types."}
-    , { 'ORACLE_EXTEND',       16#64,  false,   3, [a,a,a,a,a],
-                                                              oracle_extend,                   {any,any,any,any},     any, "TODO: Document and describe types."}
+    , { 'ORACLE_RESPOND',      16#63,  false,   3, [a,a,a,a],
+                                                             oracle_respond,                  {any,any,any,any},    none, "TODO: Document and describe types."}
+    , { 'ORACLE_EXTEND',       16#64,  false,   3, [a,a,a],
+                                                              oracle_extend,                   {any,any,any},        any, "TODO: Document and describe types."}
     , { 'ORACLE_GET_ANSWER',   16#65,  false,   3, [a,a,a],
                                                           oracle_get_answer,                           {any,any},     any, "TODO: Document and describe types."}
     , { 'ORACLE_GET_QUESTION', 16#66,  false,   3, [a,a,a],

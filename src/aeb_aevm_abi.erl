@@ -43,7 +43,7 @@ create_calldata(FunName, Args, ArgTypes0, RetType) ->
     <<TypeHashInt:?HASH_SIZE/unit:8>> =
         function_type_hash(list_to_binary(FunName), ArgTypes, RetType),
     Data = aeb_heap:to_binary({TypeHashInt, list_to_tuple(Args)}),
-    {ok, Data, {tuple, [word, ArgTypes]}, RetType}.
+    {ok, Data}.
 
 -spec check_calldata(binary(), type_info()) ->
                         {'ok', typerep(), typerep()} | {'error', atom()}.

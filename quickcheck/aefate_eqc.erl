@@ -112,6 +112,7 @@ fate_data(0, _Options) ->
               fate_signature(),
               fate_contract(),
               fate_oracle(),
+              fate_oracle_q(),
               fate_name(),
               fate_bits(),
               fate_channel()]));
@@ -142,6 +143,7 @@ fate_hash()       -> {call, aeb_fate_data, make_hash, [non_zero_binary(32)]}.
 fate_signature()  -> {call, aeb_fate_data, make_signature, [non_zero_binary(64)]}.
 fate_contract()   -> {call, aeb_fate_data, make_contract, [non_zero_binary(256 div 8)]}.
 fate_oracle()     -> {call, aeb_fate_data, make_oracle, [non_zero_binary(256 div 8)]}.
+fate_oracle_q()   -> {call, aeb_fate_data, make_oracle_query, [non_zero_binary(256 div 8)]}.
 fate_name()       -> {call, aeb_fate_data, make_name, [non_zero_binary(256 div 8)]}.
 fate_channel()    -> {call, aeb_fate_data, make_channel, [non_zero_binary(256 div 8)]}.
 

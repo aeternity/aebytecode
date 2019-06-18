@@ -243,3 +243,7 @@ FUNCTION foo () : {tuple, []}
   BALANCE_OTHER a arg0
 
   SETELEMENT a 2 (1, "two", 3) 2
+
+  AUTH_TX_HASH
+
+  CONTRACT_TO_ADDRESS @ct_nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv

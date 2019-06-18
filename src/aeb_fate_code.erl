@@ -27,7 +27,7 @@
 -include("../include/aeb_fate_data.hrl").
 
 -ifdef(EQC).
--export([update_annotations/2
+-export([ update_annotations/2
         , update_functions/2
         , update_symbols/2]).
 -endif.
@@ -38,6 +38,9 @@
                }).
 
 -define(HASH_BYTES, 32).
+
+-type fcode() :: #fcode{}.
+-export_type([fcode/0]).
 
 %%%===================================================================
 %%% API

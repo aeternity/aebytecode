@@ -9,7 +9,12 @@
 %%%-------------------------------------------------------------------
 -module(aeb_fate_abi).
 
--export([ create_calldata/2 ]).
+-export([ create_calldata/2
+        , get_function_hash_from_calldata/1
+        , get_function_name_from_function_hash/2
+        , get_function_type_from_function_hash/2 ]).
+
+-include("../include/aeb_fate_data.hrl").
 
 %%%===================================================================
 %%% API
@@ -21,3 +26,37 @@ create_calldata(FunName, Args) ->
     {ok, aeb_fate_encoding:serialize(
            aeb_fate_data:make_tuple({FunctionId,
                                      aeb_fate_data:make_tuple(list_to_tuple(Args))}))}.
+
+-spec get_function_name_from_function_hash(binary(), aeb_fate_code:fcode()) ->
+    {ok, term()} | {error, term()}.
+get_function_name_from_function_hash(<<SymbolHash:4/binary, _:28/binary>>, FateCode) ->
+    get_function_name_from_function_hash(SymbolHash, FateCode);
+get_function_name_from_function_hash(SymbolHash = <<_:4/binary>>, FateCode) ->
+    Symbols = aeb_fate_code:symbols(FateCode),
+    case maps:get(SymbolHash, Symbols, undefined) of
+        undefined -> {error, no_function_matching_function_hash};
+        Function  -> {ok, Function}
+    end.
+
+-spec get_function_hash_from_calldata(binary()) ->
+    {ok, binary()} | {error, term()}.
+get_function_hash_from_calldata(CallData) ->
+    try ?FATE_TUPLE_ELEMENTS(aeb_fate_encoding:deserialize(CallData)) of
+        [FunHash, _Args] -> {ok, FunHash};
+        _                -> {error, bad_calldata}
+    catch _:_ ->
+        {error, bad_calldata}
+    end.
+
+-spec get_function_type_from_function_hash(binary(), aeb_fate_code:fcode()) ->
+    {ok, term()} | {error, term()}.
+get_function_type_from_function_hash(<<SymbolHash:4/binary, _:28/binary>>, FateCode) ->
+    get_function_type_from_function_hash(SymbolHash, FateCode);
+get_function_type_from_function_hash(SymbolHash, FateCode) ->
+    Functions = aeb_fate_code:functions(FateCode),
+    case maps:get(SymbolHash, Functions, undefined) of
+        undefined ->
+            {error, no_function_matching_function_hash};
+        {{ArgTypes, RetType}, _Code} ->
+            {ok, ArgTypes, RetType}
+    end.

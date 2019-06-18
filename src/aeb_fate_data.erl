@@ -91,10 +91,12 @@
         , make_signature/1
         , make_contract/1
         , make_oracle/1
+        , make_oracle_query/1
         , make_name/1
         , make_channel/1
         , make_bits/1
         , make_unit/0
+        , make_typerep/1
         ]).
 -export([
          elt/2
@@ -115,6 +117,7 @@ make_hash(X) ->        ?FATE_HASH(X).
 make_signature(X) ->   ?FATE_SIGNATURE(X).
 make_contract(X) ->    ?FATE_CONTRACT(X).
 make_oracle(X) ->      ?FATE_ORACLE(X).
+make_oracle_query(X) -> ?FATE_ORACLE_Q(X).
 make_name(X) ->        ?FATE_NAME(X).
 make_channel(X) ->     ?FATE_CHANNEL(X).
 make_integer(I) when is_integer(I) -> ?MAKE_FATE_INTEGER(I).
@@ -122,6 +125,7 @@ make_bits(I)    when is_integer(I) -> ?FATE_BITS(I).
 make_string(S)  when is_list(S) ->
     ?FATE_STRING(iolist_to_binary(S));
 make_string(S)  when is_binary(S) -> ?FATE_STRING(S).
+make_typerep(T) -> ?FATE_TYPEREP(T).
 
 %% Tag points to the selected variant (zero based)
 %% The arity of this variant is read from the list of provided arities
@@ -173,10 +177,14 @@ format(?FATE_CONTRACT(X))   ->
     ["@", aeser_api_encoder:encode(contract_pubkey, X)];
 format(?FATE_ORACLE(X))     ->
     ["@", aeser_api_encoder:encode(oracle_pubkey, X)];
+format(?FATE_ORACLE_Q(X))     ->
+    ["@", aeser_api_encoder:encode(oracle_query_id, X)];
 format(?FATE_NAME(X))       ->
     ["@", aeser_api_encoder:encode(name, X)];
 format(?FATE_CHANNEL(X))    ->
     ["@", aeser_api_encoder:encode(channel, X)];
+format(?FATE_TYPEREP(X))    ->
+    ["'", io_lib:format("~p", [X])];
 format(V) -> exit({not_a_fate_type, V}).
 
 format_bits(0, Acc) -> Acc;
@@ -217,7 +225,8 @@ ordinal(T) when ?IS_FATE_STRING(T)    -> 10;
 ordinal(T) when ?IS_FATE_TUPLE(T)     -> 11;
 ordinal(T) when ?IS_FATE_MAP(T)       -> 12;
 ordinal(T) when ?IS_FATE_LIST(T)      -> 13;
-ordinal(T) when ?IS_FATE_VARIANT(T)   -> 14.
+ordinal(T) when ?IS_FATE_VARIANT(T)   -> 14;
+ordinal(T) when ?IS_FATE_ORACLE_Q(T)  -> 15.
 
 
 -spec lt(fate_type(), fate_type()) -> boolean().

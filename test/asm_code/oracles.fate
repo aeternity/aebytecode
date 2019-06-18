@@ -1,0 +1,32 @@
+;; CONTRACT oracles
+
+FUNCTION register (address, integer, {variant, [{tuple, [integer]}, {tuple, [integer]}]}) : oracle
+  ORACLE_REGISTER a $sg_11111111111111111111111111111111111111111111111111111111111111116oUsJe arg0 arg1 arg2 'string '{variant, [{tuple, []}, {tuple, [integer]}]}
+  RETURN
+
+FUNCTION query (oracle, integer, string) : oracle_query
+  ORACLE_QUERY a arg0 arg1 arg2 (| [1,1] | 0 | (100) |) (| [1,1] | 0 | (100) |)
+  RETURN
+
+FUNCTION bogus_query () : oracle_query
+  RETURNR @oq_nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv
+
+FUNCTION respond (oracle, integer, string) : {tuple, []}
+  ORACLE_RESPOND $sg_11111111111111111111111111111111111111111111111111111111111111116oUsJe arg0 arg1 arg2
+  RETURNR {}
+
+FUNCTION extend (oracle, {variant, [{tuple, [integer]}, {tuple, [integer]}]}) : {tuple, []}
+  ORACLE_EXTEND $sg_11111111111111111111111111111111111111111111111111111111111111116oUsJe arg0 arg1
+  RETURNR {}
+
+FUNCTION get_question (oracle, oracle_query) : string
+  ORACLE_GET_QUESTION arg0 arg1
+  RETURN
+
+FUNCTION get_answer (oracle, oracle_query) : {variant, [{tuple, []}, {tuple, [string]}]}
+  ORACLE_GET_ANSWER arg0 arg1
+  RETURN
+
+FUNCTION query_fee (oracle) : integer
+  ORACLE_QUERY_FEE arg0
+  RETURN

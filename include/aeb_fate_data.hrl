@@ -11,6 +11,7 @@
 -define(FATE_SIGNATURE_T, {signature, binary()}).
 -define(FATE_CONTRACT_T,  {contract, <<_:256>>}).
 -define(FATE_ORACLE_T,    {oracle, <<_:256>>}).
+-define(FATE_ORACLE_Q_T,  {oracle_query, <<_:256>>}).
 -define(FATE_NAME_T,      {name, <<_:256>>}).
 -define(FATE_CHANNEL_T,   {channel, <<_:256>>}).
 -define(FATE_VARIANT_T,   {variant, [byte()], ?FATE_BYTE_T, tuple()}).
@@ -28,6 +29,7 @@
 -define(IS_FATE_SIGNATURE(X), (is_tuple(X) andalso (signature == element(1, X) andalso is_binary(element(2, X))))).
 -define(IS_FATE_CONTRACT(X), (is_tuple(X) andalso (contract == element(1, X) andalso is_binary(element(2, X))))).
 -define(IS_FATE_ORACLE(X), (is_tuple(X) andalso (oracle == element(1, X) andalso is_binary(element(2, X))))).
+-define(IS_FATE_ORACLE_Q(X), (is_tuple(X) andalso (oracle_query == element(1, X) andalso is_binary(element(2, X))))).
 -define(IS_FATE_NAME(X), (is_tuple(X) andalso (name == element(1, X) andalso is_binary(element(2, X))))).
 -define(IS_FATE_CHANNEL(X), (is_tuple(X) andalso (channel == element(1, X) andalso is_binary(element(2, X))))).
 -define(IS_FATE_BITS(X), (is_tuple(X) andalso (bits == element(1, X) andalso is_integer(element(2, X))))).
@@ -39,6 +41,7 @@
                                 andalso is_tuple(element(4, X))
                                ))).
 -define(IS_FATE_BOOLEAN(X), is_boolean(X)).
+-define(IS_FATE_TYPEREP(X), (is_tuple(X) andalso tuple_size(X) =:= 2 andalso element(1, X) =:= typerep)).
 
 -define(FATE_UNIT,         {tuple, {}}).
 -define(FATE_TUPLE(T),     {tuple, T}).
@@ -47,10 +50,11 @@
 -define(FATE_SIGNATURE(S), {signature, S}).
 -define(FATE_CONTRACT(X),  {contract, X}).
 -define(FATE_ORACLE(X),    {oracle, X}).
+-define(FATE_ORACLE_Q(X),  {oracle_query, X}).
 -define(FATE_NAME(X),      {name, X}).
 -define(FATE_CHANNEL(X),   {channel, X}).
 -define(FATE_BITS(B),      {bits, B}).
-
+-define(FATE_TYPEREP(T),   {typerep, T}).
 
 -define(FATE_INTEGER_VALUE(X), (X)).
 -define(FATE_BOOLEAN_VALUE(X), (X)).

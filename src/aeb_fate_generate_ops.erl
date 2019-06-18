@@ -141,15 +141,14 @@ ops_defs() ->
     , { 'LOG3',                16#5e,  false,   3, [a,a,a,a],           log,  {integer, integer, integer, string},    none, "Create a log message with three topics in the call object."}
     , { 'LOG4',                16#5f,  false,   3, [a,a,a,a,a],         log, {integer, integer, integer, integer, string},    none, "Create a log message with four topics in the call object."}
       %% Transaction ops
-    , { 'SPEND',               16#60,  false,   3, [a,a],             spend,                  {address, integer},    none, "Transfer Arg1 tokens to account Arg0. (If the contract account has at least that many tokens."}
-    , { 'ORACLE_REGISTER',     16#61,  false,   3, [a,a,a,a,a,a], oracle_register,         {any,any,any,any,any},     any, "NYI"}
-      %% TODO:
-    , { 'ORACLE_QUERY',        16#62,  false,   3, [],         oracle_query,                                  {},    none, "NYI"}
-    , { 'ORACLE_RESPOND',      16#63,  false,   3, [],       oracle_respond,                                  {},    none, "NYI"}
-    , { 'ORACLE_EXTEND',       16#64,  false,   3, [],        oracle_extend,                                  {},    none, "NYI"}
-    , { 'ORACLE_GET_ANSWER',   16#65,  false,   3, [],    oracle_get_answer,                                  {},    none, "NYI"}
-    , { 'ORACLE_GET_QUESTION', 16#66,  false,   3, [],  oracle_get_question,                                  {},    none, "NYI"}
-    , { 'ORACLE_QUERY_FEE',    16#67,  false,   3, [],     oracle_query_fee,                                  {},    none, "NYI"}
+    , { 'SPEND',               16#60,  false,   3, [a,a],             spend,                  {address, integer},     none, "Transfer Arg1 tokens to account Arg0. (If the contract account has at least that many tokens."}
+    , { 'ORACLE_REGISTER',     16#61,  false,   3, [a,a,a,a,a,a,a], oracle_register, {signature, address, integer, variant, typerep, typerep}, oracle, "Arg0 := New oracle with address Arg2, query fee Arg3, TTL Arg4, query type Arg5 and response type Arg6. Arg0 contains delegation signature."}
+    , { 'ORACLE_QUERY',        16#62,  false,   3, [a,a,a,a,a,a], oracle_query, {oracle, any, integer, variant, variant}, oracle_query, "Arg0 := New oracle query for oracle Arg1, question in Arg2, query fee in Arg3, query TTL in Arg4, response TTL in Arg5"}
+    , { 'ORACLE_RESPOND',      16#63,  false,   3, [a,a,a,a], oracle_respond, {signature, oracle, oracle_query,any},   none, "Respond as oracle Arg1 to query in Arg2 with response Arg3. Arg0 contains delegation signature."}
+    , { 'ORACLE_EXTEND',       16#64,  false,   3, [a,a,a],   oracle_extend,        {signature, oracle, variant},     none, "Extend oracle in Arg1 with TTL in Arg2. Arg0 contains delegation signature."}
+    , { 'ORACLE_GET_ANSWER',   16#65,  false,   3, [a,a,a], oracle_get_answer,            {oracle, oracle_query},      any, "Arg0 := option variant with answer (if any) from oracle query in Arg1 given by oracle Arg0"}
+    , { 'ORACLE_GET_QUESTION', 16#66,  false,   3, [a,a,a], oracle_get_question,          {oracle, oracle_query},      any, "Arg0 := question in oracle query Arg2 given to oracle Arg1"}
+    , { 'ORACLE_QUERY_FEE',    16#67,  false,   3, [a,a],  oracle_query_fee,                            {oracle},  integer, "Arg0 := query fee for oracle Arg1"}
     , { 'AENS_RESOLVE',        16#68,  false,   3, [],         aens_resolve,                                  {},    none, "NYI"}
     , { 'AENS_PRECLAIM',       16#69,  false,   3, [],        aens_preclaim,                                  {},    none, "NYI"}
     , { 'AENS_CLAIM',          16#6a,  false,   3, [],           aens_claim,                                  {},    none, "NYI"}

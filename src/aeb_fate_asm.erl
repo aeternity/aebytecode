@@ -267,6 +267,11 @@ to_bytecode([{object,_line, {oracle, Value}}|Rest],
     to_bytecode(Rest, Address, Env,
                 [{immediate, aeb_fate_data:make_oracle(Value)}|Code],
                 Opts);
+to_bytecode([{object,_line, {oracle_query, Value}}|Rest],
+            Address, Env, Code, Opts) ->
+    to_bytecode(Rest, Address, Env,
+                [{immediate, aeb_fate_data:make_oracle_query(Value)}|Code],
+                Opts);
 to_bytecode([{object,_line, {name, Value}}|Rest],
             Address, Env, Code, Opts) ->
     to_bytecode(Rest, Address, Env,
@@ -304,6 +309,10 @@ to_bytecode([{start_variant,_line}|_] = Tokens, Address, Env, Code, Opts) ->
     {Arities, Tag, Values, Rest} = parse_variant(Tokens),
     Variant = aeb_fate_data:make_variant(Arities, Tag, Values),
     to_bytecode(Rest, Address, Env, [{immediate, Variant}|Code], Opts);
+to_bytecode([{typerep,_line}|Rest], Address, Env, Code, Opts) ->
+    {Type, Rest1} = to_type(Rest),
+    TypeRep = aeb_fate_data:make_typerep(Type),
+    to_bytecode(Rest1, Address, Env, [{immediate, TypeRep}|Code], Opts);
 to_bytecode([{bits,_line, Bits}|Rest], Address, Env, Code, Opts) ->
     to_bytecode(Rest, Address, Env,
                 [{immediate, aeb_fate_data:make_bits(Bits)}|Code], Opts);
@@ -396,6 +405,8 @@ parse_value([{object,_line, {contract, Address}} | Rest]) ->
     {aeb_fate_data:make_contract(Address), Rest};
 parse_value([{object,_line, {oracle, Address}} | Rest]) ->
     {aeb_fate_data:make_oracle(Address), Rest};
+parse_value([{object,_line, {oracle_query, Address}} | Rest]) ->
+    {aeb_fate_data:make_oracle_query(Address), Rest};
 parse_value([{object,_line, {name, Address}} | Rest]) ->
     {aeb_fate_data:make_name(Address), Rest};
 parse_value([{object,_line, {channel, Address}} | Rest]) ->
@@ -403,7 +414,9 @@ parse_value([{object,_line, {channel, Address}} | Rest]) ->
 parse_value([{hash,_line, Hash} | Rest]) ->
     {aeb_fate_data:make_hash(Hash), Rest};
 parse_value([{signature,_line, Hash} | Rest]) ->
-    {aeb_fate_data:make_signature(Hash), Rest}.
+    {aeb_fate_data:make_signature(Hash), Rest};
+parse_value([{typerep,_line} | Rest]) ->
+    to_type(Rest).
 
 to_fun_def([{id, _, Name}, {'(', _} | Rest]) ->
     {ArgsType, [{'to', _} | Rest2]} = to_arg_types(Rest),
@@ -429,6 +442,7 @@ to_type([{id, _, "string"}    | Rest]) -> {string, Rest};
 to_type([{id, _, "address"}   | Rest]) -> {address, Rest};
 to_type([{id, _, "contract"}  | Rest]) -> {contract, Rest};
 to_type([{id, _, "oracle"}    | Rest]) -> {oracle, Rest};
+to_type([{id, _, "oracle_query"}  | Rest]) -> {oracle_query, Rest};
 to_type([{id, _, "name"}      | Rest]) -> {name, Rest};
 to_type([{id, _, "channel"}   | Rest]) -> {channel, Rest};
 to_type([{id, _, "hash"}      | Rest]) -> {hash, Rest};

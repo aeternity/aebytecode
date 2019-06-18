@@ -10,8 +10,9 @@
 -module(aeb_fate_abi).
 
 -export([ create_calldata/2
-        , function_name_from_function_hash/2
-        , get_function_hash_from_calldata/1 ]).
+        , get_function_hash_from_calldata/1
+        , get_function_name_from_function_hash/2
+        , get_function_type_from_function_hash/2 ]).
 
 -include("../include/aeb_fate_data.hrl").
 
@@ -26,11 +27,11 @@ create_calldata(FunName, Args) ->
            aeb_fate_data:make_tuple({FunctionId,
                                      aeb_fate_data:make_tuple(list_to_tuple(Args))}))}.
 
--spec function_name_from_function_hash(any(), aeb_fate_code:fcode()) ->
+-spec get_function_name_from_function_hash(binary(), aeb_fate_code:fcode()) ->
     {ok, term()} | {error, term()}.
-function_name_from_function_hash(<<SymbolHash:4/binary, _:28/binary>>, FateCode) ->
-    function_name_from_function_hash(SymbolHash, FateCode);
-function_name_from_function_hash(SymbolHash = <<_:4/binary>>, FateCode) ->
+get_function_name_from_function_hash(<<SymbolHash:4/binary, _:28/binary>>, FateCode) ->
+    get_function_name_from_function_hash(SymbolHash, FateCode);
+get_function_name_from_function_hash(SymbolHash = <<_:4/binary>>, FateCode) ->
     Symbols = aeb_fate_code:symbols(FateCode),
     case maps:get(SymbolHash, Symbols, undefined) of
         undefined -> {error, no_function_matching_function_hash};
@@ -45,4 +46,17 @@ get_function_hash_from_calldata(CallData) ->
         _                -> {error, bad_calldata}
     catch _:_ ->
         {error, bad_calldata}
+    end.
+
+-spec get_function_type_from_function_hash(binary(), aeb_fate_code:fcode()) ->
+    {ok, term()} | {error, term()}.
+get_function_type_from_function_hash(<<SymbolHash:4/binary, _:28/binary>>, FateCode) ->
+    get_function_type_from_function_hash(SymbolHash, FateCode);
+get_function_type_from_function_hash(SymbolHash, FateCode) ->
+    Functions = aeb_fate_code:functions(FateCode),
+    case maps:get(SymbolHash, Functions, undefined) of
+        undefined ->
+            {error, no_function_matching_function_hash};
+        {{ArgTypes, RetType}, _Code} ->
+            {ok, ArgTypes, RetType}
     end.

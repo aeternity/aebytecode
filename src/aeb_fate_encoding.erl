@@ -373,6 +373,7 @@ deserialize2(<<?POS_BITS, Rest/binary>>) ->
     {?FATE_BITS(Bint), Rest2};
 deserialize2(<<?LONG_STRING, Rest/binary>>) ->
     {S, Rest2} = deserialize_one(Rest),
+    true = is_integer(S) andalso S >= 0,
     Size = S + ?SHORT_STRING_SIZE,
     String = binary:part(Rest2, 0, Size),
     Rest3 = binary:part(Rest2, byte_size(Rest2), - (byte_size(Rest2) - Size)),

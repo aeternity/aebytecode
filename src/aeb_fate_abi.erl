@@ -49,7 +49,7 @@ get_function_hash_from_calldata(CallData) ->
     end.
 
 -spec get_function_type_from_function_hash(binary(), aeb_fate_code:fcode()) ->
-    {ok, term()} | {error, term()}.
+    {ok, term(), term()} | {error, term()}.
 get_function_type_from_function_hash(<<SymbolHash:4/binary, _:28/binary>>, FateCode) ->
     get_function_type_from_function_hash(SymbolHash, FateCode);
 get_function_type_from_function_hash(SymbolHash, FateCode) ->

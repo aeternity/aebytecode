@@ -27,22 +27,25 @@
 prop_serializes() ->
     in_parallel(
     ?FORALL(FateCode, fate_code(0),
-           ?WHENFAIL(eqc:format("Trying to serialize/deserialize ~p failed~n", [FateCode]),
-                      begin
-                          Binary = aeb_fate_code:serialize(FateCode),
-                          ?WHENFAIL(eqc:format("serialized: ~p~n", [Binary]),
-                                    begin
-                                        Decoded = aeb_fate_code:deserialize(Binary),
-                                        measure(binary_size, size(Binary),
-                                                equals(Decoded, FateCode))
-                                    end)
-                      end))).
+    begin
+        {T0, Binary} = timer:tc(fun() -> aeb_fate_code:serialize(FateCode) end),
+        ?WHENFAIL(eqc:format("serialized:\n  ~120p~n", [Binary]),
+        begin
+            {T1, Decoded} = timer:tc(fun() -> aeb_fate_code:deserialize(Binary) end),
+            measure(binary_size, size(Binary),
+            measure(serialize, T0 / 1000,
+            measure(deserialize, T1 / 1000,
+            conjunction([{equal, equals(Decoded, FateCode)},
+                         {serialize_time, T0 / 1000 < 500},
+                         {deserialize_time, T1 / 1000 < 500}]))))
+        end)
+    end)).
 
 prop_fail_serializes() ->
     conjunction([{Failure, eqc:counterexample(
                              ?FORALL(FateCode, fate_code(Failure),
                                ?FORALL(Binary, catch aeb_fate_code:serialize(FateCode),
-                                         is_binary(aeb_fate_code:serialize(FateCode)))))
+                                         is_binary(Binary))))
                              =/= true} || Failure <- [1,2,3,4, 5] ]).
 
 prop_fuzz() ->
@@ -51,7 +54,7 @@ prop_fuzz() ->
             ?FORALL(InjectedBin, injection(Binary),
                     try Org = aeb_fate_code:deserialize(InjectedBin),
                          NewBin = aeb_fate_code:serialize(Org),
-                         NewOrg = aeb_fate_code:deserialize(NewBin),
+                         NewOrg = (catch aeb_fate_code:deserialize(NewBin)),
                          ?WHENFAIL(eqc:format("Deserialize ~p gives\n~p\nSerializes to ~p\n", [InjectedBin, Org, NewOrg]),
                                    equals(NewBin, InjectedBin))
                     catch _:_ ->
@@ -80,16 +83,23 @@ fate_code(Failure) ->
                 {non_empty(map(if Failure == 1 -> binary(1);
                         true -> binary(4) end,
                      {{list(aefate_type_eqc:fate_type(Size div 3)), aefate_type_eqc:fate_type(Size div 3)}, bbs_code(Failure)})),
-                 map(small_fate_data_key(5), small_fate_data(4)),
-                 map(small_fate_data_key(5), small_fate_data(4))},
+                 small_map(small_fate_data_key(5), small_fate_data(4)),
+                 small_map(small_fate_data_key(5), small_fate_data(4))},
                 aeb_fate_code:update_annotations(
                   aeb_fate_code:update_symbols(
                     aeb_fate_code:update_functions(
                       aeb_fate_code:new(), FMap), SMap), AMap))).
 
+short_list(Max, Gen) ->
+    ?LET(N, choose(0, Max), eqc_gen:list(N, Gen)).
+
+small_map(KeyGen, ValGen) ->
+    ?LET(KeyVals, short_list(6, {KeyGen, ValGen}),
+    return(maps:from_list(KeyVals))).
+
 bbs_code(Failure) ->
     frequency([{if Failure == 2 -> 5; true -> 0 end, #{0 => []}},
-               {10, ?LET(BBs, list(bb_code(Failure)),
+               {10, ?LET(BBs, short_list(6, bb_code(Failure)),
                           maps:from_list(
                             lists:zip(lists:seq(0, length(BBs)-1), BBs)))}]).
 
@@ -97,9 +107,9 @@ bb_code(Failure) ->
     EndBB = [ Op || Op <- valid_opcodes(), aeb_fate_opcodes:end_bb(Op) ],
     NonEndBB = valid_opcodes() -- EndBB,
     frequency(
-      [{if Failure == 3 -> 5; true -> 0 end, ?LET(Ops, non_empty(list(elements(NonEndBB))), bblock(Failure, Ops))},
-       {if Failure == 4 -> 5; true -> 0 end, ?LET({Ops, Op}, {list(elements(valid_opcodes())), elements(EndBB)}, bblock(Failure, Ops ++ [Op]))},
-       {10, ?LET({Ops, Op}, {list(elements(NonEndBB)), elements(EndBB)},
+      [{if Failure == 3 -> 5; true -> 0 end, ?LET(Ops, non_empty(short_list(6, elements(NonEndBB))), bblock(Failure, Ops))},
+       {if Failure == 4 -> 5; true -> 0 end, ?LET({Ops, Op}, {short_list(6, elements(valid_opcodes())), elements(EndBB)}, bblock(Failure, Ops ++ [Op]))},
+       {10, ?LET({Ops, Op}, {short_list(6, elements(NonEndBB)), elements(EndBB)},
                   bblock(Failure, Ops ++ [Op]))}]).
 
 bblock(Failure, Ops) ->
@@ -125,6 +135,26 @@ injection(Binary) ->
              <<X:M, _:8, Z/binary>> = Binary,
              <<X:M, Inj:8, Z/binary>>
          end).
+
+prop_small() ->
+    ?FORALL(Value, small_fate_data(4),
+    begin
+        Bin = aeb_fate_encoding:serialize(Value),
+        Size = byte_size(Bin),
+        measure(size, Size,
+        ?WHENFAIL(eqc:format("Size: ~p\n", [Size]),
+            Size < 1000))
+    end).
+
+prop_small_type() ->
+    ?FORALL(Type, ?SIZED(Size, aefate_type_eqc:fate_type(Size div 3)),
+    begin
+        Bin = iolist_to_binary(aeb_fate_encoding:serialize_type(Type)),
+        Size = byte_size(Bin),
+        measure(size, Size,
+        ?WHENFAIL(eqc:format("Size: ~p\n", [Size]),
+            Size < 1000))
+    end).
 
 small_fate_data(N) ->
     ?SIZED(Size, resize(Size div N, aefate_eqc:fate_data())).

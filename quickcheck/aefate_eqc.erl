@@ -32,21 +32,15 @@ prop_format_scan() ->
                       end)).
 
 prop_serializes() ->
-    ?FORALL(FateDatas, non_empty(?SIZED(Size, resize(Size div 2, list(fate_data())))),
-            ?WHENFAIL(eqc:format("Trying to serialize/deserialize ~p failed~n", [FateDatas]),
+    ?FORALL({Data, Garbage}, {fate_data(), binary()},
+            ?WHENFAIL(eqc:format("Trying to serialize/deserialize ~p failed~n", [Data]),
                       begin
-                          {T1, Binary} =
-                              timer:tc( fun() ->
-                                                << begin B = aeb_fate_encoding:serialize(Data),
-                                                         <<B/binary>> end || Data <- FateDatas >>
-                                        end),
-                          {T2, {FateData, _}} =
-                              timer:tc(fun() -> aeb_fate_encoding:deserialize_one(Binary) end),
+                          Binary = <<(aeb_fate_encoding:serialize(Data))/binary, Garbage/binary>>,
+                          {FateData, Rest} = aeb_fate_encoding:deserialize_one(Binary),
                           measure(binary_size, size(Binary),
-                          measure(encode, T1,
-                          measure(decode, T2,
-                                  conjunction([{equal, equals(hd(FateDatas), FateData)},
-                                               {size, size(Binary) < 500000}]))))
+                                  conjunction([{equal, equals(Data,    FateData)},
+                                               {rest,  equals(Garbage, Rest)},
+                                               {size, size(Binary) < 500000}]))
                       end)).
 
 prop_fuzz() ->
@@ -98,74 +92,65 @@ fate_data() ->
     ?SIZED(Size, ?LET(Data, fate_data(Size, [map, variant]), eqc_symbolic:eval(Data))).
 
 fate_data_key() ->
-    ?SIZED(Size, ?LET(Data, fate_data(Size div 4, []), eqc_symbolic:eval(Data))).
+    ?SIZED(Size, ?LET(Data, fate_data(Size div 4, [variant]), eqc_symbolic:eval(Data))).
 
 fate_data(0, _Options) ->
     ?LAZY(
-       oneof([fate_integer(),
-              fate_boolean(),
-              fate_nil(),
-              fate_unit(),
-              fate_string(),
-              fate_address(),
-              fate_hash(),
-              fate_signature(),
-              fate_contract(),
-              fate_oracle(),
-              fate_oracle_q(),
-              fate_name(),
-              fate_bits(),
-              fate_channel()]));
+       frequency(
+         [{5, oneof([fate_integer(), fate_boolean(), fate_nil(), fate_unit()])},
+          {1, oneof([fate_string(), fate_address(), fate_bytes(), fate_contract(),
+                     fate_oracle(), fate_oracle_q(), fate_name(), fate_bits(), fate_channel()])}]));
 fate_data(Size, Options) ->
-    oneof([?LAZY(fate_data(Size - 1, Options)),
-           ?LAZY(fate_list( fate_data(Size div 5, Options) )),
-           ?LAZY(fate_tuple( list(fate_data(Size div 5, Options)) ))] ++
-              [?LAZY(fate_variant( list(fate_data(Size div 5, Options))))
-               || lists:member(variant, Options)
-              ] ++
-              [
-               ?LAZY(fate_map( fate_data(Size div 8, Options -- [map, variant]),
-                               fate_data(Size div 5, Options)))
-              || lists:member(map, Options)
-              ]).
+    ?LAZY(
+    oneof([fate_data(0, Options),
+           fate_list(Size, Options),
+           fate_tuple(Size, Options)] ++
+          [fate_variant(Size, Options)
+            || lists:member(variant, Options)] ++
+          [fate_map(Size, Options)
+            || lists:member(map, Options)])).
 
 
-fate_integer()    -> {call, aeb_fate_data, make_integer, [oneof([int(), largeint()])]}.
-fate_bits()       -> {call, aeb_fate_data, make_bits, [oneof([int(), largeint()])]}.
-fate_boolean()    -> {call, aeb_fate_data, make_boolean, [elements([true, false])]}.
-fate_nil()        -> {call, aeb_fate_data, make_list, [[]]}.
-fate_unit()       -> {call, aeb_fate_data, make_unit, []}.
-fate_string()     -> {call, aeb_fate_data, make_string,
-                      [frequency([{10, non_quote_string()}, {2, list(non_quote_string())},
-                                  {1, ?LET(N, choose(64-3, 64+3), vector(N, $a))}])]}.
-fate_address()    -> {call, aeb_fate_data, make_address, [non_zero_binary(256 div 8)]}.
-fate_hash()       -> {call, aeb_fate_data, make_hash, [non_zero_binary(32)]}.
-fate_signature()  -> {call, aeb_fate_data, make_signature, [non_zero_binary(64)]}.
-fate_contract()   -> {call, aeb_fate_data, make_contract, [non_zero_binary(256 div 8)]}.
-fate_oracle()     -> {call, aeb_fate_data, make_oracle, [non_zero_binary(256 div 8)]}.
-fate_oracle_q()   -> {call, aeb_fate_data, make_oracle_query, [non_zero_binary(256 div 8)]}.
-fate_name()       -> {call, aeb_fate_data, make_name, [non_zero_binary(256 div 8)]}.
-fate_channel()    -> {call, aeb_fate_data, make_channel, [non_zero_binary(256 div 8)]}.
+fate_integer()    -> ?LET(X, oneof([int(), largeint()]), return(aeb_fate_data:make_integer(X))).
+fate_bits()       -> ?LET(X, oneof([int(), largeint()]), return(aeb_fate_data:make_bits(X))).
+fate_boolean()    -> ?LET(X, elements([true, false]), return(aeb_fate_data:make_boolean(X))).
+fate_nil()        -> aeb_fate_data:make_list([]).
+fate_unit()       -> aeb_fate_data:make_unit().
+fate_string()     -> ?LET(X, frequency([{10, non_quote_string()}, {2, list(non_quote_string())},
+                                  {1, ?LET(N, choose(64-3, 64+3), vector(N, $a))}]),
+                          return(aeb_fate_data:make_string(X))).
+fate_address()    -> ?LET(X, binary(256 div 8), return(aeb_fate_data:make_address(X))).
+fate_bytes()      -> ?LET(X, non_empty(binary()), return(aeb_fate_data:make_bytes(X))).
+fate_contract()   -> ?LET(X, binary(256 div 8), return(aeb_fate_data:make_contract(X))).
+fate_oracle()     -> ?LET(X, binary(256 div 8), return(aeb_fate_data:make_oracle(X))).
+fate_oracle_q()   -> ?LET(X, binary(256 div 8), return(aeb_fate_data:make_oracle_query(X))).
+fate_name()       -> ?LET(X, binary(256 div 8), return(aeb_fate_data:make_name(X))).
+fate_channel()    -> ?LET(X, binary(256 div 8), return(aeb_fate_data:make_channel(X))).
+
+fate_values(Size, N, Options) ->
+    eqc_gen:list(N, fate_data(Size div max(1, N), Options)).
 
 %% May shrink to fate_unit
-fate_tuple(ListGen) ->
-    {call, aeb_fate_data, make_tuple, [?LET(Elements, ListGen, list_to_tuple(Elements))]}.
+fate_tuple(Size, Options) ->
+    ?LET(N, choose(0, 6),
+    ?LETSHRINK(Elements, fate_values(Size, N, Options),
+    return(aeb_fate_data:make_tuple(list_to_tuple(Elements))))).
 
-fate_variant(ListGen) ->
-    ?LET({L1, L2, TupleAsList}, {list(choose(0, 255)), list(choose(0,255)), ListGen},
-         {call, aeb_fate_data, make_variant,
-          [L1 ++ [length(TupleAsList)] ++ L2, length(L1), list_to_tuple(TupleAsList)]}).
+fate_variant(Size, Options) ->
+    ?LET({L1, L2, {tuple, Args}}, {list(choose(0, 255)), list(choose(0,255)), fate_tuple(Size, Options)},
+         return(aeb_fate_data:make_variant(L1 ++ [tuple_size(Args)] ++ L2,
+                                           length(L1), Args))).
 
-fate_list(Gen) ->
-    {call, aeb_fate_data, make_list, [frequency([{20, list(Gen)}, {1, ?LET(N, choose(64-3, 64+3), vector(N, Gen))}])]}.
+fate_list(Size, Options) ->
+    ?LET(N, frequency([{20, choose(0, 6)}, {1, choose(64 - 3, 64 + 3)}]),
+    ?LETSHRINK(Vs, fate_values(Size, N, Options),
+    return(aeb_fate_data:make_list(Vs)))).
 
-fate_map(KeyGen, ValGen) ->
-    {call, aeb_fate_data, make_map, [map(KeyGen, ValGen)]}.
-
-
-non_zero_binary(N) ->
-    Bits = N*8,
-    ?SUCHTHAT(Bin, binary(N), begin <<V:Bits>> = Bin, V =/= 0 end).
+fate_map(Size, Options) ->
+    ?LET(N, choose(0, 6),
+    ?LETSHRINK(Values, fate_values(Size, N, Options),
+    ?LET(Keys, vector(length(Values), fate_data(Size div max(1, N * 2), Options -- [map])),
+    return(aeb_fate_data:make_map(maps:from_list(lists:zip(Keys, Values))))))).
 
 non_quote_string() ->
     ?SUCHTHAT(S, utf8(), [ quote || <<34>> <= S ] == []).

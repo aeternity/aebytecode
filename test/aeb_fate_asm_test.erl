@@ -47,6 +47,7 @@ sources() ->
     , "tuple"
     , "mapofmap"
     , "immediates"
+    , "names"
     , "oracles"
 %%    , "all_instructions"
     ].

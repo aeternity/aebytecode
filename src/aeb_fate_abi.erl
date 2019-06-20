@@ -10,6 +10,7 @@
 -module(aeb_fate_abi).
 
 -export([ create_calldata/2
+        , decode_calldata/2
         , get_function_hash_from_calldata/1
         , get_function_name_from_function_hash/2
         , get_function_type_from_function_hash/2 ]).
@@ -26,6 +27,14 @@ create_calldata(FunName, Args) ->
     {ok, aeb_fate_encoding:serialize(
            aeb_fate_data:make_tuple({FunctionId,
                                      aeb_fate_data:make_tuple(list_to_tuple(Args))}))}.
+
+-spec decode_calldata(list(), binary()) -> {ok, term()} | {error, term()}.
+decode_calldata(FunName, Calldata) ->
+    FunctionId = aeb_fate_code:symbol_identifier(list_to_binary(FunName)),
+    case ?FATE_TUPLE_ELEMENTS(aeb_fate_encoding:deserialize(Calldata)) of
+        [FunctionId, FateArgs] -> {ok, ?FATE_TUPLE_ELEMENTS(FateArgs)};
+        _                      -> {error, decode_error}
+    end.
 
 -spec get_function_name_from_function_hash(binary(), aeb_fate_code:fcode()) ->
     {ok, term()} | {error, term()}.

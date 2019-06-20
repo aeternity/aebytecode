@@ -486,7 +486,5 @@ sort(KVList) ->
 
 valid_key_type(K) when ?IS_FATE_MAP(K) ->
     error({map_as_key_in_map, K});
-valid_key_type(K) when ?IS_FATE_VARIANT(K) ->
-    error({variant_as_key_in_map, K});
 valid_key_type(_K) ->
     true.

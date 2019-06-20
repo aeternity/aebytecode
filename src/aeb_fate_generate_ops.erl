@@ -161,8 +161,8 @@ ops_defs() ->
     , { 'MAP_TO_LIST',         16#70,  false,   3, [a,a],       map_to_list,                               {map},    list, "Arg0 := The tuple list representation of the map Arg1."}
     , { 'STR_LENGTH',          16#71,  false,   3, [a,a],        str_length,                            {string}, integer, "Arg0 := The length of the string Arg1."}
 
-    , { 'ECVERIFY',            16#72,  false, 1300, [a,a,a,a],           ecverify,    {hash, address, signature}, boolean, "Arg0 := ecverify(Hash, PubKey, Signature)"}
-    , { 'ECVERIFY_SECP256K1',  16#73,  false, 1300, [a,a,a,a], ecverify_secp256k1,  {hash, signature, signature}, boolean, "Arg0 := ecverify_secp256k1(Hash, PubKey, Signature)"}
+    , { 'ECVERIFY',            16#72,  false, 1300, [a,a,a,a],           ecverify, {bytes, address, bytes}, boolean, "Arg0 := ecverify(Hash, PubKey, Signature)"}
+    , { 'ECVERIFY_SECP256K1',  16#73,  false, 1300, [a,a,a,a], ecverify_secp256k1,   {bytes, bytes, bytes}, boolean, "Arg0 := ecverify_secp256k1(Hash, PubKey, Signature)"}
 
     , { 'CONTRACT_TO_ADDRESS', 16#74,  false,   3, [a,a], contract_to_address,                        {contract}, address, "Arg0 := Arg1 - A no-op type conversion"}
     , { 'AUTH_TX_HASH',        16#75,  false,   3, [a],          auth_tx_hash,                                {}, variant, "If in GA authentication context return Some(TxHash) otherwise None."}

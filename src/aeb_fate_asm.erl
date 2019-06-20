@@ -282,15 +282,10 @@ to_bytecode([{object,_line, {channel, Value}}|Rest],
     to_bytecode(Rest, Address, Env,
                 [{immediate, aeb_fate_data:make_contract(Value)}|Code],
                 Opts);
-to_bytecode([{hash,_line, Value}|Rest],
+to_bytecode([{bytes,_line, Value}|Rest],
             Address, Env, Code, Opts) ->
     to_bytecode(Rest, Address, Env,
-                [{immediate, aeb_fate_data:make_hash(Value)}|Code],
-                Opts);
-to_bytecode([{signature,_line, {signature, Value}}|Rest],
-            Address, Env, Code, Opts) ->
-    to_bytecode(Rest, Address, Env,
-                [{immediate, aeb_fate_data:make_signature(Value)}|Code],
+                [{immediate, aeb_fate_data:make_bytes(Value)}|Code],
                 Opts);
 to_bytecode([{id,_line, ID}|Rest], Address, Env, Code, Opts) ->
     {Env2, Id} = insert_symbol(list_to_binary(ID), Env),

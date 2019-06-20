@@ -100,6 +100,7 @@ serialize(#fcode{} = F) ->
     serialize(F, []).
 
 serialize(#fcode{} = F, Options) ->
+    sanity_check(F),
     serialize(F, serialize_functions(F), Options).
 
 serialize(#fcode{} = F, Functions, Options) ->
@@ -127,10 +128,8 @@ to_hexstring(ByteList) ->
 serialize_functions(#fcode{ functions = Functions }) ->
     %% Sort the functions on name to get a canonical serialisation.
     iolist_to_binary(
-      lists:foldr(fun({Id, {Sig, C}}, Acc) when byte_size(Id) == 4 ->
-                          [[?FUNCTION, Id, serialize_signature(Sig), serialize_bbs(C)] | Acc];
-                      ({Id, _}, _) ->
-                          error({illegal_function_id, Id})
+      lists:foldr(fun({Id, {Sig, C}}, Acc) ->
+                          [[?FUNCTION, Id, serialize_signature(Sig), serialize_bbs(C)] | Acc]
                   end, [], lists:sort(maps:to_list(Functions)))).
 
 serialize_signature({Args, RetType}) ->
@@ -148,46 +147,70 @@ serialize_bbs(#{} = BBs) ->
 
 serialize_bbs(BBs, N, Acc) ->
     case maps:get(N, BBs, none) of
-        none ->
-            %% Assert that the BBs were contiguous
-            Size = maps:size(BBs),
-            case Size =:= N of
-                true  ->
-                    lists:reverse(Acc);
-                false ->
-                    error({not_contiguous_labels, lists:sort(maps:keys(BBs))})
-            end;
-        [] ->
-            error({empty_code_block, N});
-        BB ->
-            serialize_bbs(BBs, N + 1, [serialize_bb(BB, [])|Acc])
+        none -> lists:reverse(Acc);
+        BB   -> serialize_bbs(BBs, N + 1, [serialize_bb(BB, [])|Acc])
     end.
 
 serialize_bb([Op], Acc) ->
-    lists:reverse([serialize_op(true, Op)|Acc]);
+    lists:reverse([serialize_op(Op)|Acc]);
 serialize_bb([Op|Rest], Acc) ->
-    serialize_bb(Rest, [serialize_op(false, Op)|Acc]).
-%% serialize_bb([], Acc) ->
-%%     lists:reverse(Acc).
+    serialize_bb(Rest, [serialize_op(Op)|Acc]).
 
-serialize_op(Kind, Op) ->
+serialize_op(Op) ->
     [Mnemonic|Args] =
         case is_tuple(Op) of
             true  -> tuple_to_list(Op);
             false -> [Op]
         end,
-    safe_serialize(Kind, aeb_fate_opcodes:m_to_op(Mnemonic), Args).
+    [aeb_fate_opcodes:m_to_op(Mnemonic) | serialize_code(Args)].
 
-safe_serialize(Last, Op, Args) ->
+sanity_check(#fcode{ functions = Funs }) ->
+    _ = [ case Def of
+              {_, BBs} when byte_size(Id) == 4 -> sanity_check_bbs(BBs);
+              _        -> error({illegal_function_id, Id})
+          end || {Id, Def} <- maps:to_list(Funs) ],
+    ok.
+
+sanity_check_bbs(#{} = BBs) ->
+    sanity_check_bbs(BBs, 0).
+
+sanity_check_bbs(BBs, N) ->
+    case maps:get(N, BBs, none) of
+        none ->
+            %% Assert that the BBs were contiguous
+            case maps:size(BBs) =:= N of
+                true  -> ok;
+                false -> error({not_contiguous_labels, lists:sort(maps:keys(BBs))})
+            end;
+        [] ->
+            error({empty_code_block, N});
+        BB ->
+            sanity_check_bb(BB),
+            sanity_check_bbs(BBs, N + 1)
+    end.
+
+sanity_check_bb([Op]) ->
+    sanity_check_op(true, Op);
+sanity_check_bb([Op|Rest]) ->
+    sanity_check_op(false, Op),
+    sanity_check_bb(Rest).
+
+sanity_check_op(IsLast, Op) ->
+    [Mnemonic|Args] =
+        case is_tuple(Op) of
+            true  -> tuple_to_list(Op);
+            false -> [Op]
+        end,
+    safe_sanity_check(IsLast, aeb_fate_opcodes:m_to_op(Mnemonic), Args).
+
+safe_sanity_check(IsLast, Op, Args) ->
    case length(Args) == aeb_fate_opcodes:args(Op) of
        true ->
-           case Last == aeb_fate_opcodes:end_bb(Op) of
-               true -> [Op|serialize_code(Args)];
-               false ->
-                   error({wrong_opcode_in_bb, Op})
+           case IsLast == aeb_fate_opcodes:end_bb(Op) of
+               true  -> ok;
+               false -> error({wrong_opcode_in_bb, Op})
            end;
-       false ->
-           error({wrong_nr_args_opcode, Op})
+       false -> error({wrong_nr_args_opcode, Op})
    end.
 
 
@@ -266,10 +289,13 @@ deserialize(Bytes) ->
            , functions => #{}
            , code => #{}
            },
-    #fcode{ functions = deserialize_functions(ByteCode, Env)
-          , annotations = deserialize_annotations(Annotations)
-          , symbols = deserialize_symbols(SymbolTable)
-          }.
+    Fcode =
+        #fcode{ functions = deserialize_functions(ByteCode, Env)
+              , annotations = deserialize_annotations(Annotations)
+              , symbols = deserialize_symbols(SymbolTable)
+              },
+    sanity_check(Fcode),
+    Fcode.
 
 
 deserialize_functions(<<?FUNCTION:8, A, B, C, D, Rest/binary>>,

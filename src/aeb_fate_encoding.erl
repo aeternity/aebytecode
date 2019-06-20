@@ -73,7 +73,7 @@
 -define(TYPE_MAP     , 2#01100111). %% 0110 0111 | Type | Type
 -define(TYPE_STRING  , 2#01110111). %% 0111 0111 - string typedef
 -define(TYPE_VARIANT , 2#10000111). %% 1000 0111 | [Arities] | [Type]
-                                    %% 1001 0111
+-define(TYPE_BYTES   , 2#10010111). %% 1001 0111 - Bytes typedef
                                     %% 1010 0111
                                     %% 1011 0111
                                     %% 1100 0111
@@ -108,13 +108,12 @@
 
 %% Object types
 -define(OTYPE_ADDRESS,   0).
--define(OTYPE_HASH,      1).
--define(OTYPE_SIGNATURE, 2).
--define(OTYPE_CONTRACT,  3).
--define(OTYPE_ORACLE,    4).
--define(OTYPE_ORACLE_Q,  5).
--define(OTYPE_NAME,      6).
--define(OTYPE_CHANNEL,   7).
+-define(OTYPE_BYTES,     1).
+-define(OTYPE_CONTRACT,  2).
+-define(OTYPE_ORACLE,    3).
+-define(OTYPE_ORACLE_Q,  4).
+-define(OTYPE_NAME,      5).
+-define(OTYPE_CHANNEL,   6).
 
 -define(IS_TYPE_TAG(X), (X =:= ?TYPE_INTEGER orelse
                          X =:= ?TYPE_BOOLEAN orelse
@@ -153,12 +152,10 @@ serialize(String) when ?IS_FATE_STRING(String),
     <<?LONG_STRING,
       (serialize_integer(?FATE_STRING_SIZE(String) - ?SHORT_STRING_SIZE))/binary
      , Bytes/binary>>;
+serialize(?FATE_BYTES(Bytes)) when is_binary(Bytes) ->
+    <<?OBJECT, ?OTYPE_BYTES, (serialize(?FATE_STRING(Bytes)))/binary>>;
 serialize(?FATE_ADDRESS(Address)) when is_binary(Address) ->
     <<?OBJECT, ?OTYPE_ADDRESS, (aeser_rlp:encode(Address))/binary>>;
-serialize(?FATE_HASH(Address)) when is_binary(Address) ->
-    <<?OBJECT, ?OTYPE_HASH, (aeser_rlp:encode(Address))/binary>>;
-serialize(?FATE_SIGNATURE(Address)) when is_binary(Address) ->
-    <<?OBJECT, ?OTYPE_SIGNATURE, (aeser_rlp:encode(Address))/binary>>;
 serialize(?FATE_CONTRACT(Address)) when is_binary(Address) ->
     <<?OBJECT, ?OTYPE_CONTRACT, (aeser_rlp:encode(Address))/binary>>;
 serialize(?FATE_ORACLE(Address)) when is_binary(Address) ->
@@ -233,9 +230,9 @@ serialize_type({tuple, Ts}) ->
         N when N =< 255 ->
             [?TYPE_TUPLE, N | [serialize_type(T) || T <- Ts]]
     end;
+serialize_type({bytes, N}) when 0 =< N ->
+    [?TYPE_BYTES | binary_to_list(serialize_integer(N))];
 serialize_type(address)     -> [?TYPE_OBJECT, ?OTYPE_ADDRESS];
-serialize_type(hash)        -> [?TYPE_OBJECT, ?OTYPE_HASH];
-serialize_type(signature)   -> [?TYPE_OBJECT, ?OTYPE_SIGNATURE];
 serialize_type(contract)    -> [?TYPE_OBJECT, ?OTYPE_CONTRACT];
 serialize_type(oracle)      -> [?TYPE_OBJECT, ?OTYPE_ORACLE];
 serialize_type(oracle_query)-> [?TYPE_OBJECT, ?OTYPE_ORACLE_Q];
@@ -263,11 +260,13 @@ deserialize_type(<<?TYPE_LIST, Rest/binary>>) ->
 deserialize_type(<<?TYPE_TUPLE, N, Rest/binary>>) ->
     {Ts, Rest2} = deserialize_types(N, Rest, []),
     {{tuple, Ts}, Rest2};
+deserialize_type(<<?TYPE_BYTES, Rest/binary>>) ->
+    {N, Rest2} = deserialize_one(Rest),
+    true       = is_integer(N) andalso N >= 0,
+    {{bytes, N}, Rest2};
 deserialize_type(<<?TYPE_OBJECT, ObjectType, Rest/binary>>) ->
     case ObjectType of
         ?OTYPE_ADDRESS   -> {address, Rest};
-        ?OTYPE_HASH      -> {hash, Rest};
-        ?OTYPE_SIGNATURE -> {signature, Rest};
         ?OTYPE_CONTRACT  -> {contract, Rest};
         ?OTYPE_ORACLE    -> {oracle, Rest};
         ?OTYPE_ORACLE_Q  -> {oracle_query, Rest};
@@ -382,13 +381,15 @@ deserialize2(<<S:6, ?SHORT_STRING:2, Rest/binary>>) ->
     String = binary:part(Rest, 0, S),
     Rest2 = binary:part(Rest, byte_size(Rest), - (byte_size(Rest) - S)),
     {?MAKE_FATE_STRING(String), Rest2};
+deserialize2(<<?OBJECT, ?OTYPE_BYTES, Rest/binary>>) ->
+    {String, Rest2} = deserialize_one(Rest),
+    true = ?IS_FATE_STRING(String),
+    {?FATE_BYTES(?FATE_STRING_VALUE(String)), Rest2};
 deserialize2(<<?OBJECT, ObjectType, Rest/binary>>) ->
     {A, Rest2} = aeser_rlp:decode_one(Rest),
     Val =
         case ObjectType of
             ?OTYPE_ADDRESS   -> ?FATE_ADDRESS(A);
-            ?OTYPE_HASH      -> ?FATE_HASH(A);
-            ?OTYPE_SIGNATURE -> ?FATE_SIGNATURE(A);
             ?OTYPE_CONTRACT  -> ?FATE_CONTRACT(A);
             ?OTYPE_ORACLE    -> ?FATE_ORACLE(A);
             ?OTYPE_ORACLE_Q  -> ?FATE_ORACLE_Q(A);
@@ -485,7 +486,5 @@ sort(KVList) ->
 
 valid_key_type(K) when ?IS_FATE_MAP(K) ->
     error({map_as_key_in_map, K});
-valid_key_type(K) when ?IS_FATE_VARIANT(K) ->
-    error({variant_as_key_in_map, K});
 valid_key_type(_K) ->
     true.

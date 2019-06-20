@@ -46,20 +46,23 @@ prop_fail_serializes() ->
                              ?FORALL(FateCode, fate_code(Failure),
                                ?FORALL(Binary, catch aeb_fate_code:serialize(FateCode),
                                          is_binary(Binary))))
-                             =/= true} || Failure <- [1,2,3,4, 5] ]).
+                             =/= true} || Failure <- [1, 2, 3, 4, 5] ]).
 
 prop_fuzz() ->
     in_parallel(
     ?FORALL(Binary, ?LET(FateCode, fate_code(0), aeb_fate_code:serialize(FateCode)),
-            ?FORALL(InjectedBin, injection(Binary),
-                    try Org = aeb_fate_code:deserialize(InjectedBin),
-                         NewBin = aeb_fate_code:serialize(Org),
-                         NewOrg = (catch aeb_fate_code:deserialize(NewBin)),
-                         ?WHENFAIL(eqc:format("Deserialize ~p gives\n~p\nSerializes to ~p\n", [InjectedBin, Org, NewOrg]),
-                                   equals(NewBin, InjectedBin))
-                    catch _:_ ->
-                            true
-                    end))).
+    ?FORALL(FuzzedBin, fuzz(Binary),
+    try aeb_fate_code:deserialize(FuzzedBin) of
+        Code ->
+            ?WHENFAIL(eqc:format("Code:\n  ~p\n", [Code]),
+            begin
+                Bin1  = aeb_fate_code:serialize(Code),
+                Code1 = aeb_fate_code:deserialize(Bin1),
+                ?WHENFAIL(eqc:format("Reserialized\n  ~120p\n", [Bin1]),
+                equals(Code, Code1))
+            end)
+    catch _:_ -> true
+    end))).
 
 prop_opcodes() ->
     ?FORALL(Opcode, choose(0, 16#ff),
@@ -128,8 +131,8 @@ bblock(Failure, Ops) ->
           end
       end || Op <- Ops ].
 
-injection(Binary) ->
-    ?LET({N, Inj}, {choose(0, byte_size(Binary) - 1), choose(0,255)},
+fuzz(Binary) ->
+    ?LET({N, Inj}, {choose(0, byte_size(Binary) - 1), choose(0, 255)},
          begin
              M = N * 8,
              <<X:M, _:8, Z/binary>> = Binary,

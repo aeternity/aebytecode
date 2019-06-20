@@ -12,12 +12,12 @@
 -type fate_map()       :: ?FATE_MAP_T.
 -type fate_string()    :: ?FATE_STRING_T.
 -type fate_address()   :: ?FATE_ADDRESS_T.
--type fate_hash()      :: ?FATE_HASH_T.
+-type fate_hash()      :: ?FATE_BYTES_T(32).
+-type fate_signature() :: ?FATE_BYTES_T(64).
 -type fate_contract()  :: ?FATE_CONTRACT_T.
 -type fate_oracle()    :: ?FATE_ORACLE_T.
 -type fate_name()      :: ?FATE_NAME_T.
 -type fate_channel()   :: ?FATE_CHANNEL_T.
--type fate_signature() :: ?FATE_SIGNATURE_T.
 -type fate_variant()   :: ?FATE_VARIANT_T.
 -type fate_tuple()     :: ?FATE_TUPLE_T.
 -type fate_bits()      :: ?FATE_BITS_T.
@@ -87,6 +87,7 @@
         , make_string/1
         , make_map/1
         , make_address/1
+        , make_bytes/1
         , make_hash/1
         , make_signature/1
         , make_contract/1
@@ -113,8 +114,9 @@ make_unit() ->         ?FATE_UNIT.
 make_tuple(T) ->       ?FATE_TUPLE(T).
 make_map(M) ->         ?MAKE_FATE_MAP(M).
 make_address(X) ->     ?FATE_ADDRESS(X).
-make_hash(X) ->        ?FATE_HASH(X).
-make_signature(X) ->   ?FATE_SIGNATURE(X).
+make_bytes(X) ->       ?FATE_BYTES(X).
+make_hash(X) ->        make_bytes(X).
+make_signature(X) ->   make_bytes(X).
 make_contract(X) ->    ?FATE_CONTRACT(X).
 make_oracle(X) ->      ?FATE_ORACLE(X).
 make_oracle_query(X) -> ?FATE_ORACLE_Q(X).
@@ -168,11 +170,9 @@ format(?FATE_VARIANT(Arities, Tag, T)) ->
      " |)"];
 format(M) when ?IS_FATE_MAP(M) ->
     ["{ ", format_kvs(maps:to_list(?FATE_MAP_VALUE(M))), " }"];
-format(?FATE_HASH(X))       -> ["#", base64:encode(X)];
+format(?FATE_BYTES(X))      -> ["#", base64:encode(X)];
 format(?FATE_ADDRESS(X))    ->
     ["@", aeser_api_encoder:encode(account_pubkey, X)];
-format(?FATE_SIGNATURE(X))  ->
-    ["$", aeser_api_encoder:encode(signature, X)];
 format(?FATE_CONTRACT(X))   ->
     ["@", aeser_api_encoder:encode(contract_pubkey, X)];
 format(?FATE_ORACLE(X))     ->
@@ -218,8 +218,8 @@ ordinal(T) when ?IS_FATE_CHANNEL(T)   -> 3;
 ordinal(T) when ?IS_FATE_CONTRACT(T)  -> 4;
 ordinal(T) when ?IS_FATE_NAME(T)      -> 5;
 ordinal(T) when ?IS_FATE_ORACLE(T)    -> 6;
-ordinal(T) when ?IS_FATE_HASH(T)      -> 7;
-ordinal(T) when ?IS_FATE_SIGNATURE(T) -> 8;
+ordinal(T) when ?IS_FATE_BYTES(T)     -> 7;
+%%                                       8;
 ordinal(T) when ?IS_FATE_BITS(T)      -> 9;
 ordinal(T) when ?IS_FATE_STRING(T)    -> 10;
 ordinal(T) when ?IS_FATE_TUPLE(T)     -> 11;

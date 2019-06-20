@@ -7,8 +7,7 @@
 -define(FATE_MAP_T,       #{ fate_type() => fate_type() }).
 -define(FATE_STRING_T,    binary()).
 -define(FATE_ADDRESS_T,   {address, <<_:256>>}).
--define(FATE_HASH_T,      {hash, binary()}).
--define(FATE_SIGNATURE_T, {signature, binary()}).
+-define(FATE_BYTES_T(N),  {bytes, binary()}).
 -define(FATE_CONTRACT_T,  {contract, <<_:256>>}).
 -define(FATE_ORACLE_T,    {oracle, <<_:256>>}).
 -define(FATE_ORACLE_Q_T,  {oracle_query, <<_:256>>}).
@@ -25,8 +24,8 @@
 -define(IS_FATE_MAP(X),     (is_map(X))).
 -define(IS_FATE_TUPLE(X),   (is_tuple(X) andalso (tuple == element(1, X) andalso is_tuple(element(2, X))))).
 -define(IS_FATE_ADDRESS(X), (is_tuple(X) andalso (address == element(1, X) andalso is_binary(element(2, X))))).
--define(IS_FATE_HASH(X),    (is_tuple(X) andalso (hash == element(1, X) andalso is_binary(element(2, X))))).
--define(IS_FATE_SIGNATURE(X), (is_tuple(X) andalso (signature == element(1, X) andalso is_binary(element(2, X))))).
+-define(IS_FATE_BYTES(X),   (is_tuple(X) andalso (bytes == element(1, X) andalso is_binary(element(2, X))))).
+-define(IS_FATE_BYTES(N, X), (?IS_FATE_BYTES(X) andalso byte_size(element(2, X)) == (N))).
 -define(IS_FATE_CONTRACT(X), (is_tuple(X) andalso (contract == element(1, X) andalso is_binary(element(2, X))))).
 -define(IS_FATE_ORACLE(X), (is_tuple(X) andalso (oracle == element(1, X) andalso is_binary(element(2, X))))).
 -define(IS_FATE_ORACLE_Q(X), (is_tuple(X) andalso (oracle_query == element(1, X) andalso is_binary(element(2, X))))).
@@ -46,8 +45,7 @@
 -define(FATE_UNIT,         {tuple, {}}).
 -define(FATE_TUPLE(T),     {tuple, T}).
 -define(FATE_ADDRESS(A),   {address, A}).
--define(FATE_HASH(X),      {hash, X}).
--define(FATE_SIGNATURE(S), {signature, S}).
+-define(FATE_BYTES(X),     {bytes, X}).
 -define(FATE_CONTRACT(X),  {contract, X}).
 -define(FATE_ORACLE(X),    {oracle, X}).
 -define(FATE_ORACLE_Q(X),  {oracle_query, X}).
@@ -62,8 +60,7 @@
 -define(FATE_TUPLE_ELEMENTS(X), (tuple_to_list(element(2, X)))).
 -define(FATE_STRING_VALUE(X), (X)).
 -define(FATE_ADDRESS_VALUE(X), (element(2, X))).
--define(FATE_HASH_VALUE(X), (element(2, X))).
--define(FATE_SIGNATURE_VALUE(X), (element(2, X))).
+-define(FATE_BYTES_VALUE(X), (element(2, X))).
 -define(FATE_CONTRACT_VALUE(X), (element(2, X))).
 -define(FATE_ORACLE_VALUE(X), (element(2, X))).
 -define(FATE_NAME_VALUE(X), (element(2, X))).

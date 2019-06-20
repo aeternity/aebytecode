@@ -17,8 +17,7 @@ BASE64   = [A-Za-z0-9+/=]
 INT      = {DIGIT}+
 HEX      = 0x{HEXDIGIT}+
 OBJECT   = @[a-z][a-z]_{BASE58}+
-HASH     = #{BASE64}+
-SIG      = \$sg_{BASE58}+
+BYTES    = #{BASE64}+
 WS       = [\000-\s]
 ID       = {LOWER}[a-zA-Z0-9_]*
 STRING   = "[^"]*"
@@ -36,10 +35,8 @@ false          : {token, {boolean, TokenLine, false}}.
 
 FUNCTION       : {token, {function, TokenLine, 'FUNCTION' }}.
 
-{HASH} :
- {token, {hash, TokenLine, parse_hash(TokenChars)}}.
-{SIG} :
- {token, {signature, TokenLine, parse_object(TokenChars)}}.
+{BYTES} :
+ {token, {bytes, TokenLine, parse_hash(TokenChars)}}.
 {OBJECT} :
  {token, {object, TokenLine, parse_object(TokenChars)}}.
 {ID} :

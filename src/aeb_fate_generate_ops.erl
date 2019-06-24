@@ -167,6 +167,9 @@ ops_defs() ->
     , { 'CONTRACT_TO_ADDRESS', 16#74,  false,   3, [a,a], contract_to_address,                        {contract}, address, "Arg0 := Arg1 - A no-op type conversion"}
     , { 'AUTH_TX_HASH',        16#75,  false,   3, [a],          auth_tx_hash,                                {}, variant, "If in GA authentication context return Some(TxHash) otherwise None."}
 
+    , { 'BYTES_TO_INT',        16#76,  false,   3, [a,a],        bytes_to_int,                           {bytes}, integer, "Arg0 := bytes_to_int(Arg1)"}
+    , { 'BYTES_TO_STR',        16#77,  false,   3, [a,a],        bytes_to_str,                           {bytes},  string, "Arg0 := bytes_to_str(Arg1)"}
+
     , { 'DEACTIVATE',          16#fa,  false,   3, [],           deactivate,                                  {},    none, "Mark the current contract for deactivation."}
     , { 'ABORT',               16#fb,   true,   3, [a],               abort,                            {string},    none, "Abort execution (dont use all gas) with error message in Arg0."}
     , { 'EXIT',                16#fc,   true,   3, [a],                exit,                            {string},    none, "Abort execution (use upp all gas) with error message in Arg0."}

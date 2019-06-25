@@ -170,6 +170,13 @@ ops_defs() ->
     , { 'BYTES_TO_INT',        16#76,  false,   3, [a,a],        bytes_to_int,                           {bytes}, integer, "Arg0 := bytes_to_int(Arg1)"}
     , { 'BYTES_TO_STR',        16#77,  false,   3, [a,a],        bytes_to_str,                           {bytes},  string, "Arg0 := bytes_to_str(Arg1)"}
 
+    , { 'ORACLE_CHECK',        16#78,  false,   3, [a,a,a,a],    oracle_check,        {oracle, typerep, typerep},    bool, "Arg0 := is Arg1 an oracle with the given query (Arg2) and response (Arg3) types"}
+    , { 'ORACLE_CHECK_QUERY',  16#79,  false,   3, [a,a,a,a,a], oracle_check_query, {oracle, oracle_query, typerep, typerep}, bool, "Arg0 := is Arg2 a query for the oracle Arg1 with the given types (Arg3, Arg4)"}
+
+    , { 'IS_ORACLE',           16#7a,  false,   3, [a,a],         is_oracle,                           {address},    bool, "Arg0 := is Arg1 an oracle"}
+    , { 'IS_CONTRACT',         16#7b,  false,   3, [a,a],       is_contract,                           {address},    bool, "Arg0 := is Arg1 a contract"}
+    , { 'CREATOR',             16#7c,  false,   3, [a],    contract_creator,                                  {}, address, "Arg0 := contract creator"}
+
     , { 'DEACTIVATE',          16#fa,  false,   3, [],           deactivate,                                  {},    none, "Mark the current contract for deactivation."}
     , { 'ABORT',               16#fb,   true,   3, [a],               abort,                            {string},    none, "Abort execution (dont use all gas) with error message in Arg0."}
     , { 'EXIT',                16#fc,   true,   3, [a],                exit,                            {string},    none, "Abort execution (use upp all gas) with error message in Arg0."}

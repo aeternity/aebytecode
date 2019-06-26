@@ -153,8 +153,6 @@ ops_defs() ->
     , { 'AENS_PRECLAIM',       16#69,  false,   false,   3, [a,a,a],   aens_preclaim,          {signature, address, hash},    none, "Preclaim the hash in Arg2 for address in Arg1. Arg0 contains delegation signature."}
     , { 'AENS_CLAIM',          16#6a,  false,   false,   3, [a,a,a,a],    aens_claim, {signature, address, string, integer},  none, "Claim the name in Arg2 for address in Arg1. Arg3 contains the salt used to hash the preclaim. Arg0 contains delegation signature."}
     , { 'AENS_UPDATE',         16#6b,  false,   false,   3, [],          aens_update,                                  {},    none, "NYI"}
-    , { 'AENS_TRANSFER',       16#6c,  false,   false,   3, [a,a,a,a], aens_transfer, {signature, address, address, name},    none, "Transfer ownership of name Arg3 from account Arg1 to Arg2. Arg0 contains delegation signature."}
-    , { 'AENS_REVOKE',         16#6d,  false,   false,   3, [a,a,a],     aens_revoke,          {signature, address, name},    none, "Revoke the name in Arg2 from owner Arg1. Arg0 contains delegation signature."}
     , { 'AENS_TRANSFER',       16#6c,  false,   false,   3, [a,a,a,a], aens_transfer, {signature, address, address, hash},    none, "Transfer ownership of name Arg3 from account Arg1 to Arg2. Arg0 contains delegation signature."}
     , { 'AENS_REVOKE',         16#6d,  false,   false,   3, [a,a,a],     aens_revoke,          {signature, address, hash},    none, "Revoke the name in Arg2 from owner Arg1. Arg0 contains delegation signature."}
     , { 'BALANCE_OTHER',       16#6e,  false,   true,    3, [a,a],     balance_other,                           {address}, integer, "Arg0 := The balance of address Arg1."}

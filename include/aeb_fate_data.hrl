@@ -11,7 +11,6 @@
 -define(FATE_CONTRACT_T,  {contract, <<_:256>>}).
 -define(FATE_ORACLE_T,    {oracle, <<_:256>>}).
 -define(FATE_ORACLE_Q_T,  {oracle_query, <<_:256>>}).
--define(FATE_NAME_T,      {name, <<_:256>>}).
 -define(FATE_CHANNEL_T,   {channel, <<_:256>>}).
 -define(FATE_VARIANT_T,   {variant, [byte()], ?FATE_BYTE_T, tuple()}).
 -define(FATE_VOID_T,      void).
@@ -29,7 +28,6 @@
 -define(IS_FATE_CONTRACT(X), (is_tuple(X) andalso (contract == element(1, X) andalso is_binary(element(2, X))))).
 -define(IS_FATE_ORACLE(X), (is_tuple(X) andalso (oracle == element(1, X) andalso is_binary(element(2, X))))).
 -define(IS_FATE_ORACLE_Q(X), (is_tuple(X) andalso (oracle_query == element(1, X) andalso is_binary(element(2, X))))).
--define(IS_FATE_NAME(X), (is_tuple(X) andalso (name == element(1, X) andalso is_binary(element(2, X))))).
 -define(IS_FATE_CHANNEL(X), (is_tuple(X) andalso (channel == element(1, X) andalso is_binary(element(2, X))))).
 -define(IS_FATE_BITS(X), (is_tuple(X) andalso (bits == element(1, X) andalso is_integer(element(2, X))))).
 -define(IS_FATE_VARIANT(X), (is_tuple(X)
@@ -49,7 +47,6 @@
 -define(FATE_CONTRACT(X),  {contract, X}).
 -define(FATE_ORACLE(X),    {oracle, X}).
 -define(FATE_ORACLE_Q(X),  {oracle_query, X}).
--define(FATE_NAME(X),      {name, X}).
 -define(FATE_CHANNEL(X),   {channel, X}).
 -define(FATE_BITS(B),      {bits, B}).
 -define(FATE_TYPEREP(T),   {typerep, T}).
@@ -63,7 +60,6 @@
 -define(FATE_BYTES_VALUE(X), (element(2, X))).
 -define(FATE_CONTRACT_VALUE(X), (element(2, X))).
 -define(FATE_ORACLE_VALUE(X), (element(2, X))).
--define(FATE_NAME_VALUE(X), (element(2, X))).
 -define(FATE_CHANNEL_VALUE(X), (element(2, X))).
 -define(FATE_BITS_VALUE(X), (element(2, X))).
 -define(FATE_MAP_VALUE(X), (X)).

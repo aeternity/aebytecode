@@ -117,7 +117,6 @@ parse_object([_|Chars]) ->
        {contract_pubkey, Bin} -> {contract, Bin};
        {oracle_pubkey, Bin}   -> {oracle, Bin};
        {oracle_query_id, Bin} -> {oracle_query, Bin};
-       {name, Bin}            -> {name, Bin};
        {channel, Bin}         -> {channel, Bin};
        {signature, Bin}       -> {signature, Bin}
     end.

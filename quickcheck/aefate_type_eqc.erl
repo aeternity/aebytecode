@@ -38,7 +38,6 @@ fate_type(0) ->
            {bytes, nat()},
            contract,
            oracle,
-           name,
            channel,
            bits,
            string]);

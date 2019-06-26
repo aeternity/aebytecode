@@ -49,7 +49,7 @@ or start with stack followed by an integer
 `stack1`
 `a`
 
-Immediate values can be of 11 types:
+Immediate values can be of 10 types:
 
 1. Integers as decimals: {Digits} or -{Digits}
  `42`
@@ -70,8 +70,8 @@ Immediate values can be of 11 types:
 2c. Oracle address: @ok_{base58char}+
  `@ok_nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv`
 
-2d. Name address: @nm_{base58char}+
- `@nm_nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv`
+2d. Oracle query: @oq_{base58char}+
+ `@oq_nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv`
 
 2e. Channel address: @ch_{base58char}+
  `@ch_nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv`
@@ -104,10 +104,8 @@ Immediate values can be of 11 types:
 9. Variants: (| [Arities] | Tag | ( Elements ) |)
  `(| [1,3,5,2]  | 3 | ( "foo", 12) |)`
 
-10. Hashes: #{base64char}+
+10. Bytes: #{base64char}+
  `#AQIDCioLFQ==`
-
-11. Signatures: $sg_{base58char}+
 
 
 Where

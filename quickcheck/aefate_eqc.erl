@@ -99,7 +99,7 @@ fate_data(0, _Options) ->
        frequency(
          [{5, oneof([fate_integer(), fate_boolean(), fate_nil(), fate_unit()])},
           {1, oneof([fate_string(), fate_address(), fate_bytes(), fate_contract(),
-                     fate_oracle(), fate_oracle_q(), fate_name(), fate_bits(), fate_channel()])}]));
+                     fate_oracle(), fate_oracle_q(), fate_bits(), fate_channel()])}]));
 fate_data(Size, Options) ->
     ?LAZY(
     oneof([fate_data(0, Options),
@@ -124,7 +124,6 @@ fate_bytes()      -> ?LET(X, non_empty(binary()), return(aeb_fate_data:make_byte
 fate_contract()   -> ?LET(X, binary(256 div 8), return(aeb_fate_data:make_contract(X))).
 fate_oracle()     -> ?LET(X, binary(256 div 8), return(aeb_fate_data:make_oracle(X))).
 fate_oracle_q()   -> ?LET(X, binary(256 div 8), return(aeb_fate_data:make_oracle_query(X))).
-fate_name()       -> ?LET(X, binary(256 div 8), return(aeb_fate_data:make_name(X))).
 fate_channel()    -> ?LET(X, binary(256 div 8), return(aeb_fate_data:make_channel(X))).
 
 fate_values(Size, N, Options) ->

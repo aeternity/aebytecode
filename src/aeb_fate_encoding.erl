@@ -112,8 +112,7 @@
 -define(OTYPE_CONTRACT,  2).
 -define(OTYPE_ORACLE,    3).
 -define(OTYPE_ORACLE_Q,  4).
--define(OTYPE_NAME,      5).
--define(OTYPE_CHANNEL,   6).
+-define(OTYPE_CHANNEL,   5).
 
 -define(IS_TYPE_TAG(X), (X =:= ?TYPE_INTEGER orelse
                          X =:= ?TYPE_BOOLEAN orelse
@@ -162,8 +161,6 @@ serialize(?FATE_ORACLE(Address)) when is_binary(Address) ->
     <<?OBJECT, ?OTYPE_ORACLE, (aeser_rlp:encode(Address))/binary>>;
 serialize(?FATE_ORACLE_Q(Address)) when is_binary(Address) ->
     <<?OBJECT, ?OTYPE_ORACLE_Q, (aeser_rlp:encode(Address))/binary>>;
-serialize(?FATE_NAME(Address)) when is_binary(Address) ->
-    <<?OBJECT, ?OTYPE_NAME, (aeser_rlp:encode(Address))/binary>>;
 serialize(?FATE_CHANNEL(Address)) when is_binary(Address) ->
     <<?OBJECT, ?OTYPE_CHANNEL, (aeser_rlp:encode(Address))/binary>>;
 serialize(?FATE_TUPLE(T)) when size(T) > 0 ->
@@ -236,7 +233,6 @@ serialize_type(address)     -> [?TYPE_OBJECT, ?OTYPE_ADDRESS];
 serialize_type(contract)    -> [?TYPE_OBJECT, ?OTYPE_CONTRACT];
 serialize_type(oracle)      -> [?TYPE_OBJECT, ?OTYPE_ORACLE];
 serialize_type(oracle_query)-> [?TYPE_OBJECT, ?OTYPE_ORACLE_Q];
-serialize_type(name)        -> [?TYPE_OBJECT, ?OTYPE_NAME];
 serialize_type(channel)     -> [?TYPE_OBJECT, ?OTYPE_CHANNEL];
 serialize_type(bits)        -> [?TYPE_BITS];
 serialize_type({map, K, V}) -> [?TYPE_MAP
@@ -270,7 +266,6 @@ deserialize_type(<<?TYPE_OBJECT, ObjectType, Rest/binary>>) ->
         ?OTYPE_CONTRACT  -> {contract, Rest};
         ?OTYPE_ORACLE    -> {oracle, Rest};
         ?OTYPE_ORACLE_Q  -> {oracle_query, Rest};
-        ?OTYPE_NAME      -> {name, Rest};
         ?OTYPE_CHANNEL   -> {channel, Rest}
     end;
 deserialize_type(<<?TYPE_BITS, Rest/binary>>) -> {bits, Rest};
@@ -393,7 +388,6 @@ deserialize2(<<?OBJECT, ObjectType, Rest/binary>>) ->
             ?OTYPE_CONTRACT  -> ?FATE_CONTRACT(A);
             ?OTYPE_ORACLE    -> ?FATE_ORACLE(A);
             ?OTYPE_ORACLE_Q  -> ?FATE_ORACLE_Q(A);
-            ?OTYPE_NAME      -> ?FATE_NAME(A);
             ?OTYPE_CHANNEL   -> ?FATE_CHANNEL(A)
         end,
     {Val, Rest2};

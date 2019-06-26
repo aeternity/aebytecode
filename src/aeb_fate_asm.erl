@@ -33,7 +33,7 @@
 %%%      References to the top of the stack is the letter a (for accumulator)
 %%%          a
 %%%
-%%%      Immediate values can be of 11 types:
+%%%      Immediate values can be of 10 types:
 %%%      1a. Integers as decimals: {Digits} or -{Digits}
 %%%          42
 %%%          -2374683271468723648732648736498712634876147
@@ -42,7 +42,7 @@
 %%%      2a. account addresses, a base58c encoded string prefixed with @ak_
 %%%      2b. contract address: @ct_{base58char}+
 %%%      2c. oracle address:   @ok_{base58char}+
-%%%      2d. name address:     @nm_{base58char}+
+%%%      2d. oracle query id:  @oq_{base58char}+
 %%%      2e. channel address:  @ch_{base58char}+
 %%%       3. Boolean  true or false
 %%%          true
@@ -65,9 +65,8 @@
 %%%          (1, "foo")
 %%%       9. Variants: (| [Arities] | Tag | ( Elements ) |)
 %%%          (| [0,1,2] | 2 | ( "foo", 12) |)
-%%%      10. Hashes: #{base64char}+
+%%%      10. Bytes: #{base64char}+
 %%%          #AQIDCioLFQ==
-%%%      11. Signatures: $sg_{base58char}+
 %%%
 %%%       Where Digits: [0123456789]
 %%%             Hexdigits:  [0123456789abcdef]
@@ -272,11 +271,6 @@ to_bytecode([{object,_line, {oracle_query, Value}}|Rest],
     to_bytecode(Rest, Address, Env,
                 [{immediate, aeb_fate_data:make_oracle_query(Value)}|Code],
                 Opts);
-to_bytecode([{object,_line, {name, Value}}|Rest],
-            Address, Env, Code, Opts) ->
-    to_bytecode(Rest, Address, Env,
-                [{immediate, aeb_fate_data:make_name(Value)}|Code],
-                Opts);
 to_bytecode([{object,_line, {channel, Value}}|Rest],
             Address, Env, Code, Opts) ->
     to_bytecode(Rest, Address, Env,
@@ -402,8 +396,6 @@ parse_value([{object,_line, {oracle, Address}} | Rest]) ->
     {aeb_fate_data:make_oracle(Address), Rest};
 parse_value([{object,_line, {oracle_query, Address}} | Rest]) ->
     {aeb_fate_data:make_oracle_query(Address), Rest};
-parse_value([{object,_line, {name, Address}} | Rest]) ->
-    {aeb_fate_data:make_name(Address), Rest};
 parse_value([{object,_line, {channel, Address}} | Rest]) ->
     {aeb_fate_data:make_channel(Address), Rest};
 parse_value([{hash,_line, Hash} | Rest]) ->
@@ -456,6 +448,9 @@ to_type([{'{', _}, {id, _, "map"}, {',', _} | Rest]) ->
     {KeyType, [{',', _}| Rest2]} = to_type(Rest),
     {ValueType, [{'}', _}| Rest3]} = to_type(Rest2),
     {{map, KeyType, ValueType}, Rest3};
+to_type([{'{', _}, {id, _, "bytes"}, {',', _}, {int, _, Size}, {'}', _} | Rest]) ->
+    %% TODO: Error handling
+    {{bytes, Size}, Rest};
 to_type([{'{', _}
         , {id, _, "variant"}
         , {',', _}

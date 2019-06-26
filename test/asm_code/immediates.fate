@@ -74,9 +74,6 @@ FUNCTION oracle() : oracle
 FUNCTION contract() : contract
          RETURNR @ct_nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv
 
-FUNCTION name() : name
-         RETURNR @nm_nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv
-
 FUNCTION channel() : channel
          RETURNR @ch_nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv
 

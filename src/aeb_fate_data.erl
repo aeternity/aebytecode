@@ -16,7 +16,6 @@
 -type fate_signature() :: ?FATE_BYTES_T(64).
 -type fate_contract()  :: ?FATE_CONTRACT_T.
 -type fate_oracle()    :: ?FATE_ORACLE_T.
--type fate_name()      :: ?FATE_NAME_T.
 -type fate_channel()   :: ?FATE_CHANNEL_T.
 -type fate_variant()   :: ?FATE_VARIANT_T.
 -type fate_tuple()     :: ?FATE_TUPLE_T.
@@ -32,7 +31,6 @@
                         | signature
                         | contract
                         | oracle
-                        | name
                         | channel
                         | bits
                         | string
@@ -52,7 +50,6 @@
       | fate_signature()
       | fate_contract()
       | fate_oracle()
-      | fate_name()
       | fate_channel()
       | fate_variant()
       | fate_map()
@@ -71,7 +68,6 @@
              , fate_signature/0
              , fate_contract/0
              , fate_oracle/0
-             , fate_name/0
              , fate_channel/0
              , fate_variant/0
              , fate_map/0
@@ -93,7 +89,6 @@
         , make_contract/1
         , make_oracle/1
         , make_oracle_query/1
-        , make_name/1
         , make_channel/1
         , make_bits/1
         , make_unit/0
@@ -120,7 +115,6 @@ make_signature(X) ->   make_bytes(X).
 make_contract(X) ->    ?FATE_CONTRACT(X).
 make_oracle(X) ->      ?FATE_ORACLE(X).
 make_oracle_query(X) -> ?FATE_ORACLE_Q(X).
-make_name(X) ->        ?FATE_NAME(X).
 make_channel(X) ->     ?FATE_CHANNEL(X).
 make_integer(I) when is_integer(I) -> ?MAKE_FATE_INTEGER(I).
 make_bits(I)    when is_integer(I) -> ?FATE_BITS(I).
@@ -179,8 +173,6 @@ format(?FATE_ORACLE(X))     ->
     ["@", aeser_api_encoder:encode(oracle_pubkey, X)];
 format(?FATE_ORACLE_Q(X))     ->
     ["@", aeser_api_encoder:encode(oracle_query_id, X)];
-format(?FATE_NAME(X))       ->
-    ["@", aeser_api_encoder:encode(name, X)];
 format(?FATE_CHANNEL(X))    ->
     ["@", aeser_api_encoder:encode(channel, X)];
 format(?FATE_TYPEREP(X))    ->
@@ -208,7 +200,7 @@ format_kvs(List) ->
 
 
 %% Total order of FATE terms.
-%%  Integers < Booleans < Address < Channel < Contract < Name < Oracle
+%%  Integers < Booleans < Address < Channel < Contract < Oracle
 %%   < Hash < Signature < Bits < String < Tuple < Map < List < Variant
 -spec ordinal(fate_type()) -> integer().
 ordinal(T) when ?IS_FATE_INTEGER(T)   -> 0;
@@ -216,7 +208,7 @@ ordinal(T) when ?IS_FATE_BOOLEAN(T)   -> 1;
 ordinal(T) when ?IS_FATE_ADDRESS(T)   -> 2;
 ordinal(T) when ?IS_FATE_CHANNEL(T)   -> 3;
 ordinal(T) when ?IS_FATE_CONTRACT(T)  -> 4;
-ordinal(T) when ?IS_FATE_NAME(T)      -> 5;
+%%                                       5
 ordinal(T) when ?IS_FATE_ORACLE(T)    -> 6;
 ordinal(T) when ?IS_FATE_BYTES(T)     -> 7;
 %%                                       8;

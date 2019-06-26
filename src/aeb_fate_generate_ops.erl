@@ -149,12 +149,12 @@ ops_defs() ->
     , { 'ORACLE_GET_ANSWER',   16#65,  false,   false,   3, [a,a,a,a,a], oracle_get_answer, {oracle, oracle_query, typerep, typerep}, any, "Arg0 := option variant with answer (if any) from oracle query in Arg1 given by oracle Arg0. Typereps for checking oracle type is in Arg3 and Arg4."}
     , { 'ORACLE_GET_QUESTION', 16#66,  false,   false,   3, [a,a,a,a,a], oracle_get_question, {oracle, oracle_query, typerep, typerep}, any, "Arg0 := question in oracle query Arg2 given to oracle Arg1. Typereps for checking oracle type is in Arg3 and Arg4."}
     , { 'ORACLE_QUERY_FEE',    16#67,  false,   false,   3, [a,a],  oracle_query_fee,                            {oracle},  integer, "Arg0 := query fee for oracle Arg1"}
-    , { 'AENS_RESOLVE',        16#68,  false,   false,   3, [],         aens_resolve,                                  {},    none, "NYI"}
-    , { 'AENS_PRECLAIM',       16#69,  false,   false,   3, [],        aens_preclaim,                                  {},    none, "NYI"}
-    , { 'AENS_CLAIM',          16#6a,  false,   false,   3, [],           aens_claim,                                  {},    none, "NYI"}
-    , { 'AENS_UPDATE',         16#6b,  false,   false,   3, [],          aend_update,                                  {},    none, "NYI"}
-    , { 'AENS_TRANSFER',       16#6c,  false,   false,   3, [],        aens_transfer,                                  {},    none, "NYI"}
-    , { 'AENS_REVOKE',         16#6d,  false,   false,   3, [],          aens_revoke,                                  {},    none, "NYI"}
+    , { 'AENS_RESOLVE',        16#68,  false,   false,   3, [a,a,a,a],  aens_resolve,           {string, string, typerep},  variant, "Resolve name in Arg0 with tag Arg1. Arg2 describes the type parameter of the resolved name."}
+    , { 'AENS_PRECLAIM',       16#69,  false,   false,   3, [a,a,a],   aens_preclaim,          {signature, address, hash},    none, "Preclaim the hash in Arg2 for address in Arg1. Arg0 contains delegation signature."}
+    , { 'AENS_CLAIM',          16#6a,  false,   false,   3, [a,a,a,a],    aens_claim, {signature, address, string, integer},  none, "Claim the name in Arg2 for address in Arg1. Arg3 contains the salt used to hash the preclaim. Arg0 contains delegation signature."}
+    , { 'AENS_UPDATE',         16#6b,  false,   false,   3, [],          aens_update,                                  {},    none, "NYI"}
+    , { 'AENS_TRANSFER',       16#6c,  false,   false,   3, [a,a,a,a], aens_transfer, {signature, address, address, hash},    none, "Transfer ownership of name Arg3 from account Arg1 to Arg2. Arg0 contains delegation signature."}
+    , { 'AENS_REVOKE',         16#6d,  false,   false,   3, [a,a,a],     aens_revoke,          {signature, address, hash},    none, "Revoke the name in Arg2 from owner Arg1. Arg0 contains delegation signature."}
     , { 'BALANCE_OTHER',       16#6e,  false,    true,   3, [a,a],     balance_other,                           {address}, integer, "Arg0 := The balance of address Arg1."}
       %% TODO: Reorder these before documenting the specification
     , { 'MAP_SIZE',            16#6f,  false,    true,   3, [a,a],         map_size_,                               {map}, integer, "Arg0 := The size of the map Arg1."}

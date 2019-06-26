@@ -155,7 +155,7 @@ ops_defs() ->
     , { 'AENS_UPDATE',         16#6b,  false,   false,   3, [],          aens_update,                                  {},    none, "NYI"}
     , { 'AENS_TRANSFER',       16#6c,  false,   false,   3, [a,a,a,a], aens_transfer, {signature, address, address, hash},    none, "Transfer ownership of name Arg3 from account Arg1 to Arg2. Arg0 contains delegation signature."}
     , { 'AENS_REVOKE',         16#6d,  false,   false,   3, [a,a,a],     aens_revoke,          {signature, address, hash},    none, "Revoke the name in Arg2 from owner Arg1. Arg0 contains delegation signature."}
-    , { 'BALANCE_OTHER',       16#6e,  false,   true,    3, [a,a],     balance_other,                           {address}, integer, "Arg0 := The balance of address Arg1."}
+    , { 'BALANCE_OTHER',       16#6e,  false,    true,   3, [a,a],     balance_other,                           {address}, integer, "Arg0 := The balance of address Arg1."}
       %% TODO: Reorder these before documenting the specification
     , { 'MAP_SIZE',            16#6f,  false,    true,   3, [a,a],         map_size_,                               {map}, integer, "Arg0 := The size of the map Arg1."}
     , { 'MAP_TO_LIST',         16#70,  false,    true,   3, [a,a],       map_to_list,                               {map},    list, "Arg0 := The tuple list representation of the map Arg1."}

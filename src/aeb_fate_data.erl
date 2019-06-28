@@ -202,23 +202,36 @@ format_kvs(List) ->
 %% Total order of FATE terms.
 %%  Integers < Booleans < Address < Channel < Contract < Oracle
 %%   < Hash < Signature < Bits < String < Tuple < Map < List < Variant
+-define(ORD_INTEGER  , 0).
+-define(ORD_BOOLEAN  , 1).
+-define(ORD_ADDRESS  , 2).
+-define(ORD_CHANNEL  , 3).
+-define(ORD_CONTRACT , 4).
+-define(ORD_ORACLE   , 5).
+-define(ORD_BYTES    , 6).
+-define(ORD_BITS     , 7).
+-define(ORD_STRING   , 8).
+-define(ORD_TUPLE    , 9).
+-define(ORD_MAP      , 10).
+-define(ORD_LIST     , 11).
+-define(ORD_VARIANT  , 12).
+-define(ORD_ORACLE_Q , 13).
+
 -spec ordinal(fate_type()) -> integer().
-ordinal(T) when ?IS_FATE_INTEGER(T)   -> 0;
-ordinal(T) when ?IS_FATE_BOOLEAN(T)   -> 1;
-ordinal(T) when ?IS_FATE_ADDRESS(T)   -> 2;
-ordinal(T) when ?IS_FATE_CHANNEL(T)   -> 3;
-ordinal(T) when ?IS_FATE_CONTRACT(T)  -> 4;
-%%                                       5
-ordinal(T) when ?IS_FATE_ORACLE(T)    -> 6;
-ordinal(T) when ?IS_FATE_BYTES(T)     -> 7;
-%%                                       8;
-ordinal(T) when ?IS_FATE_BITS(T)      -> 9;
-ordinal(T) when ?IS_FATE_STRING(T)    -> 10;
-ordinal(T) when ?IS_FATE_TUPLE(T)     -> 11;
-ordinal(T) when ?IS_FATE_MAP(T)       -> 12;
-ordinal(T) when ?IS_FATE_LIST(T)      -> 13;
-ordinal(T) when ?IS_FATE_VARIANT(T)   -> 14;
-ordinal(T) when ?IS_FATE_ORACLE_Q(T)  -> 15.
+ordinal(T) when ?IS_FATE_INTEGER(T)   -> ?ORD_INTEGER;
+ordinal(T) when ?IS_FATE_BOOLEAN(T)   -> ?ORD_BOOLEAN;
+ordinal(T) when ?IS_FATE_ADDRESS(T)   -> ?ORD_ADDRESS;
+ordinal(T) when ?IS_FATE_CHANNEL(T)   -> ?ORD_CHANNEL;
+ordinal(T) when ?IS_FATE_CONTRACT(T)  -> ?ORD_CONTRACT;
+ordinal(T) when ?IS_FATE_ORACLE(T)    -> ?ORD_ORACLE;
+ordinal(T) when ?IS_FATE_BYTES(T)     -> ?ORD_BYTES;
+ordinal(T) when ?IS_FATE_BITS(T)      -> ?ORD_BITS;
+ordinal(T) when ?IS_FATE_STRING(T)    -> ?ORD_STRING;
+ordinal(T) when ?IS_FATE_TUPLE(T)     -> ?ORD_TUPLE;
+ordinal(T) when ?IS_FATE_MAP(T)       -> ?ORD_MAP;
+ordinal(T) when ?IS_FATE_LIST(T)      -> ?ORD_LIST;
+ordinal(T) when ?IS_FATE_VARIANT(T)   -> ?ORD_VARIANT;
+ordinal(T) when ?IS_FATE_ORACLE_Q(T)  -> ?ORD_ORACLE_Q.
 
 
 -spec lt(fate_type(), fate_type()) -> boolean().
@@ -230,12 +243,12 @@ lt(A, B) ->
     end.
 
 %% Integers are ordered as usual.
-lt(0, A, B) when ?IS_FATE_INTEGER(A), ?IS_FATE_INTEGER(B) ->
+lt(?ORD_INTEGER, A, B) when ?IS_FATE_INTEGER(A), ?IS_FATE_INTEGER(B) ->
     ?FATE_INTEGER_VALUE(A) < ?FATE_INTEGER_VALUE(B);
 %% false is smaller than true (true also for erlang booleans).
-lt(1, A, B) when ?IS_FATE_BOOLEAN(A), ?IS_FATE_BOOLEAN(B) ->
+lt(?ORD_BOOLEAN, A, B) when ?IS_FATE_BOOLEAN(A), ?IS_FATE_BOOLEAN(B) ->
     ?FATE_BOOLEAN_VALUE(A) < ?FATE_BOOLEAN_VALUE(B);
-lt(9, A, B) when ?IS_FATE_BITS(A), ?IS_FATE_BITS(B) ->
+lt(?ORD_BITS, A, B) when ?IS_FATE_BITS(A), ?IS_FATE_BITS(B) ->
     BitsA = ?FATE_BITS_VALUE(A),
     BitsB = ?FATE_BITS_VALUE(B),
     if BitsA < 0 ->
@@ -246,7 +259,7 @@ lt(9, A, B) when ?IS_FATE_BITS(A), ?IS_FATE_BITS(B) ->
             true;
        true -> BitsA < BitsB
     end;
-lt(10,?FATE_STRING(A), ?FATE_STRING(B)) ->
+lt(?ORD_STRING,?FATE_STRING(A), ?FATE_STRING(B)) ->
     SizeA = size(A),
     SizeB = size(B),
     case SizeA - SizeB of
@@ -254,23 +267,23 @@ lt(10,?FATE_STRING(A), ?FATE_STRING(B)) ->
         N -> N < 0
     end;
 
-lt(11,?FATE_TUPLE(A), ?FATE_TUPLE(B)) ->
+lt(?ORD_TUPLE,?FATE_TUPLE(A), ?FATE_TUPLE(B)) ->
     SizeA = size(A),
     SizeB = size(B),
     case SizeA - SizeB of
         0 -> tuple_elements_lt(0, A, B, SizeA);
         N -> N < 0
     end;
-lt(12, ?FATE_MAP_VALUE(A), ?FATE_MAP_VALUE(B)) ->
+lt(?ORD_MAP, ?FATE_MAP_VALUE(A), ?FATE_MAP_VALUE(B)) ->
     SizeA = maps:size(A),
     SizeB = maps:size(B),
     case SizeA - SizeB of
         0 -> maps_lt(A, B);
         N -> N < 0
     end;
-lt(13, ?FATE_LIST_VALUE(_), ?FATE_LIST_VALUE([])) -> false;
-lt(13, ?FATE_LIST_VALUE([]), ?FATE_LIST_VALUE(_)) -> true;
-lt(13, ?FATE_LIST_VALUE([A|RA]), ?FATE_LIST_VALUE([B|RB])) ->
+lt(?ORD_LIST, ?FATE_LIST_VALUE(_), ?FATE_LIST_VALUE([])) -> false;
+lt(?ORD_LIST, ?FATE_LIST_VALUE([]), ?FATE_LIST_VALUE(_)) -> true;
+lt(?ORD_LIST, ?FATE_LIST_VALUE([A|RA]), ?FATE_LIST_VALUE([B|RB])) ->
     O1 = ordinal(A),
     O2 = ordinal(B),
     if O1 == O2 ->
@@ -279,8 +292,8 @@ lt(13, ?FATE_LIST_VALUE([A|RA]), ?FATE_LIST_VALUE([B|RB])) ->
             end;
        true -> O1 < O2
     end;
-lt(14, ?FATE_VARIANT(AritiesA, TagA, TA),
-       ?FATE_VARIANT(AritiesB, TagB, TB)) ->
+lt(?ORD_VARIANT, ?FATE_VARIANT(AritiesA, TagA, TA),
+   ?FATE_VARIANT(AritiesB, TagB, TB)) ->
     if length(AritiesA) < length(AritiesB) -> true;
        length(AritiesA) > length(AritiesB) -> false;
        true ->

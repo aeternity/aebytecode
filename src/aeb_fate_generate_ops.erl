@@ -205,6 +205,7 @@ generate_opcodes_ops(Modulename, HrlFile, SrcDir, Ops) ->
     Args = lists:flatten([gen_args(Op) || Op <- Ops]),
     EndBB = lists:flatten([gen_bb(Op) || Op <- Ops]),
     InAuth = lists:flatten([gen_in_auth(Op) || Op <- Ops]),
+    ResType = lists:flatten([gen_res_type(Op) || Op <- Ops]),
 
     io:format(File, "~s", [prelude("Provides opcode primitives.\n")]),
     io:format(File, "~s", [ops_exports(Modulename, HrlFile,
@@ -213,6 +214,7 @@ generate_opcodes_ops(Modulename, HrlFile, SrcDir, Ops) ->
                                         "        , in_auth/1\n"
                                         "        , mnemonic/1\n"
                                         "        , m_to_op/1\n"
+                                        "        , result_type/1\n"
                                        ])]),
 
     io:format(File, "%% FATE mnemonics\n~s", [Mnemonic]),
@@ -229,6 +231,9 @@ generate_opcodes_ops(Modulename, HrlFile, SrcDir, Ops) ->
 
     io:format(File, "%% Is FATE Op allowed in GA Authentication context?\n~s", [InAuth]),
     io:format(File, "in_auth(_) -> false.\n\n", []),
+
+    io:format(File, "%% What is the result type.\n~s", [ResType]),
+    io:format(File, "result_type(_) -> none.\n\n", []),
 
     file:close(File).
 
@@ -368,6 +373,11 @@ gen_bb(#{macro := Macro, end_bb := EndBB}) ->
 gen_in_auth(#{macro := Macro, in_auth := InAuth}) ->
     lists:flatten(io_lib:format("in_auth(~21s) -> ~w ;\n",
                                 [Macro, InAuth])).
+
+gen_res_type(#{macro := Macro, res_type := ResType}) ->
+    lists:flatten(io_lib:format("result_type(~21s) -> ~w ;\n",
+                                [Macro, ResType])).
+
 
 prelude(Doc) ->
     "%%%-------------------------------------------------------------------\n"

@@ -39,8 +39,31 @@
 
 -define(HASH_BYTES, 32).
 
+-type fate_arg_spec() :: {'immediate', aeb_fate_data:fate_type()}
+                         | {'arg', integer()}
+                         | {'var', integer()}
+                         | {'stack', 0}.
+
+-type fate_instruction() :: atom()
+                          | {atom(), fate_arg_spec()}
+                          | {atom(), fate_arg_spec(), fate_arg_spec()}
+                          | {atom(), fate_arg_spec(), fate_arg_spec(), fate_arg_spec()}
+                          | {atom(), fate_arg_spec(), fate_arg_spec(), fate_arg_spec(),
+                             fate_arg_spec()}
+                          | {atom(), fate_arg_spec(), fate_arg_spec(), fate_arg_spec(),
+                             fate_arg_spec(), fate_arg_spec()}
+                          | {atom(), fate_arg_spec(), fate_arg_spec(), fate_arg_spec(),
+                             fate_arg_spec(), fate_arg_spec(), fate_arg_spec()}
+                          | {atom(), fate_arg_spec(), fate_arg_spec(), fate_arg_spec(),
+                             fate_arg_spec(), fate_arg_spec(), fate_arg_spec(),
+                             fate_arg_spec()}
+                          | {atom(), fate_arg_spec(), fate_arg_spec(), fate_arg_spec(),
+                             fate_arg_spec(), fate_arg_spec(), fate_arg_spec(),
+                             fate_arg_spec(), fate_arg_spec()}.
+
+
 -type fcode() :: #fcode{}.
--export_type([fcode/0]).
+-export_type([fate_arg_spec/0, fate_instruction/0, fcode/0]).
 
 %%%===================================================================
 %%% API

@@ -1,0 +1,123 @@
+;; CONTRACT empty_loop
+
+FUNCTION run (integer) : integer
+  STORE var0 arg0
+  PUSH 0
+  JUMP 1
+
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+  LT a 0 0
+
+  DEC var0
+  GT var1 var0 0
+  JUMPIF var1 1
+
+  RETURNR 0
+

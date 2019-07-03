@@ -57,34 +57,34 @@ ops_defs() ->
     , { 'SWITCH_V3',           16#0b,   true,    true,   4, [a,ii,ii,ii],     switch, {variant, integer, integer, ingeger},    none, "Conditional jump to a basic block on variant tag."}
     , { 'SWITCH_VN',           16#0c,   true,    true,   4, [a, li],          switch,           {variant, {list, integer}},    none, "Conditional jump to a basic block on variant tag."}
     , { 'CALL_VALUE',          16#0d,  false,    true,   3, [a],          call_value,                                   {}, integer, "The value sent in the current remote call."}
-    , { 'PUSH',                16#0e,  false,    true,   2, [a],                push,                                {any},     any, "Push argument to stack."}
-    , { 'DUPA',                16#0f,  false,    true,   3, [],                  dup,                                {any},     any, "Duplicate top of stack."}
-    , { 'DUP',                 16#10,  false,    true,   3, [a],                 dup,                                {any},     any, "push Arg0 stack pos on top of stack."}
-    , { 'POP',                 16#11,  false,    true,   3, [a],                 pop,                            {integer}, integer, "Arg0 := top of stack."}
-    , { 'INCA',                16#12,  false,    true,   2, [],                  inc,                            {integer}, integer, "Increment accumulator."}
-    , { 'INC',                 16#13,  false,    true,   2, [a],                 inc,                            {integer}, integer, "Increment argument."}
-    , { 'DECA',                16#14,  false,    true,   2, [],                  dec,                            {integer}, integer, "Decrement accumulator."}
-    , { 'DEC',                 16#15,  false,    true,   2, [a],                 dec,                            {integer}, integer, "Decrement argument."}
-    , { 'ADD',                 16#16,  false,    true,   3, [a,a,a],             add,                   {integer, integer}, integer, "Arg0 := Arg1 + Arg2."}
-    , { 'SUB',                 16#17,  false,    true,   3, [a,a,a],             sub,                   {integer, integer}, integer, "Arg0 := Arg1 - Arg2."}
-    , { 'MUL',                 16#18,  false,    true,   3, [a,a,a],             mul,                   {integer, integer}, integer, "Arg0 := Arg1 * Arg2."}
-    , { 'DIV',                 16#19,  false,    true,   3, [a,a,a],          divide,                   {integer, integer}, integer, "Arg0 := Arg1 / Arg2."}
-    , { 'MOD',                 16#1a,  false,    true,   3, [a,a,a],          modulo,                   {integer, integer}, integer, "Arg0 := Arg1 mod Arg2."}
-    , { 'POW',                 16#1b,  false,    true,   3, [a,a,a],             pow,                   {integer, integer}, integer, "Arg0 := Arg1  ^ Arg2."}
-    , { 'STORE',               16#1c,  false,    true,   3, [a,a],             store,                                {any},     any, "Arg0 := Arg1."}
-    , { 'SHA3',                16#1d,  false,    true,  30, [a,a],              sha3,                                {any},    hash, "Arg0 := sha3(Arg1)."}
-    , { 'SHA256',              16#1e,  false,    true,  30, [a,a],            sha256,                                {any},    hash, "Arg0 := sha256(Arg1)."}
-    , { 'BLAKE2B',             16#1f,  false,    true,  30, [a,a],           blake2b,                                {any},    hash, "Arg0 := blake2b(Arg1)."}
-    , { 'LT',                  16#20,  false,    true,   3, [a,a,a],              lt,                   {integer, integer}, boolean, "Arg0 := Arg1  < Arg2."}
-    , { 'GT',                  16#21,  false,    true,   3, [a,a,a],              gt,                   {integer, integer}, boolean, "Arg0 := Arg1  > Arg2."}
-    , { 'EQ',                  16#22,  false,    true,   3, [a,a,a],              eq,                   {integer, integer}, boolean, "Arg0 := Arg1  = Arg2."}
-    , { 'ELT',                 16#23,  false,    true,   3, [a,a,a],             elt,                   {integer, integer}, boolean, "Arg0 := Arg1 =< Arg2."}
-    , { 'EGT',                 16#24,  false,    true,   3, [a,a,a],             egt,                   {integer, integer}, boolean, "Arg0 := Arg1 >= Arg2."}
-    , { 'NEQ',                 16#25,  false,    true,   3, [a,a,a],             neq,                   {integer, integer}, boolean, "Arg0 := Arg1 /= Arg2."}
-    , { 'AND',                 16#26,  false,    true,   3, [a,a,a],          and_op,                   {boolean, boolean}, boolean, "Arg0 := Arg1 and Arg2."}
-    , { 'OR',                  16#27,  false,    true,   3, [a,a,a],           or_op,                   {boolean, boolean}, boolean, "Arg0 := Arg1  or Arg2."}
-    , { 'NOT',                 16#28,  false,    true,   3, [a,a],            not_op,                            {boolean}, boolean, "Arg0 := not Arg1."}
-    , { 'TUPLE',               16#29,  false,    true,   3, [a,ii],            tuple,                            {integer},   tuple, "Arg0 := tuple of size = Arg1. Elements on stack."}
+    , { 'PUSH',                16#0e,  false,    true,  13, [a],                push,                                {any},     any, "Push argument to stack."}
+    , { 'DUPA',                16#0f,  false,    true,   8, [],                  dup,                                {any},     any, "Duplicate top of stack."}
+    , { 'DUP',                 16#10,  false,    true,  11, [a],                 dup,                                {any},     any, "push Arg0 stack pos on top of stack."}
+    , { 'POP',                 16#11,  false,    true,  15, [a],                 pop,                            {integer}, integer, "Arg0 := top of stack."}
+    , { 'INCA',                16#12,  false,    true,  14, [],                  inc,                            {integer}, integer, "Increment accumulator."}
+    , { 'INC',                 16#13,  false,    true,  15, [a],                 inc,                            {integer}, integer, "Increment argument."}
+    , { 'DECA',                16#14,  false,    true,  13, [],                  dec,                            {integer}, integer, "Decrement accumulator."}
+    , { 'DEC',                 16#15,  false,    true,  14, [a],                 dec,                            {integer}, integer, "Decrement argument."}
+    , { 'ADD',                 16#16,  false,    true,  18, [a,a,a],             add,                   {integer, integer}, integer, "Arg0 := Arg1 + Arg2."}
+    , { 'SUB',                 16#17,  false,    true,  18, [a,a,a],             sub,                   {integer, integer}, integer, "Arg0 := Arg1 - Arg2."}
+    , { 'MUL',                 16#18,  false,    true,  16, [a,a,a],             mul,                   {integer, integer}, integer, "Arg0 := Arg1 * Arg2."}
+    , { 'DIV',                 16#19,  false,    true,  16, [a,a,a],          divide,                   {integer, integer}, integer, "Arg0 := Arg1 / Arg2."}
+    , { 'MOD',                 16#1a,  false,    true,  17, [a,a,a],          modulo,                   {integer, integer}, integer, "Arg0 := Arg1 mod Arg2."}
+    , { 'POW',                 16#1b,  false,    true,  18, [a,a,a],             pow,                   {integer, integer}, integer, "Arg0 := Arg1  ^ Arg2."}
+    , { 'STORE',               16#1c,  false,    true,  20, [a,a],             store,                                {any},     any, "Arg0 := Arg1."}
+    , { 'SHA3',                16#1d,  false,    true,  45, [a,a],              sha3,                                {any},    hash, "Arg0 := sha3(Arg1)."}
+    , { 'SHA256',              16#1e,  false,    true,  43, [a,a],            sha256,                                {any},    hash, "Arg0 := sha256(Arg1)."}
+    , { 'BLAKE2B',             16#1f,  false,    true,  40, [a,a],           blake2b,                                {any},    hash, "Arg0 := blake2b(Arg1)."}
+    , { 'LT',                  16#20,  false,    true,  15, [a,a,a],              lt,                   {integer, integer}, boolean, "Arg0 := Arg1  < Arg2."}
+    , { 'GT',                  16#21,  false,    true,  15, [a,a,a],              gt,                   {integer, integer}, boolean, "Arg0 := Arg1  > Arg2."}
+    , { 'EQ',                  16#22,  false,    true,  15, [a,a,a],              eq,                   {integer, integer}, boolean, "Arg0 := Arg1  = Arg2."}
+    , { 'ELT',                 16#23,  false,    true,  16, [a,a,a],             elt,                   {integer, integer}, boolean, "Arg0 := Arg1 =< Arg2."}
+    , { 'EGT',                 16#24,  false,    true,  15, [a,a,a],             egt,                   {integer, integer}, boolean, "Arg0 := Arg1 >= Arg2."}
+    , { 'NEQ',                 16#25,  false,    true,  16, [a,a,a],             neq,                   {integer, integer}, boolean, "Arg0 := Arg1 /= Arg2."}
+    , { 'AND',                 16#26,  false,    true,  16, [a,a,a],          and_op,                   {boolean, boolean}, boolean, "Arg0 := Arg1 and Arg2."}
+    , { 'OR',                  16#27,  false,    true,  16, [a,a,a],           or_op,                   {boolean, boolean}, boolean, "Arg0 := Arg1  or Arg2."}
+    , { 'NOT',                 16#28,  false,    true,  13, [a,a],            not_op,                            {boolean}, boolean, "Arg0 := not Arg1."}
+    , { 'TUPLE',               16#29,  false,    true,  15, [a,ii],            tuple,                            {integer},   tuple, "Arg0 := tuple of size = Arg1. Elements on stack."}
     , { 'ELEMENT',             16#2a,  false,    true,   3, [a,a,a],      element_op,                     {integer, tuple},     any, "Arg1 := element(Arg2, Arg3)."}
     , { 'SETELEMENT',          16#2b,  false,    true,   3, [a,a,a,a],    setelement,               {integer, tuple, any},   tuple, "Arg0 := a new tuple similar to Arg2, but with element number Arg1 replaced by Arg3."}
     , { 'MAP_EMPTY',           16#2c,  false,    true,   3, [a],           map_empty,                                   {},     map, "Arg0 := #{}."}

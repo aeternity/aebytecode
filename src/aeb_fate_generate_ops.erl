@@ -125,7 +125,7 @@ ops_defs() ->
     , { 'ORIGIN',              16#4f,  false,    true,   3, [a],              origin,                                   {}, address, "Arg0 := Address of contract called by the call transaction."}
     , { 'CALLER',              16#50,  false,    true,   3, [a],              caller,                                   {}, address, "Arg0 := The address that signed the call transaction."}
     , { 'GASPRICE',            16#51,  false,    true,   3, [a],            gasprice,                                   {}, integer, "Arg0 := The current gas price."}
-    , { 'BLOCKHASH',           16#52,  false,    true,   3, [a,a],         blockhash,                            {integer},    hash, "Arg0 := The blockhash at height."}
+    , { 'BLOCKHASH',           16#52,  false,    true,   3, [a,a],         blockhash,                            {integer},    hash, "Arg0 := The blockhash at height Arg1."}
     , { 'BENEFICIARY',         16#53,  false,    true,   3, [a],         beneficiary,                                   {}, address, "Arg0 := The address of the current beneficiary."}
     , { 'TIMESTAMP',           16#54,  false,    true,   3, [a],           timestamp,                                   {}, integer, "Arg0 := The current timestamp. Unrelaiable, don't use for anything."}
     , { 'GENERATION',          16#55,  false,    true,   3, [a],          generation,                                   {}, integer, "Arg0 := The block height of the cureent generation."}

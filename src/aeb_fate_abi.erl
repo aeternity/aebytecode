@@ -13,13 +13,19 @@
         , decode_calldata/2
         , get_function_hash_from_calldata/1
         , get_function_name_from_function_hash/2
-        , get_function_type_from_function_hash/2 ]).
+        , get_function_type_from_function_hash/2
+        , abi_version/0 ]).
 
 -include("../include/aeb_fate_data.hrl").
 
 %%%===================================================================
 %%% API
 %%%===================================================================
+
+%% Shall match ?ABI_FATE_SOPHIA_1
+-spec abi_version() -> integer().
+abi_version() ->
+    3.
 
 -spec create_calldata(list(), [term()]) -> {ok, binary()}.
 create_calldata(FunName, Args) ->

@@ -19,6 +19,7 @@
         , typereps_from_type_hash/2
         , function_name_from_type_hash/2
         , get_function_hash_from_calldata/1
+        , abi_version/0
         ]).
 
 -type hash() :: <<_:256>>. %% 256 = ?HASH_SIZE * 8.
@@ -34,6 +35,11 @@
 %%%===================================================================
 %%% API
 %%%===================================================================
+
+%% Shall match ?ABI_AEVM_SOPHIA_1
+-spec abi_version() -> integer().
+abi_version() ->
+    1.
 
 %%%===================================================================
 %%% Handle calldata

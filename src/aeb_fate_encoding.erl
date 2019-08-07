@@ -93,6 +93,7 @@
 %%                                  %% 1000 1111 - FREE (Possibly for bytecode in the future.)
 -define(OBJECT       , 2#10011111). %% 1001 1111 | ObjectType | RLP encoded Array
 -define(VARIANT      , 2#10101111). %% 1010 1111 | [encoded arities] | encoded tag | [encoded values]
+-define(MAP_ID       , 2#10111111). %% 1011 1111 | RLP encoded integer (store map id)
 -define(NEG_BITS     , 2#11001111). %% 1100 1111 | RLP encoded integer (infinite 1:s bitfield)
 -define(EMPTY_MAP    , 2#11011111). %% 1101 1111
 -define(NEG_BIG_INT  , 2#11101111). %% 1110 1111 | RLP encoded (integer - 64)
@@ -193,6 +194,9 @@ serialize(Map) when ?IS_FATE_MAP(Map) ->
     <<?MAP,
       (rlp_encode_int(Size))/binary,
       (Elements)/binary>>;
+serialize(?FATE_STORE_MAP(Cache, Id)) when Cache =:= #{} ->
+    %% We should never get to serialization without having flushed the caches.
+    <<?MAP_ID, (rlp_encode_int(Id))/binary>>;
 serialize(?FATE_VARIANT(Arities, Tag, Values)) ->
     Arities = [A || A <- Arities, is_integer(A), A < 256],
     Size = length(Arities),
@@ -426,6 +430,9 @@ deserialize2(<<?MAP, Rest/binary>>) ->
         false ->
             error({unknown_map_serialization_format, KVList})
     end;
+deserialize2(<<?MAP_ID, Rest/binary>>) ->
+    {Id, Rest1} = rlp_decode_int(Rest),
+    {?FATE_STORE_MAP(#{}, Id), Rest1};
 deserialize2(<<?VARIANT, Rest/binary>>) ->
     {AritiesBin, <<Tag:8, Rest2/binary>>} = aeser_rlp:decode_one(Rest),
     Arities = binary_to_list(AritiesBin),

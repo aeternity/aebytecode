@@ -180,7 +180,7 @@ ops_defs() ->
 
     , { 'ECVERIFY_SECP256K1',  16#7e,  false,    true,   true,  1300, [a,a,a,a], ecverify_secp256k1,  {bytes, bytes, bytes}, bytes, "Arg0 := ecverify_secp256k1(Hash, Addr, Signature)"}
     , { 'ECRECOVER_SECP256K1', 16#7f,  false,    true,   true,  1300,   [a,a,a], ecrecover_secp256k1,        {bytes, bytes}, bytes, "Arg0 := ecrecover_secp256k1(Hash, Signature)"}
-
+    , { 'AENS_SUBNAME',        16#80,  false,   false,  false,  3, [a,a,a,a],   aens_subname,  {signature, address, string, map},    none, "Claim subbnames of name in Arg2 from owner Arg1. Arg0 contains delegation signature. Arg3 is map describing subname prefixes to claim and their pointers."}
     , { 'DEACTIVATE',          16#fa,  false,    true,   true,  3, [],           deactivate,                                  {},    none, "Mark the current contract for deactivation."}
     , { 'ABORT',               16#fb,   true,    true,   true,  3, [a],               abort,                            {string},    none, "Abort execution (dont use all gas) with error message in Arg0."}
     , { 'EXIT',                16#fc,   true,    true,   true,  3, [a],                exit,                            {string},    none, "Abort execution (use upp all gas) with error message in Arg0."}

@@ -176,6 +176,7 @@
 -define(PRIM_CALL_AENS_UPDATE,   203).
 -define(PRIM_CALL_AENS_TRANSFER, 204).
 -define(PRIM_CALL_AENS_REVOKE,   205).
+-define(PRIM_CALL_AENS_SUBNAME,  206).
 
 -define(PRIM_CALL_IN_MAP_RANGE(__TTYPE__), (((__TTYPE__) > 299) andalso ((__TTYPE__) < 400))).
 -define(PRIM_CALL_MAP_EMPTY,  300).

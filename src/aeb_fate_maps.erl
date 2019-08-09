@@ -10,7 +10,7 @@
 
 -include("aeb_fate_data.hrl").
 
--export([allocate_store_maps/2, no_used_ids/0]).
+-export([allocate_store_maps/2, unfold_store_maps/2, no_used_ids/0]).
 
 -export_type([used_ids/0, maps/0]).
 
@@ -23,6 +23,8 @@
 -type id() :: integer().
 -type used_ids() :: list(id()).    %% TODO: more clever representation
 -type maps() :: #{ id() => aeb_fate_data:fate_map() | aeb_fate_data:fate_store_map() }.
+
+%% -- Allocating store maps --------------------------------------------------
 
 -spec allocate_store_maps(used_ids(), [fate_value()]) ->
         {[fate_value()], maps()}.
@@ -78,6 +80,49 @@ allocate_store_maps_m(Used, Val, Maps) ->
     KVs = [ ?FATE_TUPLE(KV) || KV <- maps:to_list(Val) ],
     {Used1, KVs1, Maps1} = allocate_store_maps_l(Used, KVs, Maps),
     {Used1, maps:from_list([ KV || ?FATE_TUPLE(KV) <- KVs1 ]), Maps1}.
+
+%% -- Unfolding store maps ---------------------------------------------------
+
+-type unfold_fun() :: fun((id()) -> aeb_fate_data:fate_map()).
+
+-spec unfold_store_maps(unfold_fun(), fate_value()) -> fate_value().
+unfold_store_maps(_Unfold, ?FATE_TRUE          = Val) -> Val;
+unfold_store_maps(_Unfold, ?FATE_FALSE         = Val) -> Val;
+unfold_store_maps(_Unfold, ?FATE_UNIT          = Val) -> Val;
+unfold_store_maps(_Unfold, ?FATE_BITS(_)       = Val) -> Val;
+unfold_store_maps(_Unfold, ?FATE_BYTES(_)      = Val) -> Val;
+unfold_store_maps(_Unfold, ?FATE_ADDRESS(_)    = Val) -> Val;
+unfold_store_maps(_Unfold, ?FATE_CONTRACT(_)   = Val) -> Val;
+unfold_store_maps(_Unfold, ?FATE_ORACLE(_)     = Val) -> Val;
+unfold_store_maps(_Unfold, ?FATE_ORACLE_Q(_)   = Val) -> Val;
+unfold_store_maps(_Unfold, ?FATE_CHANNEL(_)    = Val) -> Val;
+unfold_store_maps(_Unfold, ?FATE_TYPEREP(_)    = Val) -> Val;
+unfold_store_maps(_Unfold, Val) when ?IS_FATE_INTEGER(Val) -> Val;
+unfold_store_maps(_Unfold, Val) when ?IS_FATE_STRING(Val)  -> Val;
+unfold_store_maps(Unfold, ?FATE_TUPLE(Val)) ->
+    Vals = unfold_store_maps_l(Unfold, tuple_to_list(Val)),
+    ?FATE_TUPLE(list_to_tuple(Vals));
+unfold_store_maps(Unfold, Val) when ?IS_FATE_LIST(Val) ->
+    ?MAKE_FATE_LIST(unfold_store_maps_l(Unfold, ?FATE_LIST_VALUE(Val)));
+unfold_store_maps(Unfold, ?FATE_VARIANT(Arities, Tag, Vals)) ->
+    Vals1 = unfold_store_maps_l(Unfold, tuple_to_list(Vals)),
+    ?FATE_VARIANT(Arities, Tag, list_to_tuple(Vals1));
+unfold_store_maps(Unfold, Val) when ?IS_FATE_MAP(Val) ->
+    ?MAKE_FATE_MAP(unfold_store_maps_m(Unfold, ?FATE_MAP_VALUE(Val)));
+unfold_store_maps(Unfold, ?FATE_STORE_MAP(Cache, Id)) ->
+    StoreMap = Unfold(Id),
+    maps:fold(fun write_cache/3, unfold_store_maps(Unfold, StoreMap), Cache).
+
+unfold_store_maps_l(Unfold, Vals) ->
+    [ unfold_store_maps(Unfold, Val) || Val <- Vals ].
+
+unfold_store_maps_m(Unfold, Val) ->
+    maps:map(fun(_, V) -> unfold_store_maps(Unfold, V) end, Val).
+
+write_cache(Key, ?FATE_MAP_TOMBSTONE, Map) ->
+    maps:remove(Key, Map);
+write_cache(Key, Val, Map) ->
+    Map#{ Key => Val }.
 
 %% -- Map id allocation ------------------------------------------------------
 

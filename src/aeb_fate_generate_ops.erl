@@ -163,6 +163,7 @@ ops_defs() ->
 
     , { 'ECVERIFY',            16#72,  false,    true,   true,  1300, [a,a,a,a],           ecverify, {bytes, address, bytes}, boolean, "Arg0 := ecverify(Hash, PubKey, Signature)"}
     , { 'ECVERIFY_SECP256K1',  16#73,  false,    true,   true,  1300, [a,a,a,a], ecverify_secp256k1,   {bytes, bytes, bytes}, boolean, "Arg0 := ecverify_secp256k1(Hash, PubKey, Signature)"}
+    , { 'ECRECOVER_SECP256K1', 16#7d,  false,    true,   true,  1300, [a,a,a,a], ecrecover_secp256k1,   {bytes, bytes, bytes}, bytes,  "Arg0 := ecrecover_secp256k1(Hash, V, R, S)"}
 
     , { 'CONTRACT_TO_ADDRESS', 16#74,  false,    true,   true,  3, [a,a], contract_to_address,                        {contract}, address, "Arg0 := Arg1 - A no-op type conversion"}
     , { 'AUTH_TX_HASH',        16#75,  false,    true,   true,  3, [a],          auth_tx_hash,                                {}, variant, "If in GA authentication context return Some(TxHash) otherwise None."}
@@ -752,4 +753,3 @@ format_arg_doc({is,_N}) -> "Identifier";
 format_arg_doc({ii,_N}) -> "Integer";
 format_arg_doc({li,_N}) -> "[Integers]";
 format_arg_doc({t,_N}) -> "Type".
-

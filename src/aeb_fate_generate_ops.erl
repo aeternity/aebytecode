@@ -151,7 +151,7 @@ ops_defs() ->
     , { 'ORACLE_QUERY_FEE',    16#67,  false,   false,   true,  3, [a,a],  oracle_query_fee,                            {oracle},  integer, "Arg0 := query fee for oracle Arg1"}
     , { 'AENS_RESOLVE',        16#68,  false,   false,   true,  3, [a,a,a,a],  aens_resolve,           {string, string, typerep},  variant, "Resolve name in Arg0 with tag Arg1. Arg2 describes the type parameter of the resolved name."}
     , { 'AENS_PRECLAIM',       16#69,  false,   false,  false,  3, [a,a,a],   aens_preclaim,          {signature, address, hash},    none, "Preclaim the hash in Arg2 for address in Arg1. Arg0 contains delegation signature."}
-    , { 'AENS_CLAIM',          16#6a,  false,   false,  false,  3, [a,a,a,a],    aens_claim, {signature, address, string, integer},  none, "Claim the name in Arg2 for address in Arg1. Arg3 contains the salt used to hash the preclaim. Arg0 contains delegation signature."}
+    , { 'AENS_CLAIM',          16#6a,  false,   false,  false,  3, [a,a,a,a,a],    aens_claim, {signature, address, string, integer, integer},  none, "Attempt to claim the name in Arg2 for address in Arg1 at a price in Arg4. Arg3 contains the salt used to hash the preclaim. Arg0 contains delegation signature."}
     , { 'AENS_UPDATE',         16#6b,  false,   false,  false,  3, [],          aens_update,                                  {},    none, "NYI"}
     , { 'AENS_TRANSFER',       16#6c,  false,   false,  false,  3, [a,a,a,a], aens_transfer,{signature, address, address, string},   none, "Transfer ownership of name Arg3 from account Arg1 to Arg2. Arg0 contains delegation signature."}
     , { 'AENS_REVOKE',         16#6d,  false,   false,  false,  3, [a,a,a],     aens_revoke,        {signature, address, string},    none, "Revoke the name in Arg2 from owner Arg1. Arg0 contains delegation signature."}
@@ -752,4 +752,3 @@ format_arg_doc({is,_N}) -> "Identifier";
 format_arg_doc({ii,_N}) -> "Integer";
 format_arg_doc({li,_N}) -> "[Integers]";
 format_arg_doc({t,_N}) -> "Type".
-

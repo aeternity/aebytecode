@@ -10,7 +10,14 @@
 
 -include("aeb_fate_data.hrl").
 
--export([allocate_store_maps/2, unfold_store_maps/2, no_used_ids/0]).
+-export([ allocate_store_maps/2
+        , unfold_store_maps/2
+        , refcount/1
+        , refcount_zero/0
+        , refcount_diff/2
+        , refcount_union/1
+        , refcount_union/2
+        , no_used_ids/0 ]).
 
 -export_type([used_ids/0, maps/0]).
 
@@ -123,6 +130,61 @@ write_cache(Key, ?FATE_MAP_TOMBSTONE, Map) ->
     maps:remove(Key, Map);
 write_cache(Key, Val, Map) ->
     Map#{ Key => Val }.
+
+%% -- Reference counting -----------------------------------------------------
+
+-type refcount() :: #{id() => pos_integer()}.
+
+-spec refcount_zero() -> refcount().
+refcount_zero() -> #{}.
+
+-spec refcount_diff(refcount(), refcount()) -> refcount().
+refcount_diff(New, Old) ->
+    maps:fold(fun(K, N, C) -> maps:update_with(K, fun(M) -> M - N end, -N, C) end,
+              New, Old).
+
+-spec refcount_union([refcount()]) -> refcount().
+refcount_union(Counts) -> lists:foldl(fun refcount_union/2, #{}, Counts).
+
+-spec refcount_union(refcount(), refcount()) -> refcount().
+refcount_union(A, B) ->
+    maps:fold(fun(K, N, C) -> maps:update_with(K, fun(M) -> M + N end, N, C) end,
+              B, A).
+
+-spec refcount(fate_value()) -> refcount().
+refcount(Val) -> refcount(Val, #{}).
+
+-spec refcount(refcount(), fate_value()) -> refcount().
+refcount(?FATE_TRUE, Count)        -> Count;
+refcount(?FATE_FALSE, Count)       -> Count;
+refcount(?FATE_UNIT, Count)        -> Count;
+refcount(?FATE_BITS(_), Count)     -> Count;
+refcount(?FATE_BYTES(_), Count)    -> Count;
+refcount(?FATE_ADDRESS(_), Count)  -> Count;
+refcount(?FATE_CONTRACT(_), Count) -> Count;
+refcount(?FATE_ORACLE(_), Count)   -> Count;
+refcount(?FATE_ORACLE_Q(_), Count) -> Count;
+refcount(?FATE_CHANNEL(_), Count)  -> Count;
+refcount(?FATE_TYPEREP(_), Count)  -> Count;
+refcount(Val, Count) when ?IS_FATE_INTEGER(Val) -> Count;
+refcount(Val, Count) when ?IS_FATE_STRING(Val)  -> Count;
+refcount(?FATE_TUPLE(Val), Count) ->
+    refcount_l(tuple_to_list(Val), Count);
+refcount(Val, Count) when ?IS_FATE_LIST(Val) ->
+    refcount_l(?FATE_LIST_VALUE(Val), Count);
+refcount(?FATE_VARIANT(_Arities, _Tag, Vals), Count) ->
+    refcount_l(tuple_to_list(Vals), Count);
+refcount(Val, Count) when ?IS_FATE_MAP(Val) ->
+    refcount_m(?FATE_MAP_VALUE(Val), Count);
+refcount(?FATE_STORE_MAP(Cache, Id), Count) ->
+    refcount_m(Cache, maps:update_with(Id, fun(N) -> N + 1 end, 1, Count)).
+
+refcount_l(Vals, Count) ->
+    lists:foldl(fun refcount/2, Count, Vals).
+
+refcount_m(Val, Count) ->
+    %% No maps in map keys
+    maps:fold(fun(_, V, C) -> refcount(V, C) end, Count, Val).
 
 %% -- Map id allocation ------------------------------------------------------
 

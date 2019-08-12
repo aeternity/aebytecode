@@ -11,6 +11,7 @@
 -include("aeb_fate_data.hrl").
 
 -export([ allocate_store_maps/2
+        , has_store_maps/1
         , unfold_store_maps/2
         , refcount/1
         , refcount_zero/0
@@ -151,21 +152,26 @@ refcount_union(A, B) ->
     maps:fold(fun(K, N, C) -> maps:update_with(K, fun(M) -> M + N end, N, C) end,
               B, A).
 
+-spec has_store_maps(fate_value()) -> boolean().
+has_store_maps(Val) ->
+    refcount_zero() /= refcount(Val).
+
 -spec refcount(fate_value()) -> refcount().
 refcount(Val) -> refcount(Val, #{}).
 
 -spec refcount(refcount(), fate_value()) -> refcount().
-refcount(?FATE_TRUE, Count)        -> Count;
-refcount(?FATE_FALSE, Count)       -> Count;
-refcount(?FATE_UNIT, Count)        -> Count;
-refcount(?FATE_BITS(_), Count)     -> Count;
-refcount(?FATE_BYTES(_), Count)    -> Count;
-refcount(?FATE_ADDRESS(_), Count)  -> Count;
-refcount(?FATE_CONTRACT(_), Count) -> Count;
-refcount(?FATE_ORACLE(_), Count)   -> Count;
-refcount(?FATE_ORACLE_Q(_), Count) -> Count;
-refcount(?FATE_CHANNEL(_), Count)  -> Count;
-refcount(?FATE_TYPEREP(_), Count)  -> Count;
+refcount(?FATE_MAP_TOMBSTONE, Count) -> Count;
+refcount(?FATE_TRUE,          Count) -> Count;
+refcount(?FATE_FALSE,         Count) -> Count;
+refcount(?FATE_UNIT,          Count) -> Count;
+refcount(?FATE_BITS(_),       Count) -> Count;
+refcount(?FATE_BYTES(_),      Count) -> Count;
+refcount(?FATE_ADDRESS(_),    Count) -> Count;
+refcount(?FATE_CONTRACT(_),   Count) -> Count;
+refcount(?FATE_ORACLE(_),     Count) -> Count;
+refcount(?FATE_ORACLE_Q(_),   Count) -> Count;
+refcount(?FATE_CHANNEL(_),    Count) -> Count;
+refcount(?FATE_TYPEREP(_),    Count) -> Count;
 refcount(Val, Count) when ?IS_FATE_INTEGER(Val) -> Count;
 refcount(Val, Count) when ?IS_FATE_STRING(Val)  -> Count;
 refcount(?FATE_TUPLE(Val), Count) ->
@@ -184,7 +190,8 @@ refcount_l(Vals, Count) ->
 
 refcount_m(Val, Count) ->
     %% No maps in map keys
-    maps:fold(fun(_, V, C) -> refcount(V, C) end, Count, Val).
+    maps:fold(fun(_, ?FATE_MAP_TOMBSTONE, C) -> C;
+                 (_, V, C) -> refcount(V, C) end, Count, Val).
 
 %% -- Map id allocation ------------------------------------------------------
 

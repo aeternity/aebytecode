@@ -30,13 +30,9 @@ FUNCTION tailcall(integer) -> integer
 
 FUNCTION remote_call(integer) : integer
   PUSH arg0
-  CALL_R remote.add_five 0
+  CALL_R remote.add_five 1 0
   INCA
   RETURN
-
-FUNCTION remote_tailcall(integer) : integer
-  PUSH  arg0
-  CALL_TR remote add_five 0
 
 ;; Test the code from the shell
 ;; _build/default/rel/aessembler/bin/aessembler console

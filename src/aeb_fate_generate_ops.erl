@@ -163,8 +163,6 @@ ops_defs() ->
 
     , { 'ECVERIFY',            16#72,  false,    true,   true,  1300, [a,a,a,a],           ecverify, {bytes, address, bytes}, boolean, "Arg0 := ecverify(Hash, PubKey, Signature)"}
     , { 'ECVERIFY_SECP256K1',  16#73,  false,    true,   true,  1300, [a,a,a,a], ecverify_secp256k1,   {bytes, bytes, bytes}, boolean, "Arg0 := ecverify_secp256k1(Hash, PubKey, Signature)"}
-    , { 'ECRECOVER_SECP256K1', 16#7d,  false,    true,   true,  1300, [a,a,a,a], ecrecover_secp256k1,   {bytes, bytes, bytes}, bytes,  "Arg0 := ecrecover_secp256k1(Hash, V, R, S)"}
-
     , { 'CONTRACT_TO_ADDRESS', 16#74,  false,    true,   true,  3, [a,a], contract_to_address,                        {contract}, address, "Arg0 := Arg1 - A no-op type conversion"}
     , { 'AUTH_TX_HASH',        16#75,  false,    true,   true,  3, [a],          auth_tx_hash,                                {}, variant, "If in GA authentication context return Some(TxHash) otherwise None."}
 
@@ -177,6 +175,8 @@ ops_defs() ->
     , { 'IS_ORACLE',           16#7a,  false,   false,   true,  3, [a,a],         is_oracle,                           {address},    bool, "Arg0 := is Arg1 an oracle"}
     , { 'IS_CONTRACT',         16#7b,  false,   false,   true,  3, [a,a],       is_contract,                           {address},    bool, "Arg0 := is Arg1 a contract"}
     , { 'CREATOR',             16#7c,  false,    true,   true,  3, [a],    contract_creator,                                  {}, address, "Arg0 := contract creator"}
+    , { 'ECRECOVER_SECP256K1', 16#7d,  false,    true,   true,  1300, [a,a,a,a], ecrecover_secp256k1,      {bytes, bytes, bytes},   bytes, "Arg0 := ecrecover_secp256k1(Hash, V, R, S)"}
+
 
     , { 'DEACTIVATE',          16#fa,  false,    true,   true,  3, [],           deactivate,                                  {},    none, "Mark the current contract for deactivation."}
     , { 'ABORT',               16#fb,   true,    true,   true,  3, [a],               abort,                            {string},    none, "Abort execution (dont use all gas) with error message in Arg0."}

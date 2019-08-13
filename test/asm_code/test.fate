@@ -28,11 +28,11 @@ FUNCTION tailcall(integer) -> integer
   INCA
   CALL_T "inc"
 
-FUNCTION remote_call(integer) : integer
-  PUSH arg0
-  CALL_R remote.add_five 1 0
-  INCA
-  RETURN
+;; FUNCTION remote_call(integer) : integer
+;;   PUSH arg0
+;;   CALL_R remote.add_five {tuple, [integer]} integer 0    ;; typereps don't parse
+;;   INCA
+;;   RETURN
 
 ;; Test the code from the shell
 ;; _build/default/rel/aessembler/bin/aessembler console

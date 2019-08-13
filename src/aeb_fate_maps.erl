@@ -159,7 +159,7 @@ has_store_maps(Val) ->
 -spec refcount(fate_value()) -> refcount().
 refcount(Val) -> refcount(Val, #{}).
 
--spec refcount(refcount(), fate_value()) -> refcount().
+-spec refcount(fate_value(), refcount()) -> refcount().
 refcount(?FATE_MAP_TOMBSTONE, Count) -> Count;
 refcount(?FATE_TRUE,          Count) -> Count;
 refcount(?FATE_FALSE,         Count) -> Count;

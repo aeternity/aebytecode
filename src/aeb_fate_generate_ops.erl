@@ -4,7 +4,7 @@
         , generate/0
         , generate_documentation/1
         , get_ops/0
-        , test_asm_generator/1]).
+        , test_asm_generator/1 ]).
 
 gen_and_halt([SrcDirArg, IncludeDirArg]) ->
     generate(atom_to_list(SrcDirArg),
@@ -175,8 +175,7 @@ ops_defs() ->
     , { 'IS_ORACLE',           16#7a,  false,   false,   true,  3, [a,a],         is_oracle,                           {address},    bool, "Arg0 := is Arg1 an oracle"}
     , { 'IS_CONTRACT',         16#7b,  false,   false,   true,  3, [a,a],       is_contract,                           {address},    bool, "Arg0 := is Arg1 a contract"}
     , { 'CREATOR',             16#7c,  false,    true,   true,  3, [a],    contract_creator,                                  {}, address, "Arg0 := contract creator"}
-    , { 'ECRECOVER_SECP256K1', 16#7d,  false,    true,   true,  1300, [a,a,a,a], ecrecover_secp256k1,      {bytes, bytes, bytes},   bytes, "Arg0 := ecrecover_secp256k1(Hash, V, R, S)"}
-
+    , { 'ECRECOVER_SECP256K1', 16#7d,  false,    true,   true,  1300,   [a,a,a], ecrecover_secp256k1,             {bytes, bytes},   bytes, "Arg0 := ecrecover_secp256k1(Hash, Signature)"}
 
     , { 'DEACTIVATE',          16#fa,  false,    true,   true,  3, [],           deactivate,                                  {},    none, "Mark the current contract for deactivation."}
     , { 'ABORT',               16#fb,   true,    true,   true,  3, [a],               abort,                            {string},    none, "Abort execution (dont use all gas) with error message in Arg0."}

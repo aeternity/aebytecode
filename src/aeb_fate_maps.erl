@@ -134,7 +134,7 @@ write_cache(Key, Val, Map) ->
 
 %% -- Reference counting -----------------------------------------------------
 
--type refcount() :: #{id() => pos_integer()}.
+-type refcount() :: #{id() => integer()}.
 
 -spec refcount_zero() -> refcount().
 refcount_zero() -> #{}.

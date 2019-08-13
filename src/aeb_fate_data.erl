@@ -10,6 +10,7 @@
 -type fate_list()      :: ?FATE_LIST_T.
 -type fate_unit()      :: ?FATE_UNIT_T.
 -type fate_map()       :: ?FATE_MAP_T.
+-type fate_store_map() :: ?FATE_STORE_MAP_T.
 -type fate_string()    :: ?FATE_STRING_T.
 -type fate_address()   :: ?FATE_ADDRESS_T.
 -type fate_hash()      :: ?FATE_BYTES_T(32).
@@ -71,6 +72,7 @@
              , fate_channel/0
              , fate_variant/0
              , fate_map/0
+             , fate_store_map/0
              , fate_bits/0
              , fate_type_type/0
              ]).
@@ -82,6 +84,8 @@
         , make_tuple/1
         , make_string/1
         , make_map/1
+        , make_store_map/1
+        , make_store_map/2
         , make_address/1
         , make_bytes/1
         , make_hash/1
@@ -108,6 +112,8 @@ make_list(L) ->        ?MAKE_FATE_LIST(L).
 make_unit() ->         ?FATE_UNIT.
 make_tuple(T) ->       ?FATE_TUPLE(T).
 make_map(M) ->         ?MAKE_FATE_MAP(M).
+make_store_map(Id) ->  make_store_map(#{}, Id).
+make_store_map(Cache, Id) -> ?FATE_STORE_MAP(Cache, Id).
 make_address(X) ->     ?FATE_ADDRESS(X).
 make_bytes(X) ->       ?FATE_BYTES(X).
 make_hash(X) ->        make_bytes(X).

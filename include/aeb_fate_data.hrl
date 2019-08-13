@@ -5,6 +5,7 @@
 -define(FATE_LIST_T,      list()).
 -define(FATE_UNIT_T,      {tuple, {}}).
 -define(FATE_MAP_T,       #{ fate_type() => fate_type() }).
+-define(FATE_STORE_MAP_T, {store_map, #{ fate_type() => fate_type() | ?FATE_MAP_TOMBSTONE }, integer()}).
 -define(FATE_STRING_T,    binary()).
 -define(FATE_ADDRESS_T,   {address, <<_:256>>}).
 -define(FATE_BYTES_T(N),  {bytes, binary()}).
@@ -20,6 +21,10 @@
 -define(IS_FATE_INTEGER(X), (is_integer(X))).
 -define(IS_FATE_LIST(X),    (is_list(X))).
 -define(IS_FATE_STRING(X),  (is_binary(X))).
+-define(IS_FATE_STORE_MAP(X), (is_tuple(X) andalso tuple_size(X) == 3
+                                           andalso store_map == element(1, X)
+                                           andalso is_map(element(2, X))
+                                           andalso is_integer(element(3, X)))).
 -define(IS_FATE_MAP(X),     (is_map(X))).
 -define(IS_FATE_TUPLE(X),   (is_tuple(X) andalso (tuple == element(1, X) andalso is_tuple(element(2, X))))).
 -define(IS_FATE_ADDRESS(X), (is_tuple(X) andalso (address == element(1, X) andalso is_binary(element(2, X))))).
@@ -50,6 +55,8 @@
 -define(FATE_CHANNEL(X),   {channel, X}).
 -define(FATE_BITS(B),      {bits, B}).
 -define(FATE_TYPEREP(T),   {typerep, T}).
+-define(FATE_STORE_MAP(Cache, Id), {store_map, Cache, Id}).
+-define(FATE_MAP_TOMBSTONE, '__DELETED__').
 
 -define(FATE_INTEGER_VALUE(X), (X)).
 -define(FATE_BOOLEAN_VALUE(X), (X)).
@@ -63,6 +70,8 @@
 -define(FATE_CHANNEL_VALUE(X), (element(2, X))).
 -define(FATE_BITS_VALUE(X), (element(2, X))).
 -define(FATE_MAP_VALUE(X), (X)).
+-define(FATE_STORE_MAP_CACHE(X), (element(2, X))).
+-define(FATE_STORE_MAP_ID(X), (element(3, X))).
 -define(FATE_MAP_SIZE(X), (map_size(X))).
 -define(FATE_STRING_SIZE(X), (byte_size(X))).
 -define(FATE_TRUE,  true).

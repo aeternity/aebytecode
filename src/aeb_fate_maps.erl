@@ -29,17 +29,16 @@
 
 -type fate_value() :: aeb_fate_data:fate_type().
 -type id() :: integer().
--type used_ids() :: list(id()).    %% TODO: more clever representation
+-type used_ids() :: list(id()).
 -type maps() :: #{ id() => aeb_fate_data:fate_map() | aeb_fate_data:fate_store_map() }.
 
 %% -- Allocating store maps --------------------------------------------------
 
--spec allocate_store_maps(used_ids(), [fate_value()]) ->
-        {[fate_value()], maps()}.
+-spec allocate_store_maps(used_ids(), [fate_value()]) -> {[fate_value()], maps()}.
 allocate_store_maps(Used, Vals) ->
-    allocate_store_maps_l(Used, Vals, #{}).
+    {_Used, Vals1, Maps} = allocate_store_maps_l(Used, Vals, #{}),
+    {Vals1, Maps}.
 
-allocate_store_maps(Used, ?FATE_MAP_TOMBSTONE = Val, Maps) -> {Used, Val, Maps};
 allocate_store_maps(Used, ?FATE_TRUE          = Val, Maps) -> {Used, Val, Maps};
 allocate_store_maps(Used, ?FATE_FALSE         = Val, Maps) -> {Used, Val, Maps};
 allocate_store_maps(Used, ?FATE_UNIT          = Val, Maps) -> {Used, Val, Maps};
@@ -85,9 +84,10 @@ allocate_store_maps_l(Used, [H | T], Maps) ->
     {Used2, [H1 | T1], Maps2}.
 
 allocate_store_maps_m(Used, Val, Maps) ->
-    KVs = [ ?FATE_TUPLE(KV) || KV <- maps:to_list(Val) ],
-    {Used1, KVs1, Maps1} = allocate_store_maps_l(Used, KVs, Maps),
-    {Used1, maps:from_list([ KV || ?FATE_TUPLE(KV) <- KVs1 ]), Maps1}.
+    maps:fold(fun(K, V, {Us, M, Ms}) ->
+                    {Us1, V1, Ms1} = allocate_store_maps(Us, V, Ms),
+                    {Us1, M#{ K => V1 }, Ms1}
+              end, {Used, #{}, Maps}, Val).
 
 %% -- Unfolding store maps ---------------------------------------------------
 

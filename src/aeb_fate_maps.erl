@@ -20,7 +20,7 @@
         , refcount_union/2
         , no_used_ids/0 ]).
 
--export_type([used_ids/0, maps/0]).
+-export_type([used_ids/0, maps/0, refcount/0]).
 
 %% Size in bytes of serialization of a map for which we turn it into a store
 %% map. It's not worth turning small maps into store maps.

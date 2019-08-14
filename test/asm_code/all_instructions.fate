@@ -1,7 +1,7 @@
 ;; CONTRACT all_instructions
 
 ;; Dont expect this contract to typecheck or run.
-;; Just used to check assembler rountrip of all instructions.
+;; Just used to check assembler roundtrip of all instructions.
 
 FUNCTION foo () : {tuple, []}
   RETURN
@@ -224,7 +224,11 @@ FUNCTION foo () : {tuple, []}
 
   AENS_REVOKE
 
+  ECRECOVER_SECP256K1
+
   ECVERIFY
+
+  ECVERIFY_SECP256K1
 
   SHA3 a
 

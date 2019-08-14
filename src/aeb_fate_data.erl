@@ -21,6 +21,7 @@
 -type fate_variant()   :: ?FATE_VARIANT_T.
 -type fate_tuple()     :: ?FATE_TUPLE_T.
 -type fate_bits()      :: ?FATE_BITS_T.
+-type fate_typerep()   :: ?FATE_TYPEREP_T.
 
 -type fate_type_type() :: integer
                         | boolean
@@ -54,7 +55,8 @@
       | fate_channel()
       | fate_variant()
       | fate_map()
-      | fate_bits().
+      | fate_bits()
+      | fate_typerep().
 
 -export_type([fate_type/0
              , fate_boolean/0

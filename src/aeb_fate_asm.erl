@@ -153,7 +153,7 @@ format_functions(Functions, Symbols) ->
             lists:sort(maps:to_list(CodeMap)),
             Symbols)
      ||
-        {Name, {Sig, CodeMap}} <- maps:to_list(Functions)].
+        {Name, {_Attrs, Sig, CodeMap}} <- maps:to_list(Functions)].
 
 
 format(Name, Sig, BBs, Symbols) ->
@@ -484,7 +484,7 @@ insert_fun({NameString, ArgType, RetType}, Code, #{ fate_code := FateCode
     {FateCode1, Id} = aeb_fate_code:insert_symbol(Name, FateCode),
     BodyByteCode = aeb_fate_code:serialize_code(lists:reverse(Code)),
     SigByteCode = aeb_fate_code:serialize_signature({ArgType, RetType}),
-    FunByteCode = [?FUNCTION, Id, SigByteCode, BodyByteCode],
+    FunByteCode = [?FUNCTION, Id, aeb_fate_encoding:serialize(0), SigByteCode, BodyByteCode],
     Env#{ functions => Funs#{ Id => FunByteCode }
         , fate_code => FateCode1}.
 

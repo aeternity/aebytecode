@@ -72,6 +72,6 @@ get_function_type_from_function_hash(SymbolHash, FateCode) ->
     case maps:get(SymbolHash, Functions, undefined) of
         undefined ->
             {error, no_function_matching_function_hash};
-        {{ArgTypes, RetType}, _Code} ->
+        {_Attrs, {ArgTypes, RetType}, _Code} ->
             {ok, ArgTypes, RetType}
     end.

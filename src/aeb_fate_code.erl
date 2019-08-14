@@ -11,7 +11,7 @@
         , deserialize/1
         , functions/1
         , insert_annotation/4
-        , insert_fun/4
+        , insert_fun/5
         , insert_symbol/2
         , new/0
         , serialize/1
@@ -72,9 +72,9 @@ symbol_identifier(Bin) ->
     {ok, <<X:4/binary,_/binary>> } = eblake2:blake2b(?HASH_BYTES, Bin),
     X.
 
-insert_fun(Name, {ArgType, RetType}, #{} = BBs, FCode) ->
+insert_fun(Name, Attrs, {ArgType, RetType}, #{} = BBs, FCode) ->
     {F1, ID} = insert_symbol(Name, FCode),
-    update_functions(F1, #{ID => {{ArgType, RetType}, BBs}}).
+    update_functions(F1, #{ID => {Attrs, {ArgType, RetType}, BBs}}).
 
 insert_symbol(Name, #fcode{ symbols = Syms } = F) ->
     ID = symbol_identifier(Name),
@@ -128,9 +128,16 @@ to_hexstring(ByteList) ->
 serialize_functions(#fcode{ functions = Functions }) ->
     %% Sort the functions on name to get a canonical serialisation.
     iolist_to_binary(
-      lists:foldr(fun({Id, {Sig, C}}, Acc) ->
-                          [[?FUNCTION, Id, serialize_signature(Sig), serialize_bbs(C)] | Acc]
+      lists:foldr(fun({Id, {Attrs, Sig, C}}, Acc) ->
+                          [[?FUNCTION, Id, serialize_attributes(Attrs), serialize_signature(Sig), serialize_bbs(C)] | Acc]
                   end, [], lists:sort(maps:to_list(Functions)))).
+
+serialize_attributes(Attrs) ->
+    AttrVal = lists:sum([ attr_value(Attr) || Attr <- Attrs ]),
+    aeb_fate_encoding:serialize(?MAKE_FATE_INTEGER(AttrVal)).
+
+attr_value(private) -> 1;
+attr_value(payable) -> 2.
 
 serialize_signature({Args, RetType}) ->
     [aeb_fate_encoding:serialize_type({tuple, Args}) |
@@ -139,7 +146,7 @@ serialize_signature({Args, RetType}) ->
 serialize_symbol_table(#fcode{ symbols = Symbols }) ->
     aeb_fate_encoding:serialize(aeb_fate_data:make_map(Symbols)).
 
-serialize_annotations(#fcode{ annotations = Annotations}) ->
+serialize_annotations(#fcode{ annotations = Annotations }) ->
     aeb_fate_encoding:serialize(aeb_fate_data:make_map(Annotations)).
 
 serialize_bbs(#{} = BBs) ->
@@ -166,8 +173,8 @@ serialize_op(Op) ->
 
 sanity_check(#fcode{ functions = Funs }) ->
     _ = [ case Def of
-              {_, BBs} when byte_size(Id) == 4 -> sanity_check_bbs(BBs);
-              _        -> error({illegal_function_id, Id})
+              {_, _, BBs} when byte_size(Id) == 4 -> sanity_check_bbs(BBs);
+              _ -> error({illegal_function_id, Id})
           end || {Id, Def} <- maps:to_list(Funs) ],
     ok.
 
@@ -303,33 +310,35 @@ deserialize_functions(<<?FUNCTION:8, A, B, C, D, Rest/binary>>,
              , bb := 0
              , current_bb_code := []
              } = Env) ->
-    {Sig, Rest2} = deserialize_signature(Rest),
-    Env2 = Env#{function => {<<A,B,C,D>>, Sig}},
-    deserialize_functions(Rest2, Env2);
+    {Attrs, Rest2} = deserialize_attributes(Rest),
+    {Sig,   Rest3} = deserialize_signature(Rest2),
+    Env2 = Env#{function => {<<A,B,C,D>>, Attrs, Sig}},
+    deserialize_functions(Rest3, Env2);
 deserialize_functions(<<?FUNCTION:8, A, B, C, D, Rest/binary>>,
-            #{ function := {F, Sig}
+            #{ function := {F, Attrs, Sig}
              , bb := BB
              , current_bb_code := Code
              , code := Program
              , functions := Funs} = Env) ->
-    {NewSig, Rest2} = deserialize_signature(Rest),
+    {NewAttrs, Rest2} = deserialize_attributes(Rest),
+    {NewSig,   Rest3} = deserialize_signature(Rest2),
     case Code of
         [] ->
             Env2 = Env#{ bb => 0
                        , current_bb_code => []
-                       , function => {<<A,B,C,D>>, NewSig}
+                       , function => {<<A,B,C,D>>, NewAttrs, NewSig}
                        , code => #{}
-                       , functions => Funs#{F => {Sig, Program}}},
-            deserialize_functions(Rest2, Env2);
+                       , functions => Funs#{F => {Attrs, Sig, Program}}},
+            deserialize_functions(Rest3, Env2);
         _ ->
             Env2 = Env#{ bb => 0
                        , current_bb_code => []
-                       , function => {<<A,B,C,D>>, NewSig}
+                       , function => {<<A,B,C,D>>, NewAttrs, NewSig}
                        , code => #{}
                        , functions =>
-                             Funs#{F => {Sig,
+                             Funs#{F => {Attrs, Sig,
                                          Program#{ BB => lists:reverse(Code)}}}},
-            deserialize_functions(Rest2, Env2)
+            deserialize_functions(Rest3, Env2)
     end;
 deserialize_functions(<<_Op:8, _Rest/binary>>,
             #{ function := none }) ->
@@ -351,7 +360,7 @@ deserialize_functions(<<Op:8, Rest/binary>>,
 deserialize_functions(<<>>, #{ function := none
                              , functions := Funs}) ->
     Funs;
-deserialize_functions(<<>>, #{ function := {F, Sig}
+deserialize_functions(<<>>, #{ function := {F, Attrs, Sig}
                              , bb := BB
                              , current_bb_code := Code
                              , code := Program
@@ -361,7 +370,7 @@ deserialize_functions(<<>>, #{ function := {F, Sig}
             [] -> Program;
             _ -> Program#{ BB => lists:reverse(Code)}
         end,
-    Funs#{F => {Sig, FunctionCode}}.
+    Funs#{F => {Attrs, Sig, FunctionCode}}.
 
 deserialize_op(Op, Rest, Code) ->
     OpName = aeb_fate_opcodes:mnemonic(Op),
@@ -398,6 +407,18 @@ deserialize_n_args(N, <<M7:2, M6:2, M5:2, M4:2, M3:2, M2:2, M1:2, M0:2,
                                    {{Modifier, Arg}, Acc2}
                            end
                    end, Rest, ArgMods).
+
+deserialize_attributes(Binary) ->
+    {AttrVal, Rest} = aeb_fate_encoding:deserialize_one(Binary),
+    Attrs = [ attr(AVal) || AVal <- attr_vals(1, AttrVal) ],
+    {lists:sort(Attrs), Rest}.
+
+attr_vals(_, 0)                   -> [];
+attr_vals(X, N) when N rem 2 == 0 -> attr_vals(X + 1, N div 2);
+attr_vals(X, N)                   -> [X | attr_vals(X + 1, N div 2)].
+
+attr(1) -> private;
+attr(2) -> payable.
 
 deserialize_signature(Binary) ->
     {{tuple, Args}, Rest}  = aeb_fate_encoding:deserialize_type(Binary),

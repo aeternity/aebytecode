@@ -17,6 +17,7 @@
 -define(FATE_VOID_T,      void).
 -define(FATE_TUPLE_T,     {tuple, tuple()}).
 -define(FATE_BITS_T,      {bits, integer()}).
+-define(FATE_TYPEREP_T,   {typerep, fate_type_type()}).
 
 -define(IS_FATE_INTEGER(X), (is_integer(X))).
 -define(IS_FATE_LIST(X),    (is_list(X))).

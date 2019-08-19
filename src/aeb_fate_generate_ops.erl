@@ -176,6 +176,7 @@ ops_defs() ->
     , { 'IS_CONTRACT',         16#7b,  false,   false,   true,  3, [a,a],       is_contract,                           {address},    bool, "Arg0 := is Arg1 a contract"}
     , { 'CREATOR',             16#7c,  false,    true,   true,  3, [a],    contract_creator,                                  {}, address, "Arg0 := contract creator"}
     , { 'ECRECOVER_SECP256K1', 16#7d,  false,    true,   true,  1300,   [a,a,a], ecrecover_secp256k1,             {bytes, bytes},   bytes, "Arg0 := ecrecover_secp256k1(Hash, Signature)"}
+    , { 'IS_PAYABLE',          16#7e,  false,   false,   true,  3, [a,a],        is_payable,                           {address},    bool, "Arg0 := is Arg1 a payable address"}
 
     , { 'DEACTIVATE',          16#fa,  false,    true,   true,  3, [],           deactivate,                                  {},    none, "Mark the current contract for deactivation."}
     , { 'ABORT',               16#fb,   true,    true,   true,  3, [a],               abort,                            {string},    none, "Abort execution (dont use all gas) with error message in Arg0."}

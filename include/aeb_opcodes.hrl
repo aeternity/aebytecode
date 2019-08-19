@@ -201,3 +201,4 @@
 -define(PRIM_CALL_IN_ADDRESS_RANGE(__TTYPE__), (((__TTYPE__) > 599) andalso ((__TTYPE__) < 700))).
 -define(PRIM_CALL_ADDR_IS_ORACLE,    600).
 -define(PRIM_CALL_ADDR_IS_CONTRACT,  601).
+-define(PRIM_CALL_ADDR_IS_PAYABLE,   610).

@@ -281,7 +281,7 @@ generate_code_ops(Modulename, SrcDir, Ops) ->
     file:close(File).
 
 gen_type(#{type_name := TypeName, type := Type}) ->
-    lists:flatten(io_lib:format("-type ~-26s :: ~s.\n",
+    lists:flatten(io_lib:format("-type ~-29s :: ~s.\n",
                                 [TypeName, Type])).
 
 gen_fate_code_type(#{type_name := TypeName}) ->
@@ -359,27 +359,27 @@ ops_exports(Module, HrlFile, Exports) ->
                     [Module, Exports])).
 
 gen_mnemonic(#{opname := Name, macro := Macro}) ->
-    lists:flatten(io_lib:format("mnemonic(~21s) -> ~21w ;\n",
+    lists:flatten(io_lib:format("mnemonic(~24s) -> ~24w ;\n",
                                 [Macro, Name])).
 
 gen_m_to_op(#{opname := Name, macro := Macro}) ->
-    lists:flatten(io_lib:format("m_to_op(~21w) -> ~21s ;\n",
+    lists:flatten(io_lib:format("m_to_op(~24w) -> ~24s ;\n",
                                 [Name, Macro])).
 
 gen_args(#{macro := Macro, arity := Arity}) ->
-    lists:flatten(io_lib:format("args(~21s) -> ~2w ;\n",
+    lists:flatten(io_lib:format("args(~24s) -> ~2w ;\n",
                                 [Macro, Arity])).
 
 gen_bb(#{macro := Macro, end_bb := EndBB}) ->
-    lists:flatten(io_lib:format("end_bb(~21s) -> ~w ;\n",
+    lists:flatten(io_lib:format("end_bb(~24s) -> ~w ;\n",
                                 [Macro, EndBB])).
 
 gen_in_auth(#{macro := Macro, in_auth := InAuth}) ->
-    lists:flatten(io_lib:format("in_auth(~21s) -> ~w ;\n",
+    lists:flatten(io_lib:format("in_auth(~24s) -> ~w ;\n",
                                 [Macro, InAuth])).
 
 gen_allowed_offchain(#{macro := Macro, offchain := Offchain}) ->
-    lists:flatten(io_lib:format("allowed_offchain(~21s) -> ~w ;\n",
+    lists:flatten(io_lib:format("allowed_offchain(~24s) -> ~w ;\n",
                                 [Macro, Offchain])).
 
 prelude(Doc) ->
@@ -396,7 +396,7 @@ prelude(Doc) ->
 
 
 gen_defines(#{opname := Name, opcode := OpCode}) ->
-    lists:flatten(io_lib:format("-define(~-26w, 16#~2.16.0b).\n", [Name, OpCode])).
+    lists:flatten(io_lib:format("-define(~-29w, 16#~2.16.0b).\n", [Name, OpCode])).
 
 gen([]) ->
     [];

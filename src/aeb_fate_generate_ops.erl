@@ -161,10 +161,11 @@ ops_defs() ->
     , { 'MAP_TO_LIST',         16#70,  false,    true,   true,  3, [a,a],       map_to_list,                               {map},    list, "Arg0 := The tuple list representation of the map Arg1."}
     , { 'STR_LENGTH',          16#71,  false,    true,   true,  3, [a,a],        str_length,                            {string}, integer, "Arg0 := The length of the string Arg1."}
 
-    , { 'ECVERIFY',            16#72,  false,    true,   true,  1300, [a,a,a,a],           ecverify, {bytes, address, bytes}, boolean, "Arg0 := ecverify(Hash, PubKey, Signature)"}
-    , { 'ECVERIFY_SECP256K1',  16#73,  false,    true,   true,  1300, [a,a,a,a], ecverify_secp256k1,   {bytes, bytes, bytes}, boolean, "Arg0 := ecverify_secp256k1(Hash, PubKey, Signature)"}
-    , { 'CONTRACT_TO_ADDRESS', 16#74,  false,    true,   true,  3, [a,a], contract_to_address,                        {contract}, address, "Arg0 := Arg1 - A no-op type conversion"}
-    , { 'AUTH_TX_HASH',        16#75,  false,    true,   true,  3, [a],          auth_tx_hash,                                {}, variant, "If in GA authentication context return Some(TxHash) otherwise None."}
+    , { 'VERIFY_SIG',           16#72,  false,    true,   true,  1300, [a,a,a,a],           verify_sig, {bytes, address, bytes}, boolean, "Arg0 := verify_sig(Hash, PubKey, Signature)"}
+    , { 'VERIFY_SIG_SECP256K1', 16#73,  false,    true,   true,  1300, [a,a,a,a], verify_sig_secp256k1,   {bytes, bytes, bytes}, boolean, "Arg0 := verify_sig_secp256k1(Hash, PubKey, Signature)"}
+
+    , { 'CONTRACT_TO_ADDRESS',  16#74,  false,    true,   true,  3, [a,a], contract_to_address,                        {contract}, address, "Arg0 := Arg1 - A no-op type conversion"}
+    , { 'AUTH_TX_HASH',         16#75,  false,    true,   true,  3, [a],          auth_tx_hash,                                {}, variant, "If in GA authentication context return Some(TxHash) otherwise None."}
 
     , { 'BYTES_TO_INT',        16#76,  false,    true,   true,  3, [a,a],        bytes_to_int,                           {bytes}, integer, "Arg0 := bytes_to_int(Arg1)"}
     , { 'BYTES_TO_STR',        16#77,  false,    true,   true,  3, [a,a],        bytes_to_str,                           {bytes},  string, "Arg0 := bytes_to_str(Arg1)"}
@@ -172,11 +173,13 @@ ops_defs() ->
     , { 'ORACLE_CHECK',        16#78,  false,   false,   true,  3, [a,a,a,a],    oracle_check,        {oracle, typerep, typerep},    bool, "Arg0 := is Arg1 an oracle with the given query (Arg2) and response (Arg3) types"}
     , { 'ORACLE_CHECK_QUERY',  16#79,  false,   false,   true,  3, [a,a,a,a,a], oracle_check_query, {oracle, oracle_query, typerep, typerep}, bool, "Arg0 := is Arg2 a query for the oracle Arg1 with the given types (Arg3, Arg4)"}
 
-    , { 'IS_ORACLE',           16#7a,  false,   false,   true,  3, [a,a],         is_oracle,                           {address},    bool, "Arg0 := is Arg1 an oracle"}
-    , { 'IS_CONTRACT',         16#7b,  false,   false,   true,  3, [a,a],       is_contract,                           {address},    bool, "Arg0 := is Arg1 a contract"}
-    , { 'CREATOR',             16#7c,  false,    true,   true,  3, [a],    contract_creator,                                  {}, address, "Arg0 := contract creator"}
-    , { 'ECRECOVER_SECP256K1', 16#7d,  false,    true,   true,  1300,   [a,a,a], ecrecover_secp256k1,             {bytes, bytes},   bytes, "Arg0 := ecrecover_secp256k1(Hash, Signature)"}
-    , { 'IS_PAYABLE',          16#7e,  false,   false,   true,  3, [a,a],        is_payable,                           {address},    bool, "Arg0 := is Arg1 a payable address"}
+    , { 'IS_ORACLE',           16#7a,  false,   false,   true,  3, [a,a],         is_oracle,               {address},    bool, "Arg0 := is Arg1 an oracle"}
+    , { 'IS_CONTRACT',         16#7b,  false,   false,   true,  3, [a,a],       is_contract,               {address},    bool, "Arg0 := is Arg1 a contract"}
+    , { 'IS_PAYABLE',          16#7c,  false,   false,   true,  3, [a,a],        is_payable,               {address},    bool, "Arg0 := is Arg1 a payable address"}
+    , { 'CREATOR',             16#7d,  false,    true,   true,  3, [a],    contract_creator,                      {}, address, "Arg0 := contract creator"}
+
+    , { 'ECVERIFY_SECP256K1',  16#7e,  false,    true,   true,  1300, [a,a,a,a], ecverify_secp256k1,  {bytes, bytes, bytes}, bytes, "Arg0 := ecverify_secp256k1(Hash, Addr, Signature)"}
+    , { 'ECRECOVER_SECP256K1', 16#7f,  false,    true,   true,  1300,   [a,a,a], ecrecover_secp256k1,        {bytes, bytes}, bytes, "Arg0 := ecrecover_secp256k1(Hash, Signature)"}
 
     , { 'DEACTIVATE',          16#fa,  false,    true,   true,  3, [],           deactivate,                                  {},    none, "Mark the current contract for deactivation."}
     , { 'ABORT',               16#fb,   true,    true,   true,  3, [a],               abort,                            {string},    none, "Abort execution (dont use all gas) with error message in Arg0."}
@@ -278,7 +281,7 @@ generate_code_ops(Modulename, SrcDir, Ops) ->
     file:close(File).
 
 gen_type(#{type_name := TypeName, type := Type}) ->
-    lists:flatten(io_lib:format("-type ~-26s :: ~s.\n",
+    lists:flatten(io_lib:format("-type ~-29s :: ~s.\n",
                                 [TypeName, Type])).
 
 gen_fate_code_type(#{type_name := TypeName}) ->
@@ -356,27 +359,27 @@ ops_exports(Module, HrlFile, Exports) ->
                     [Module, Exports])).
 
 gen_mnemonic(#{opname := Name, macro := Macro}) ->
-    lists:flatten(io_lib:format("mnemonic(~21s) -> ~21w ;\n",
+    lists:flatten(io_lib:format("mnemonic(~24s) -> ~24w ;\n",
                                 [Macro, Name])).
 
 gen_m_to_op(#{opname := Name, macro := Macro}) ->
-    lists:flatten(io_lib:format("m_to_op(~21w) -> ~21s ;\n",
+    lists:flatten(io_lib:format("m_to_op(~24w) -> ~24s ;\n",
                                 [Name, Macro])).
 
 gen_args(#{macro := Macro, arity := Arity}) ->
-    lists:flatten(io_lib:format("args(~21s) -> ~2w ;\n",
+    lists:flatten(io_lib:format("args(~24s) -> ~2w ;\n",
                                 [Macro, Arity])).
 
 gen_bb(#{macro := Macro, end_bb := EndBB}) ->
-    lists:flatten(io_lib:format("end_bb(~21s) -> ~w ;\n",
+    lists:flatten(io_lib:format("end_bb(~24s) -> ~w ;\n",
                                 [Macro, EndBB])).
 
 gen_in_auth(#{macro := Macro, in_auth := InAuth}) ->
-    lists:flatten(io_lib:format("in_auth(~21s) -> ~w ;\n",
+    lists:flatten(io_lib:format("in_auth(~24s) -> ~w ;\n",
                                 [Macro, InAuth])).
 
 gen_allowed_offchain(#{macro := Macro, offchain := Offchain}) ->
-    lists:flatten(io_lib:format("allowed_offchain(~21s) -> ~w ;\n",
+    lists:flatten(io_lib:format("allowed_offchain(~24s) -> ~w ;\n",
                                 [Macro, Offchain])).
 
 prelude(Doc) ->
@@ -393,7 +396,7 @@ prelude(Doc) ->
 
 
 gen_defines(#{opname := Name, opcode := OpCode}) ->
-    lists:flatten(io_lib:format("-define(~-26w, 16#~2.16.0b).\n", [Name, OpCode])).
+    lists:flatten(io_lib:format("-define(~-29w, 16#~2.16.0b).\n", [Name, OpCode])).
 
 gen([]) ->
     [];

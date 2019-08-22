@@ -1,0 +1,5 @@
+;; CONTRACT empty
+
+FUNCTION run () : integer
+  RETURNR 0
+

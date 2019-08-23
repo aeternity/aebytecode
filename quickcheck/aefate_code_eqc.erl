@@ -85,7 +85,7 @@ fate_code(Failure) ->
            ?LET({FMap, SMap, AMap},
                 {non_empty(map(if Failure == 1 -> binary(1);
                         true -> binary(4) end,
-                     {sublist(lists:sort([private, payable])),  %% serialzing is sorting them
+                     {sublist(lists:sort([private, payable])),  %% deserialize sorts them
                       {list(aefate_type_eqc:fate_type(Size div 3)), aefate_type_eqc:fate_type(Size div 3)}, bbs_code(Failure)})),
                  small_map(small_fate_data_key(5), small_fate_data(4)),
                  small_map(small_fate_data_key(5), small_fate_data(4))},

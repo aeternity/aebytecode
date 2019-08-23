@@ -77,7 +77,7 @@ prop_opcodes() ->
 
 
 valid_opcodes() ->
-    lists:seq(0, 16#7c) ++ lists:seq(16#fa, 16#fd).
+    lists:seq(0, 16#7f) ++ lists:seq(16#fa, 16#fd).
 
 
 fate_code(Failure) ->
@@ -85,7 +85,8 @@ fate_code(Failure) ->
            ?LET({FMap, SMap, AMap},
                 {non_empty(map(if Failure == 1 -> binary(1);
                         true -> binary(4) end,
-                     {{list(aefate_type_eqc:fate_type(Size div 3)), aefate_type_eqc:fate_type(Size div 3)}, bbs_code(Failure)})),
+                     {sublist(lists:sort([private, payable])),  %% serialzing is sorting them
+                      {list(aefate_type_eqc:fate_type(Size div 3)), aefate_type_eqc:fate_type(Size div 3)}, bbs_code(Failure)})),
                  small_map(small_fate_data_key(5), small_fate_data(4)),
                  small_map(small_fate_data_key(5), small_fate_data(4))},
                 aeb_fate_code:update_annotations(

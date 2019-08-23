@@ -28,17 +28,19 @@
 -define(STORE_MAP_THRESHOLD, 500).
 
 -type fate_value() :: aeb_fate_data:fate_type().
+-type fate_value_or_tombstone() :: fate_value() | ?FATE_MAP_TOMBSTONE.
 -type id() :: integer().
 -type used_ids() :: list(id()).
 -type maps() :: #{ id() => aeb_fate_data:fate_map() | aeb_fate_data:fate_store_map() }.
 
 %% -- Allocating store maps --------------------------------------------------
 
--spec allocate_store_maps(used_ids(), [fate_value()]) -> {[fate_value()], maps()}.
+-spec allocate_store_maps(used_ids(), [fate_value_or_tombstone()]) -> {[fate_value_or_tombstone()], maps()}.
 allocate_store_maps(Used, Vals) ->
     {_Used, Vals1, Maps} = allocate_store_maps_l(Used, Vals, #{}),
     {Vals1, Maps}.
 
+allocate_store_maps(Used, ?FATE_MAP_TOMBSTONE = Val, Maps) -> {Used, Val, Maps};
 allocate_store_maps(Used, ?FATE_TRUE          = Val, Maps) -> {Used, Val, Maps};
 allocate_store_maps(Used, ?FATE_FALSE         = Val, Maps) -> {Used, Val, Maps};
 allocate_store_maps(Used, ?FATE_UNIT          = Val, Maps) -> {Used, Val, Maps};
@@ -159,7 +161,7 @@ has_store_maps(Val) ->
 -spec refcount(fate_value()) -> refcount().
 refcount(Val) -> refcount(Val, #{}).
 
--spec refcount(fate_value(), refcount()) -> refcount().
+-spec refcount(fate_value_or_tombstone(), refcount()) -> refcount().
 refcount(?FATE_MAP_TOMBSTONE, Count) -> Count;
 refcount(?FATE_TRUE,          Count) -> Count;
 refcount(?FATE_FALSE,         Count) -> Count;

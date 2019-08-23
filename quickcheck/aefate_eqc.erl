@@ -10,6 +10,7 @@
 -module(aefate_eqc).
 
 -include_lib("eqc/include/eqc.hrl").
+-include("../include/aeb_fate_data.hrl").
 
 -compile([export_all, nowarn_export_all]).
 
@@ -42,6 +43,18 @@ prop_serializes() ->
                                                {rest,  equals(Garbage, Rest)},
                                                {size, size(Binary) < 500000}]))
                       end)).
+
+prop_no_maps_in_keys() ->
+    ?FORALL(FateData, fate_bad_map(), %% may contain a map in its keys
+            begin
+                HasMapInKeys = lists:any(fun(K) -> has_map(K) end, maps:keys(FateData)),
+                try aeb_fate_encoding:serialize(FateData),
+                     ?WHENFAIL(eqc:format("Should not serialize, contains a map in key\n", []),
+                               not HasMapInKeys)
+                catch error:Reason ->
+                        ?WHENFAIL(eqc:format("(~p) Should serialize\n", [Reason]), HasMapInKeys)
+                end
+            end).
 
 prop_fuzz() ->
     in_parallel(
@@ -167,3 +180,14 @@ injection(Binary) ->
 
 is_empty(L) ->
     ?WHENFAIL(eqc:format("~p\n", [L]), L == []).
+
+has_map(L) when is_list(L) ->
+    lists:any(fun(V) -> has_map(V) end, L);
+has_map(T) when is_tuple(T) ->
+    has_map(tuple_to_list(T));
+has_map(M) when is_map(M) ->
+    true;
+has_map(?FATE_STORE_MAP(_, _)) ->
+    true;
+has_map(_) ->
+    false.

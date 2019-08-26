@@ -487,5 +487,11 @@ sort(KVList) ->
 
 valid_key_type(K) when ?IS_FATE_MAP(K) ->
     error({map_as_key_in_map, K});
+valid_key_type(?FATE_STORE_MAP(_, _) = K) ->
+    error({map_as_key_in_map, K});
+valid_key_type(K) when is_list(K) ->
+    lists:all(fun(E) -> valid_key_type(E) end, K);
+valid_key_type(K) when is_tuple(K) ->
+    lists:all(fun(E) -> valid_key_type(E) end, tuple_to_list(K));
 valid_key_type(_K) ->
     true.

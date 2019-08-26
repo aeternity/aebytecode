@@ -10,6 +10,7 @@
 -module(aefate_eqc).
 
 -include_lib("eqc/include/eqc.hrl").
+-include("../include/aeb_fate_data.hrl").
 
 -compile([export_all, nowarn_export_all]).
 
@@ -23,7 +24,7 @@ prop_roundtrip() ->
                     end)).
 
 prop_format_scan() ->
-    ?FORALL(FateData, fate_data(),
+    ?FORALL(FateData, fate_data([variant, map]),
             ?WHENFAIL(eqc:format("Trying to format ~p failed~n", [FateData]),
                       begin
                           String = aeb_fate_data:format(FateData),
@@ -43,6 +44,18 @@ prop_serializes() ->
                                                {size, size(Binary) < 500000}]))
                       end)).
 
+prop_no_maps_in_keys() ->
+    ?FORALL(FateData, fate_bad_map(), %% may contain a map in its keys
+            begin
+                HasMapInKeys = lists:any(fun(K) -> has_map(K) end, maps:keys(FateData)),
+                try aeb_fate_encoding:serialize(FateData),
+                     ?WHENFAIL(eqc:format("Should not serialize, contains a map in key\n", []),
+                               not HasMapInKeys)
+                catch error:Reason ->
+                        ?WHENFAIL(eqc:format("(~p) Should serialize\n", [Reason]), HasMapInKeys)
+                end
+            end).
+
 prop_fuzz() ->
     in_parallel(
     ?FORALL(Binary, ?LET(FateData, ?SIZED(Size, resize(Size div 4, fate_data())), aeb_fate_encoding:serialize(FateData)),
@@ -59,13 +72,14 @@ prop_fuzz() ->
 
 
 prop_order() ->
-    ?FORALL(Items, vector(3, fate_data()),
+    ?FORALL(Items, vector(3, fate_data([variant, map])),
             begin
                 %% Use lt to take minimum
                 Min = lt_min(Items),
                 Max = lt_max(Items),
                 conjunction([ {minimum, is_empty([ {Min, '>', I} || I<-Items, aeb_fate_data:lt(I, Min)])},
-                              {maximum, is_empty([ {Max, '<', I} || I<-Items, aeb_fate_data:lt(Max, I)])}])
+                              {maximum, is_empty([ {Max, '<', I} || I<-Items, aeb_fate_data:lt(Max, I)])},
+                              {asym, aeb_fate_data:lt(Min, Max) orelse Min == Max}])
             end).
 
 lt_min([X, Y | Rest]) ->
@@ -88,18 +102,24 @@ prop_idempotent() ->
                    aeb_fate_encoding:sort(aeb_fate_encoding:sort(Items)))).
 
 
+
+fate_data(Kind) ->
+    ?SIZED(Size, ?LET(Data, fate_data(Size, Kind), eqc_symbolic:eval(Data))).
+
 fate_data() ->
-    ?SIZED(Size, ?LET(Data, fate_data(Size, [map, variant]), eqc_symbolic:eval(Data))).
+    fate_data([map, variant, store_map]).
 
+%% keys may contain variants but no maps
 fate_data_key() ->
-    ?SIZED(Size, ?LET(Data, fate_data(Size div 4, [variant]), eqc_symbolic:eval(Data))).
+    fate_data([variant]).
 
-fate_data(0, _Options) ->
+fate_data(0, Options) ->
     ?LAZY(
        frequency(
-         [{5, oneof([fate_integer(), fate_boolean(), fate_nil(), fate_unit()])},
-          {1, oneof([fate_string(), fate_address(), fate_bytes(), fate_contract(),
-                     fate_oracle(), fate_oracle_q(), fate_bits(), fate_channel()])}]));
+         [{50, oneof([fate_integer(), fate_boolean(), fate_nil(), fate_unit()])},
+          {10, oneof([fate_string(), fate_address(), fate_bytes(), fate_contract(),
+                     fate_oracle(), fate_oracle_q(), fate_bits(), fate_channel()])}] ++
+             [{1, fate_store_map()} || lists:member(store_map, Options)]));
 fate_data(Size, Options) ->
     ?LAZY(
     oneof([fate_data(0, Options),
@@ -148,8 +168,19 @@ fate_list(Size, Options) ->
 fate_map(Size, Options) ->
     ?LET(N, choose(0, 6),
     ?LETSHRINK(Values, fate_values(Size, N, Options),
-    ?LET(Keys, vector(length(Values), fate_data(Size div max(1, N * 2), Options -- [map])),
+    ?LET(Keys, vector(length(Values), fate_data(Size div max(1, N * 2), Options -- [map, store_map])),
     return(aeb_fate_data:make_map(maps:from_list(lists:zip(Keys, Values))))))).
+
+fate_store_map() ->
+    %% only #{} is allowed as cache in serialization
+    ?LET(X, oneof([int(), largeint()]),
+         return(aeb_fate_data:make_store_map(abs(X)))).
+
+fate_bad_map() ->
+    ?LET(N, choose(0, 6),
+    ?LET(Values, vector(N, ?SIZED(Size, resize(Size div 8, fate_data()))),
+    ?LET(Keys, vector(N, ?SIZED(Size, resize(Size div 4, fate_data()))),
+         return(aeb_fate_data:make_map(maps:from_list(lists:zip(Keys, Values))))))).
 
 non_quote_string() ->
     ?SUCHTHAT(S, utf8(), [ quote || <<34>> <= S ] == []).
@@ -167,3 +198,14 @@ injection(Binary) ->
 
 is_empty(L) ->
     ?WHENFAIL(eqc:format("~p\n", [L]), L == []).
+
+has_map(L) when is_list(L) ->
+    lists:any(fun(V) -> has_map(V) end, L);
+has_map(T) when is_tuple(T) ->
+    has_map(tuple_to_list(T));
+has_map(M) when is_map(M) ->
+    true;
+has_map(?FATE_STORE_MAP(_, _)) ->
+    true;
+has_map(_) ->
+    false.

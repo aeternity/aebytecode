@@ -95,7 +95,8 @@ allocate_store_maps_m(Used, Val, Maps) ->
 
 -type unfold_fun() :: fun((id()) -> aeb_fate_data:fate_map()).
 
--spec unfold_store_maps(unfold_fun(), fate_value()) -> fate_value().
+-spec unfold_store_maps(unfold_fun(), fate_value_or_tombstone()) -> fate_value_or_tombstone().
+unfold_store_maps(_Unfold, ?FATE_MAP_TOMBSTONE = Val) -> Val;
 unfold_store_maps(_Unfold, ?FATE_TRUE          = Val) -> Val;
 unfold_store_maps(_Unfold, ?FATE_FALSE         = Val) -> Val;
 unfold_store_maps(_Unfold, ?FATE_UNIT          = Val) -> Val;
@@ -121,7 +122,8 @@ unfold_store_maps(Unfold, Val) when ?IS_FATE_MAP(Val) ->
     ?MAKE_FATE_MAP(unfold_store_maps_m(Unfold, ?FATE_MAP_VALUE(Val)));
 unfold_store_maps(Unfold, ?FATE_STORE_MAP(Cache, Id)) ->
     StoreMap = Unfold(Id),
-    maps:fold(fun write_cache/3, unfold_store_maps(Unfold, StoreMap), Cache).
+    maps:fold(fun write_cache/3, unfold_store_maps(Unfold, StoreMap),
+                                 unfold_store_maps_m(Unfold, Cache)).
 
 unfold_store_maps_l(Unfold, Vals) ->
     [ unfold_store_maps(Unfold, Val) || Val <- Vals ].

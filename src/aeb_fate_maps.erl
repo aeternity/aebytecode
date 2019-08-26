@@ -76,8 +76,8 @@ allocate_store_maps(Used, ?FATE_STORE_MAP(Cache, _Id) = Val, Maps) when Cache =:
     {Used, Val, Maps};
 allocate_store_maps(Used, ?FATE_STORE_MAP(Cache, Id), Maps) ->
     {NewId, Used1} = next_id(Used),
-    {Used1, Cache1, Maps1} = allocate_store_maps_m(Used1, Cache, Maps),
-    {Used1, ?FATE_STORE_MAP(#{}, NewId), Maps1#{NewId => ?FATE_STORE_MAP(Cache1, Id)}}.
+    {Used2, Cache1, Maps1} = allocate_store_maps_m(Used1, Cache, Maps),
+    {Used2, ?FATE_STORE_MAP(#{}, NewId), Maps1#{NewId => ?FATE_STORE_MAP(Cache1, Id)}}.
 
 allocate_store_maps_l(Used, [], Maps) -> {Used, [], Maps};
 allocate_store_maps_l(Used, [H | T], Maps) ->

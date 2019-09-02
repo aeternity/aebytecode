@@ -4,8 +4,8 @@ FUNCTION preclaim(address, {bytes, 32}) : {tuple, []}
   AENS_PRECLAIM #AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA== arg0 arg1
   RETURNR {}
 
-FUNCTION claim(address, string, integer) : {tuple, []}
-  AENS_CLAIM #AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA== arg0 arg1 arg2
+FUNCTION claim(address, string, integer, integer) : {tuple, []}
+  AENS_CLAIM #AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA== arg0 arg1 arg2 arg3
   RETURNR {}
 
 FUNCTION transfer(address, address, {bytes, 32}) : {tuple, []}
@@ -19,5 +19,3 @@ FUNCTION revoke(address, {bytes, 32}) : {tuple, []}
 FUNCTION resolve(string, string) : {variant, [{tuple, []}, {tuple, [address]}]}
   AENS_RESOLVE a arg0 arg1 'address
   RETURN
-
-

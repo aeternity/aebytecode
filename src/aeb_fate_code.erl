@@ -19,6 +19,7 @@
         , serialize/3
         , serialize_code/1
         , serialize_signature/1
+        , strip_init_function/1
         , symbol_identifier/1
         , symbols/1
         ]).
@@ -91,6 +92,13 @@ insert_annotation(comment =_Type, Line, Comment, FCode) ->
     Key   = aeb_fate_data:make_tuple({aeb_fate_data:make_string("comment"), Line}),
     Value = aeb_fate_data:make_string(Comment),
     update_annotations(FCode, #{ Key => Value }).
+
+strip_init_function(#fcode{ functions = Funs,
+                            symbols   = Syms } = FCode) ->
+    Id    = symbol_identifier(<<"init">>),
+    Funs1 = maps:remove(Id, Funs),
+    Syms1 = maps:remove(Id, Syms),
+    FCode#fcode{ functions = Funs1, symbols = Syms1 }.
 
 %%%===================================================================
 %%% Serialization

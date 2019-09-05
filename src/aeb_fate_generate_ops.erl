@@ -210,6 +210,7 @@ generate_opcodes_ops(Modulename, HrlFile, SrcDir, Ops) ->
     EndBB = lists:flatten([gen_bb(Op) || Op <- Ops]),
     InAuth = lists:flatten([gen_in_auth(Op) || Op <- Ops]),
     Offchain = lists:flatten([gen_allowed_offchain(Op) || Op <- Ops]),
+    GasCost = lists:flatten([gen_gas_cost(Op) || Op <- Ops]),
 
     io:format(File, "~s", [prelude("Provides opcode primitives.\n")]),
     io:format(File, "~s", [ops_exports(Modulename, HrlFile,
@@ -219,6 +220,7 @@ generate_opcodes_ops(Modulename, HrlFile, SrcDir, Ops) ->
                                         "        , allowed_offchain/1\n"
                                         "        , mnemonic/1\n"
                                         "        , m_to_op/1\n"
+                                        "        , gas_cost/1\n"
                                        ])]),
 
     io:format(File, "%% FATE mnemonics\n~s", [Mnemonic]),
@@ -238,6 +240,9 @@ generate_opcodes_ops(Modulename, HrlFile, SrcDir, Ops) ->
 
     io:format(File, "%% Is FATE Op allowed in a state channel offchain context?\n~s", [Offchain]),
     io:format(File, "allowed_offchain(_) -> false.\n\n", []),
+
+    io:format(File, "%% Base cost of operation\n~s", [GasCost]),
+    io:format(File, "gas_cost(Op) -> exit({bad_opcode, Op}).\n\n", []),
 
     file:close(File).
 
@@ -381,6 +386,10 @@ gen_in_auth(#{macro := Macro, in_auth := InAuth}) ->
 gen_allowed_offchain(#{macro := Macro, offchain := Offchain}) ->
     lists:flatten(io_lib:format("allowed_offchain(~24s) -> ~w ;\n",
                                 [Macro, Offchain])).
+
+gen_gas_cost(#{macro := Macro, gas := Gas}) ->
+    lists:flatten(io_lib:format("gas_cost(~24s) -> ~w ;\n",
+                                [Macro, Gas])).
 
 prelude(Doc) ->
     "%%%-------------------------------------------------------------------\n"

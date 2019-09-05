@@ -37,9 +37,11 @@ create_calldata(FunName, Args) ->
 -spec decode_calldata(list(), binary()) -> {ok, term()} | {error, term()}.
 decode_calldata(FunName, Calldata) ->
     FunctionId = aeb_fate_code:symbol_identifier(list_to_binary(FunName)),
-    case ?FATE_TUPLE_ELEMENTS(aeb_fate_encoding:deserialize(Calldata)) of
+    try ?FATE_TUPLE_ELEMENTS(aeb_fate_encoding:deserialize(Calldata)) of
         [FunctionId, FateArgs] -> {ok, ?FATE_TUPLE_ELEMENTS(FateArgs)};
         _                      -> {error, decode_error}
+    catch _:_ ->
+        {error, decode_error}
     end.
 
 -spec get_function_name_from_function_hash(binary(), aeb_fate_code:fcode()) ->

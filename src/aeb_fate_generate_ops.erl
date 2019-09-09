@@ -106,76 +106,78 @@ ops_defs() ->
     , { 'ADDR_TO_STR',         16#3c,  false,    true,   true,   10, [a,a],       addr_to_str,                            {address},  string, "Arg0 := turn address Arg1 into a string."}
     , { 'STR_REVERSE',         16#3d,  false,    true,   true,   10, [a,a],       str_reverse,                             {string},  string, "Arg0 := the reverse of string Arg1."}
     , { 'STR_LENGTH',          16#3e,  false,    true,   true,   10, [a,a],        str_length,                            {string}, integer, "Arg0 := The length of the string Arg1."}
-    , { 'BYTES_TO_INT',        16#3f,  false,    true,   true,   10, [a,a],        bytes_to_int,                           {bytes}, integer, "Arg0 := bytes_to_int(Arg1)"}
-    , { 'BYTES_TO_STR',        16#40,  false,    true,   true,   10, [a,a],        bytes_to_str,                           {bytes},  string, "Arg0 := bytes_to_str(Arg1)"}
-    , { 'INT_TO_ADDR',         16#41,  false,    true,   true,   10, [a,a],       int_to_addr,                            {integer}, address, "Arg0 := turn integer Arg1 into an address."}
-    , { 'VARIANT',             16#42,  false,    true,   true,   10, [a,a,a,a],       variant,          {integer, integer, integer}, variant, "Arg0 := create a variant of size Arg1 with the tag Arg2 (Arg2 < Arg1) and take Arg3 elements from the stack."}
-    , { 'VARIANT_TEST',        16#43,  false,    true,   true,   10, [a,a,a],    variant_test,                   {variant, integer}, boolean, "Arg0 := true if variant Arg1 has the tag Arg2."}
-    , { 'VARIANT_ELEMENT',     16#44,  false,    true,   true,   10, [a,a,a], variant_element,                   {variant, integer},     any, "Arg0 := element number Arg2 from variant Arg1."}
-    , { 'BITS_NONEA',          16#45,  false,    true,   true,   10, [],            bits_none,                                   {},    bits, "push an empty bitmap on the stack."}
-    , { 'BITS_NONE',           16#46,  false,    true,   true,   10, [a],           bits_none,                                   {},    bits, "Arg0 := empty bitmap."}
-    , { 'BITS_ALLA',           16#47,  false,    true,   true,   10, [],             bits_all,                                   {},    bits, "push a full bitmap on the stack."}
-    , { 'BITS_ALL',            16#48,  false,    true,   true,   10, [a],            bits_all,                                   {},    bits, "Arg0 := full bitmap."}
-    , { 'BITS_ALL_N',          16#49,  false,    true,   true,   10, [a,a],        bits_all_n,                            {integer},    bits, "Arg0 := bitmap with Arg1 bits set."}
-    , { 'BITS_SET',            16#4a,  false,    true,   true,   10, [a,a,a],        bits_set,                      {bits, integer},    bits, "Arg0 := set bit Arg2 of bitmap Arg1."}
-    , { 'BITS_CLEAR',          16#4b,  false,    true,   true,   10, [a,a,a],      bits_clear,                      {bits, integer},    bits, "Arg0 := clear bit Arg2 of bitmap Arg1."}
-    , { 'BITS_TEST',           16#4c,  false,    true,   true,   10, [a,a,a],       bits_test,                      {bits, integer}, boolean, "Arg0 := true if bit Arg2 of bitmap Arg1 is set."}
-    , { 'BITS_SUM',            16#4d,  false,    true,   true,   10, [a,a],          bits_sum,                               {bits}, integer, "Arg0 := sum of set bits in bitmap Arg1. Exception if infinit bitmap."}
-    , { 'BITS_OR',             16#4e,  false,    true,   true,   10, [a,a,a],         bits_or,                         {bits, bits},    bits, "Arg0 := Arg1 v Arg2."}
-    , { 'BITS_AND',            16#4f,  false,    true,   true,   10, [a,a,a],        bits_and,                         {bits, bits},    bits, "Arg0 := Arg1 ^ Arg2."}
-    , { 'BITS_DIFF',           16#50,  false,    true,   true,   10, [a,a,a],       bits_diff,                         {bits, bits},    bits, "Arg0 := Arg1 - Arg2."}
-    , { 'BALANCE',             16#51,  false,    true,   true,   10, [a],             balance,                                   {}, integer, "Arg0 := The current contract balance."}
-    , { 'ORIGIN',              16#52,  false,    true,   true,   10, [a],              origin,                                   {}, address, "Arg0 := Address of contract called by the call transaction."}
-    , { 'CALLER',              16#53,  false,    true,   true,   10, [a],              caller,                                   {}, address, "Arg0 := The address that signed the call transaction."}
-    , { 'BLOCKHASH',           16#54,  false,    true,   true,   10, [a,a],         blockhash,                            {integer},    hash, "Arg0 := The blockhash at height."}
-    , { 'BENEFICIARY',         16#55,  false,    true,   true,   10, [a],         beneficiary,                                   {}, address, "Arg0 := The address of the current beneficiary."}
-    , { 'TIMESTAMP',           16#56,  false,    true,   true,   10, [a],           timestamp,                                   {}, integer, "Arg0 := The current timestamp. Unrelaiable, don't use for anything."}
-    , { 'GENERATION',          16#57,  false,    true,   true,   10, [a],          generation,                                   {}, integer, "Arg0 := The block height of the cureent generation."}
-    , { 'MICROBLOCK',          16#58,  false,    true,   true,   10, [a],          microblock,                                   {}, integer, "Arg0 := The current micro block number."}
-    , { 'DIFFICULTY',          16#59,  false,    true,   true,   10, [a],          difficulty,                                   {}, integer, "Arg0 := The current difficulty."}
-    , { 'GASLIMIT',            16#5a,  false,    true,   true,   10, [a],            gaslimit,                                   {}, integer, "Arg0 := The current gaslimit."}
-    , { 'GAS',                 16#5b,  false,    true,   true,   10, [a],                 gas,                                   {}, integer, "Arg0 := The amount of gas left."}
-    , { 'ADDRESS',             16#5c,  false,    true,   true,   10, [a],             address,                                   {}, address, "Arg0 := The current contract address."}
-    , { 'GASPRICE',            16#5d,  false,    true,   true,   10, [a],            gasprice,                                   {}, integer, "Arg0 := The current gas price."}
+    , { 'BYTES_TO_INT',        16#3f,  false,    true,   true,   10, [a,a],      bytes_to_int,                           {bytes}, integer, "Arg0 := bytes_to_int(Arg1)"}
+    , { 'BYTES_TO_STR',        16#40,  false,    true,   true,   10, [a,a],      bytes_to_str,                           {bytes},  string, "Arg0 := bytes_to_str(Arg1)"}
+    , { 'BYTES_CONCAT',        16#41,  false,    true,   true,   10, [a,a,a],    bytes_concat,                       {bytes, bytes},  bytes, "Arg0 := bytes_concat(Arg1, Arg2)"}
+    , { 'BYTES_SPLIT',         16#42,  false,    true,   true,   10, [a,a,a],     bytes_split,                     {bytes, integer},  bytes, "Arg0 := bytes_split(Arg2, Arg1), where Arg2 is the length of the first chunk."}
+    , { 'INT_TO_ADDR',         16#43,  false,    true,   true,   10, [a,a],       int_to_addr,                            {integer}, address, "Arg0 := turn integer Arg1 into an address."}
+    , { 'VARIANT',             16#44,  false,    true,   true,   10, [a,a,a,a],       variant,          {integer, integer, integer}, variant, "Arg0 := create a variant of size Arg1 with the tag Arg2 (Arg2 < Arg1) and take Arg3 elements from the stack."}
+    , { 'VARIANT_TEST',        16#45,  false,    true,   true,   10, [a,a,a],    variant_test,                   {variant, integer}, boolean, "Arg0 := true if variant Arg1 has the tag Arg2."}
+    , { 'VARIANT_ELEMENT',     16#46,  false,    true,   true,   10, [a,a,a], variant_element,                   {variant, integer},     any, "Arg0 := element number Arg2 from variant Arg1."}
+    , { 'BITS_NONEA',          16#47,  false,    true,   true,   10, [],            bits_none,                                   {},    bits, "push an empty bitmap on the stack."}
+    , { 'BITS_NONE',           16#48,  false,    true,   true,   10, [a],           bits_none,                                   {},    bits, "Arg0 := empty bitmap."}
+    , { 'BITS_ALLA',           16#49,  false,    true,   true,   10, [],             bits_all,                                   {},    bits, "push a full bitmap on the stack."}
+    , { 'BITS_ALL',            16#4a,  false,    true,   true,   10, [a],            bits_all,                                   {},    bits, "Arg0 := full bitmap."}
+    , { 'BITS_ALL_N',          16#4b,  false,    true,   true,   10, [a,a],        bits_all_n,                            {integer},    bits, "Arg0 := bitmap with Arg1 bits set."}
+    , { 'BITS_SET',            16#4c,  false,    true,   true,   10, [a,a,a],        bits_set,                      {bits, integer},    bits, "Arg0 := set bit Arg2 of bitmap Arg1."}
+    , { 'BITS_CLEAR',          16#4d,  false,    true,   true,   10, [a,a,a],      bits_clear,                      {bits, integer},    bits, "Arg0 := clear bit Arg2 of bitmap Arg1."}
+    , { 'BITS_TEST',           16#4e,  false,    true,   true,   10, [a,a,a],       bits_test,                      {bits, integer}, boolean, "Arg0 := true if bit Arg2 of bitmap Arg1 is set."}
+    , { 'BITS_SUM',            16#4f,  false,    true,   true,   10, [a,a],          bits_sum,                               {bits}, integer, "Arg0 := sum of set bits in bitmap Arg1. Exception if infinit bitmap."}
+    , { 'BITS_OR',             16#50,  false,    true,   true,   10, [a,a,a],         bits_or,                         {bits, bits},    bits, "Arg0 := Arg1 v Arg2."}
+    , { 'BITS_AND',            16#51,  false,    true,   true,   10, [a,a,a],        bits_and,                         {bits, bits},    bits, "Arg0 := Arg1 ^ Arg2."}
+    , { 'BITS_DIFF',           16#52,  false,    true,   true,   10, [a,a,a],       bits_diff,                         {bits, bits},    bits, "Arg0 := Arg1 - Arg2."}
+    , { 'BALANCE',             16#53,  false,    true,   true,   10, [a],             balance,                                   {}, integer, "Arg0 := The current contract balance."}
+    , { 'ORIGIN',              16#54,  false,    true,   true,   10, [a],              origin,                                   {}, address, "Arg0 := Address of contract called by the call transaction."}
+    , { 'CALLER',              16#55,  false,    true,   true,   10, [a],              caller,                                   {}, address, "Arg0 := The address that signed the call transaction."}
+    , { 'BLOCKHASH',           16#56,  false,    true,   true,   10, [a,a],         blockhash,                            {integer},    hash, "Arg0 := The blockhash at height."}
+    , { 'BENEFICIARY',         16#57,  false,    true,   true,   10, [a],         beneficiary,                                   {}, address, "Arg0 := The address of the current beneficiary."}
+    , { 'TIMESTAMP',           16#58,  false,    true,   true,   10, [a],           timestamp,                                   {}, integer, "Arg0 := The current timestamp. Unrelaiable, don't use for anything."}
+    , { 'GENERATION',          16#59,  false,    true,   true,   10, [a],          generation,                                   {}, integer, "Arg0 := The block height of the cureent generation."}
+    , { 'MICROBLOCK',          16#5a,  false,    true,   true,   10, [a],          microblock,                                   {}, integer, "Arg0 := The current micro block number."}
+    , { 'DIFFICULTY',          16#5b,  false,    true,   true,   10, [a],          difficulty,                                   {}, integer, "Arg0 := The current difficulty."}
+    , { 'GASLIMIT',            16#5c,  false,    true,   true,   10, [a],            gaslimit,                                   {}, integer, "Arg0 := The current gaslimit."}
+    , { 'GAS',                 16#5d,  false,    true,   true,   10, [a],                 gas,                                   {}, integer, "Arg0 := The amount of gas left."}
+    , { 'ADDRESS',             16#5e,  false,    true,   true,   10, [a],             address,                                   {}, address, "Arg0 := The current contract address."}
+    , { 'GASPRICE',            16#5f,  false,    true,   true,   10, [a],            gasprice,                                   {}, integer, "Arg0 := The current gas price."}
 
-    , { 'LOG0',                16#5e,  false,    true,   true, 1000, [a],                 log,                             {string},    none, "Create a log message in the call object."}
-    , { 'LOG1',                16#5f,  false,    true,   true, 1100, [a,a],               log,                    {integer, string},    none, "Create a log message with one topic in the call object."}
-    , { 'LOG2',                16#60,  false,    true,   true, 1200, [a,a,a],             log,           {integer, integer, string},    none, "Create a log message with two topics in the call object."}
-    , { 'LOG3',                16#61,  false,    true,   true, 1300, [a,a,a,a],           log,  {integer, integer, integer, string},    none, "Create a log message with three topics in the call object."}
-    , { 'LOG4',                16#62,  false,    true,   true, 1400, [a,a,a,a,a],         log, {integer, integer, integer, integer, string},    none, "Create a log message with four topics in the call object."}
+    , { 'LOG0',                16#60,  false,    true,   true, 1000, [a],                 log,                             {string},    none, "Create a log message in the call object."}
+    , { 'LOG1',                16#61,  false,    true,   true, 1100, [a,a],               log,                    {integer, string},    none, "Create a log message with one topic in the call object."}
+    , { 'LOG2',                16#62,  false,    true,   true, 1200, [a,a,a],             log,           {integer, integer, string},    none, "Create a log message with two topics in the call object."}
+    , { 'LOG3',                16#63,  false,    true,   true, 1300, [a,a,a,a],           log,  {integer, integer, integer, string},    none, "Create a log message with three topics in the call object."}
+    , { 'LOG4',                16#64,  false,    true,   true, 1400, [a,a,a,a,a],         log, {integer, integer, integer, integer, string},    none, "Create a log message with four topics in the call object."}
       %% Transaction ops
-    , { 'SPEND',               16#63,  false,   false,   true,  100, [a,a],             spend,                  {address, integer},     none, "Transfer Arg1 tokens to account Arg0. (If the contract account has at least that many tokens."}
-    , { 'ORACLE_REGISTER',     16#64,  false,   false,  false,  100, [a,a,a,a,a,a,a], oracle_register, {signature, address, integer, variant, typerep, typerep}, oracle, "Arg0 := New oracle with address Arg2, query fee Arg3, TTL Arg4, query type Arg5 and response type Arg6. Arg0 contains delegation signature."}
-    , { 'ORACLE_QUERY',        16#65,  false,   false,  false,  100, [a,a,a,a,a,a,a,a], oracle_query, {oracle, any, integer, variant, variant, typerep, typerep}, oracle_query, "Arg0 := New oracle query for oracle Arg1, question in Arg2, query fee in Arg3, query TTL in Arg4, response TTL in Arg5. Typereps for checking oracle type is in Arg6 and Arg7."}
-    , { 'ORACLE_RESPOND',      16#66,  false,   false,  false,  100, [a,a,a,a,a,a], oracle_respond, {signature, oracle, oracle_query,any, typerep, typerep},   none, "Respond as oracle Arg1 to query in Arg2 with response Arg3. Arg0 contains delegation signature. Typereps for checking oracle type is in Arg4 and Arg5."}
-    , { 'ORACLE_EXTEND',       16#67,  false,   false,  false,  100, [a,a,a],   oracle_extend,        {signature, oracle, variant},     none, "Extend oracle in Arg1 with TTL in Arg2. Arg0 contains delegation signature."}
-    , { 'ORACLE_GET_ANSWER',   16#68,  false,   false,   true,  100, [a,a,a,a,a], oracle_get_answer, {oracle, oracle_query, typerep, typerep}, any, "Arg0 := option variant with answer (if any) from oracle query in Arg1 given by oracle Arg0. Typereps for checking oracle type is in Arg3 and Arg4."}
-    , { 'ORACLE_GET_QUESTION', 16#69,  false,   false,   true,  100, [a,a,a,a,a], oracle_get_question, {oracle, oracle_query, typerep, typerep}, any, "Arg0 := question in oracle query Arg2 given to oracle Arg1. Typereps for checking oracle type is in Arg3 and Arg4."}
-    , { 'ORACLE_QUERY_FEE',    16#6a,  false,   false,   true,  100, [a,a],  oracle_query_fee,                            {oracle},  integer, "Arg0 := query fee for oracle Arg1"}
-    , { 'AENS_RESOLVE',        16#6b,  false,   false,   true,  100, [a,a,a,a],  aens_resolve,           {string, string, typerep},  variant, "Resolve name in Arg0 with tag Arg1. Arg2 describes the type parameter of the resolved name."}
-    , { 'AENS_PRECLAIM',       16#6c,  false,   false,  false,  100, [a,a,a],   aens_preclaim,          {signature, address, hash},    none, "Preclaim the hash in Arg2 for address in Arg1. Arg0 contains delegation signature."}
-    , { 'AENS_CLAIM',          16#6d,  false,   false,  false,  100, [a,a,a,a,a],    aens_claim, {signature, address, string, integer, integer},  none, "Attempt to claim the name in Arg2 for address in Arg1 at a price in Arg4. Arg3 contains the salt used to hash the preclaim. Arg0 contains delegation signature."}
-    , { 'AENS_UPDATE',         16#6e,  false,   false,  false,  100, [],          aens_update,                                  {},    none, "NYI"}
-    , { 'AENS_TRANSFER',       16#6f,  false,   false,  false,  100, [a,a,a,a], aens_transfer,{signature, address, address, string},   none, "Transfer ownership of name Arg3 from account Arg1 to Arg2. Arg0 contains delegation signature."}
-    , { 'AENS_REVOKE',         16#70,  false,   false,  false,  100, [a,a,a],     aens_revoke,        {signature, address, string},    none, "Revoke the name in Arg2 from owner Arg1. Arg0 contains delegation signature."}
-    , { 'BALANCE_OTHER',       16#71,  false,    true,   true,   50, [a,a],     balance_other,                           {address}, integer, "Arg0 := The balance of address Arg1."}
+    , { 'SPEND',               16#65,  false,   false,   true,  100, [a,a],             spend,                  {address, integer},     none, "Transfer Arg1 tokens to account Arg0. (If the contract account has at least that many tokens."}
+    , { 'ORACLE_REGISTER',     16#66,  false,   false,  false,  100, [a,a,a,a,a,a,a], oracle_register, {signature, address, integer, variant, typerep, typerep}, oracle, "Arg0 := New oracle with address Arg2, query fee Arg3, TTL Arg4, query type Arg5 and response type Arg6. Arg0 contains delegation signature."}
+    , { 'ORACLE_QUERY',        16#67,  false,   false,  false,  100, [a,a,a,a,a,a,a,a], oracle_query, {oracle, any, integer, variant, variant, typerep, typerep}, oracle_query, "Arg0 := New oracle query for oracle Arg1, question in Arg2, query fee in Arg3, query TTL in Arg4, response TTL in Arg5. Typereps for checking oracle type is in Arg6 and Arg7."}
+    , { 'ORACLE_RESPOND',      16#68,  false,   false,  false,  100, [a,a,a,a,a,a], oracle_respond, {signature, oracle, oracle_query,any, typerep, typerep},   none, "Respond as oracle Arg1 to query in Arg2 with response Arg3. Arg0 contains delegation signature. Typereps for checking oracle type is in Arg4 and Arg5."}
+    , { 'ORACLE_EXTEND',       16#69,  false,   false,  false,  100, [a,a,a],   oracle_extend,        {signature, oracle, variant},     none, "Extend oracle in Arg1 with TTL in Arg2. Arg0 contains delegation signature."}
+    , { 'ORACLE_GET_ANSWER',   16#6a,  false,   false,   true,  100, [a,a,a,a,a], oracle_get_answer, {oracle, oracle_query, typerep, typerep}, any, "Arg0 := option variant with answer (if any) from oracle query in Arg1 given by oracle Arg0. Typereps for checking oracle type is in Arg3 and Arg4."}
+    , { 'ORACLE_GET_QUESTION', 16#6b,  false,   false,   true,  100, [a,a,a,a,a], oracle_get_question, {oracle, oracle_query, typerep, typerep}, any, "Arg0 := question in oracle query Arg2 given to oracle Arg1. Typereps for checking oracle type is in Arg3 and Arg4."}
+    , { 'ORACLE_QUERY_FEE',    16#6c,  false,   false,   true,  100, [a,a],  oracle_query_fee,                            {oracle},  integer, "Arg0 := query fee for oracle Arg1"}
+    , { 'AENS_RESOLVE',        16#6d,  false,   false,   true,  100, [a,a,a,a],  aens_resolve,           {string, string, typerep},  variant, "Resolve name in Arg0 with tag Arg1. Arg2 describes the type parameter of the resolved name."}
+    , { 'AENS_PRECLAIM',       16#6e,  false,   false,  false,  100, [a,a,a],   aens_preclaim,          {signature, address, hash},    none, "Preclaim the hash in Arg2 for address in Arg1. Arg0 contains delegation signature."}
+    , { 'AENS_CLAIM',          16#6f,  false,   false,  false,  100, [a,a,a,a,a],    aens_claim, {signature, address, string, integer, integer},  none, "Attempt to claim the name in Arg2 for address in Arg1 at a price in Arg4. Arg3 contains the salt used to hash the preclaim. Arg0 contains delegation signature."}
+    , { 'AENS_UPDATE',         16#70,  false,   false,  false,  100, [],          aens_update,                                  {},    none, "NYI"}
+    , { 'AENS_TRANSFER',       16#71,  false,   false,  false,  100, [a,a,a,a], aens_transfer,{signature, address, address, string},   none, "Transfer ownership of name Arg3 from account Arg1 to Arg2. Arg0 contains delegation signature."}
+    , { 'AENS_REVOKE',         16#72,  false,   false,  false,  100, [a,a,a],     aens_revoke,        {signature, address, string},    none, "Revoke the name in Arg2 from owner Arg1. Arg0 contains delegation signature."}
+    , { 'BALANCE_OTHER',       16#73,  false,    true,   true,   50, [a,a],     balance_other,                           {address}, integer, "Arg0 := The balance of address Arg1."}
 
-    , { 'VERIFY_SIG',          16#72,  false,    true,   true, 1300, [a,a,a,a],           verify_sig, {bytes, address, bytes}, boolean, "Arg0 := verify_sig(Hash, PubKey, Signature)"}
-    , { 'VERIFY_SIG_SECP256K1',16#73,  false,    true,   true, 1300, [a,a,a,a], verify_sig_secp256k1,   {bytes, bytes, bytes}, boolean, "Arg0 := verify_sig_secp256k1(Hash, PubKey, Signature)"}
+    , { 'VERIFY_SIG',          16#74,  false,    true,   true, 1300, [a,a,a,a],           verify_sig, {bytes, address, bytes}, boolean, "Arg0 := verify_sig(Hash, PubKey, Signature)"}
+    , { 'VERIFY_SIG_SECP256K1',16#75,  false,    true,   true, 1300, [a,a,a,a], verify_sig_secp256k1,   {bytes, bytes, bytes}, boolean, "Arg0 := verify_sig_secp256k1(Hash, PubKey, Signature)"}
 
-    , { 'CONTRACT_TO_ADDRESS', 16#74,  false,    true,   true,   10, [a,a], contract_to_address,                        {contract}, address, "Arg0 := Arg1 - A no-op type conversion"}
-    , { 'AUTH_TX_HASH',        16#75,  false,    true,   true,   10, [a],          auth_tx_hash,                                {}, variant, "If in GA authentication context return Some(TxHash) otherwise None."}
+    , { 'CONTRACT_TO_ADDRESS', 16#76,  false,    true,   true,   10, [a,a], contract_to_address,                        {contract}, address, "Arg0 := Arg1 - A no-op type conversion"}
+    , { 'AUTH_TX_HASH',        16#77,  false,    true,   true,   10, [a],          auth_tx_hash,                                {}, variant, "If in GA authentication context return Some(TxHash) otherwise None."}
 
-    , { 'ORACLE_CHECK',        16#76,  false,   false,   true,  100, [a,a,a,a],    oracle_check,        {oracle, typerep, typerep},    bool, "Arg0 := is Arg1 an oracle with the given query (Arg2) and response (Arg3) types"}
-    , { 'ORACLE_CHECK_QUERY',  16#77,  false,   false,   true,  100, [a,a,a,a,a], oracle_check_query, {oracle, oracle_query, typerep, typerep}, bool, "Arg0 := is Arg2 a query for the oracle Arg1 with the given types (Arg3, Arg4)"}
+    , { 'ORACLE_CHECK',        16#78,  false,   false,   true,  100, [a,a,a,a],    oracle_check,        {oracle, typerep, typerep},    bool, "Arg0 := is Arg1 an oracle with the given query (Arg2) and response (Arg3) types"}
+    , { 'ORACLE_CHECK_QUERY',  16#79,  false,   false,   true,  100, [a,a,a,a,a], oracle_check_query, {oracle, oracle_query, typerep, typerep}, bool, "Arg0 := is Arg2 a query for the oracle Arg1 with the given types (Arg3, Arg4)"}
 
-    , { 'IS_ORACLE',           16#78,  false,   false,   true,  100, [a,a],         is_oracle,               {address},    bool, "Arg0 := is Arg1 an oracle"}
-    , { 'IS_CONTRACT',         16#79,  false,   false,   true,  100, [a,a],       is_contract,               {address},    bool, "Arg0 := is Arg1 a contract"}
-    , { 'IS_PAYABLE',          16#7a,  false,   false,   true,  100, [a,a],        is_payable,               {address},    bool, "Arg0 := is Arg1 a payable address"}
-    , { 'CREATOR',             16#7b,  false,    true,   true,   10, [a],    contract_creator,                      {}, address, "Arg0 := contract creator"}
+    , { 'IS_ORACLE',           16#7a,  false,   false,   true,  100, [a,a],         is_oracle,               {address},    bool, "Arg0 := is Arg1 an oracle"}
+    , { 'IS_CONTRACT',         16#7b,  false,   false,   true,  100, [a,a],       is_contract,               {address},    bool, "Arg0 := is Arg1 a contract"}
+    , { 'IS_PAYABLE',          16#7c,  false,   false,   true,  100, [a,a],        is_payable,               {address},    bool, "Arg0 := is Arg1 a payable address"}
+    , { 'CREATOR',             16#7d,  false,    true,   true,   10, [a],    contract_creator,                      {}, address, "Arg0 := contract creator"}
 
-    , { 'ECVERIFY_SECP256K1',  16#7c,  false,    true,   true, 1300, [a,a,a,a], ecverify_secp256k1,  {bytes, bytes, bytes}, bytes, "Arg0 := ecverify_secp256k1(Hash, Addr, Signature)"}
-    , { 'ECRECOVER_SECP256K1', 16#7d,  false,    true,   true, 1300,   [a,a,a], ecrecover_secp256k1,        {bytes, bytes}, bytes, "Arg0 := ecrecover_secp256k1(Hash, Signature)"}
+    , { 'ECVERIFY_SECP256K1',  16#7e,  false,    true,   true, 1300, [a,a,a,a], ecverify_secp256k1,  {bytes, bytes, bytes}, bytes, "Arg0 := ecverify_secp256k1(Hash, Addr, Signature)"}
+    , { 'ECRECOVER_SECP256K1', 16#7f,  false,    true,   true, 1300,   [a,a,a], ecrecover_secp256k1,        {bytes, bytes}, bytes, "Arg0 := ecrecover_secp256k1(Hash, Signature)"}
 
     , { 'DEACTIVATE',          16#fa,  false,    true,   true,   10, [],           deactivate,                                  {},    none, "Mark the current contract for deactivation."}
     , { 'ABORT',               16#fb,   true,    true,   true,   10, [a],               abort,                            {string},    none, "Abort execution (dont use all gas) with error message in Arg0."}

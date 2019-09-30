@@ -70,9 +70,9 @@ ops_defs() ->
     , { 'MOD',                 16#18,  false,    true,   true,   10, [a,a,a],          modulo,                   {integer, integer}, integer, "Arg0 := Arg1 mod Arg2."}
     , { 'POW',                 16#19,  false,    true,   true,   10, [a,a,a],             pow,                   {integer, integer}, integer, "Arg0 := Arg1  ^ Arg2."}
     , { 'STORE',               16#1a,  false,    true,   true,   10, [a,a],             store,                                {any},     any, "Arg0 := Arg1."}
-    , { 'SHA3',                16#1b,  false,    true,   true,   40, [a,a],              sha3,                                {any},    hash, "Arg0 := sha3(Arg1)."}
-    , { 'SHA256',              16#1c,  false,    true,   true,   40, [a,a],            sha256,                                {any},    hash, "Arg0 := sha256(Arg1)."}
-    , { 'BLAKE2B',             16#1d,  false,    true,   true,   40, [a,a],           blake2b,                                {any},    hash, "Arg0 := blake2b(Arg1)."}
+    , { 'SHA3',                16#1b,  false,    true,   true,  100, [a,a],              sha3,                                {any},    hash, "Arg0 := sha3(Arg1)."}
+    , { 'SHA256',              16#1c,  false,    true,   true,  100, [a,a],            sha256,                                {any},    hash, "Arg0 := sha256(Arg1)."}
+    , { 'BLAKE2B',             16#1d,  false,    true,   true,  100, [a,a],           blake2b,                                {any},    hash, "Arg0 := blake2b(Arg1)."}
     , { 'LT',                  16#1e,  false,    true,   true,   10, [a,a,a],              lt,                   {integer, integer}, boolean, "Arg0 := Arg1  < Arg2."}
     , { 'GT',                  16#1f,  false,    true,   true,   10, [a,a,a],              gt,                   {integer, integer}, boolean, "Arg0 := Arg1  > Arg2."}
     , { 'EQ',                  16#20,  false,    true,   true,   10, [a,a,a],              eq,                   {integer, integer}, boolean, "Arg0 := Arg1  = Arg2."}
@@ -102,12 +102,12 @@ ops_defs() ->
     , { 'NIL',                 16#38,  false,    true,   true,   10, [a],                 nil,                                   {},    list, "Arg0 := []."}
     , { 'APPEND',              16#39,  false,    true,   true,   10, [a,a,a],          append,                         {list, list},    list, "Arg0 := Arg1 ++ Arg2."}
     , { 'STR_JOIN',            16#3a,  false,    true,   true,   10, [a,a,a],        str_join,                     {string, string},  string, "Arg0 := string Arg1 followed by string Arg2."}
-    , { 'INT_TO_STR',          16#3b,  false,    true,   true,   10, [a,a],        int_to_str,                            {integer},  string, "Arg0 := turn integer Arg1 into a string."}
-    , { 'ADDR_TO_STR',         16#3c,  false,    true,   true,   10, [a,a],       addr_to_str,                            {address},  string, "Arg0 := turn address Arg1 into a string."}
-    , { 'STR_REVERSE',         16#3d,  false,    true,   true,   10, [a,a],       str_reverse,                             {string},  string, "Arg0 := the reverse of string Arg1."}
+    , { 'INT_TO_STR',          16#3b,  false,    true,   true,  100, [a,a],        int_to_str,                            {integer},  string, "Arg0 := turn integer Arg1 into a string."}
+    , { 'ADDR_TO_STR',         16#3c,  false,    true,   true,  100, [a,a],       addr_to_str,                            {address},  string, "Arg0 := turn address Arg1 into a string."}
+    , { 'STR_REVERSE',         16#3d,  false,    true,   true,  100, [a,a],       str_reverse,                             {string},  string, "Arg0 := the reverse of string Arg1."}
     , { 'STR_LENGTH',          16#3e,  false,    true,   true,   10, [a,a],        str_length,                            {string}, integer, "Arg0 := The length of the string Arg1."}
     , { 'BYTES_TO_INT',        16#3f,  false,    true,   true,   10, [a,a],      bytes_to_int,                           {bytes}, integer, "Arg0 := bytes_to_int(Arg1)"}
-    , { 'BYTES_TO_STR',        16#40,  false,    true,   true,   10, [a,a],      bytes_to_str,                           {bytes},  string, "Arg0 := bytes_to_str(Arg1)"}
+    , { 'BYTES_TO_STR',        16#40,  false,    true,   true,  100, [a,a],      bytes_to_str,                             {bytes},  string, "Arg0 := bytes_to_str(Arg1)"}
     , { 'BYTES_CONCAT',        16#41,  false,    true,   true,   10, [a,a,a],    bytes_concat,                       {bytes, bytes},  bytes, "Arg0 := bytes_concat(Arg1, Arg2)"}
     , { 'BYTES_SPLIT',         16#42,  false,    true,   true,   10, [a,a,a],     bytes_split,                     {bytes, integer},  bytes, "Arg0 := bytes_split(Arg2, Arg1), where Arg2 is the length of the first chunk."}
     , { 'INT_TO_ADDR',         16#43,  false,    true,   true,   10, [a,a],       int_to_addr,                            {integer}, address, "Arg0 := turn integer Arg1 into an address."}

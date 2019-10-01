@@ -14,6 +14,7 @@
         , heap_value_maps/1
         , heap_value_offset/1
         , heap_value_heap/1
+        , heap_value_byte_size/1
         , heap_fragment_maps/1
         , heap_fragment_offset/1
         , heap_fragment_heap/1
@@ -89,6 +90,25 @@ heap_value_offset({_, Heap}) -> Heap#heap.offset.
 -spec heap_value_heap(heap_value()) ->
                              binary() | #{non_neg_integer() => non_neg_integer()}.
 heap_value_heap({_, Heap}) -> Heap#heap.heap.
+
+%% -- Byte size of a heap value ----------------------------------------------
+
+-spec heap_value_byte_size(heap_value()) -> non_neg_integer().
+heap_value_byte_size({_, Heap}) ->
+    Value = Heap#heap.heap,
+    Maps  = Heap#heap.maps,
+    ValueSize =
+        if is_binary(Value) -> byte_size(Value);
+           true -> 0 end,
+    MapsSize =
+        lists:sum([ pmap_size(Map) || Map <- maps:values(Maps#maps.maps) ]),
+    ValueSize + MapsSize.
+
+pmap_size(#pmap{data = stored}) -> 0;
+pmap_size(#pmap{data = Data}) when is_map(Data) ->
+    lists:sum([ byte_size(Key) + byte_size(Val)
+                || {Key, Val} <- maps:to_list(Data),
+                   Val /= tombstone ]).
 
 %% -- Value to binary --------------------------------------------------------
 

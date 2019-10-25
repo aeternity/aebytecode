@@ -123,6 +123,7 @@
                          X =:= ?TYPE_TUPLE orelse
                          X =:= ?TYPE_OBJECT orelse
                          X =:= ?TYPE_BITS orelse
+                         X =:= ?TYPE_BYTES orelse
                          X =:= ?TYPE_MAP orelse
                          X =:= ?TYPE_STRING orelse
                          X =:= ?TYPE_VARIANT)).

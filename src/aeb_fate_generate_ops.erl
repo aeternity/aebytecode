@@ -181,6 +181,34 @@ ops_defs() ->
 
     , { 'ADDRESS_TO_CONTRACT', 16#80,  false,    true,   true,   10, [a,a], address_to_contract,                        {address}, contract, "Arg0 := Arg1 - A no-op type conversion"}
 
+    , { 'BLS12_381_G1_NEG',     16#81,  false, true, true,  100, [a,a],       bls12_381_g1_neg,         {tuple},   tuple, "Arg0 := BLS12_381.g1_neg(Arg1) - Negate a G1-value"}
+    , { 'BLS12_381_G1_NORM',    16#82,  false, true, true,  100, [a,a],      bls12_381_g1_norm,         {tuple},   tuple, "Arg0 := BLS12_381.g1_normalize(Arg1) - Normalize a G1-value"}
+    , { 'BLS12_381_G1_VALID',   16#83,  false, true, true, 2000, [a,a],     bls12_381_g1_valid,         {tuple},    bool, "Arg0 := BLS12_381.g1_valid(Arg1) - Check if G1-value is a valid group member"}
+    , { 'BLS12_381_G1_IS_ZERO', 16#84,  false, true, true,   30, [a,a],   bls12_381_g1_is_zero,         {tuple},    bool, "Arg0 := BLS12_381.g1_is_zero(Arg1) - Check if G1-value is zero"}
+    , { 'BLS12_381_G1_ADD',     16#85,  false, true, true,  100, [a,a,a],     bls12_381_g1_add,  {tuple, tuple},   tuple, "Arg0 := BLS12_381.g1_add(Arg1, Arg2) - Add two G1-values"}
+    , { 'BLS12_381_G1_MUL',     16#86,  false, true, true, 1000, [a,a,a],     bls12_381_g1_mul,  {tuple, tuple},   tuple, "Arg0 := BLS12_381.g1_mul(Arg1, Arg2) - Scalar multiplication for a G1-value (Arg1), and an Fr-value"}
+
+    , { 'BLS12_381_G2_NEG',     16#87,  false, true, true,  100, [a,a],       bls12_381_g2_neg,         {tuple},   tuple, "Arg0 := BLS12_381.g2_neg(Arg1) - Negate a G2-value"}
+    , { 'BLS12_381_G2_NORM',    16#88,  false, true, true,  100, [a,a],      bls12_381_g2_norm,         {tuple},   tuple, "Arg0 := BLS12_381.g2_normalize(Arg1) - Normalize a G2-value"}
+    , { 'BLS12_381_G2_VALID',   16#89,  false, true, true, 2000, [a,a],     bls12_381_g2_valid,         {tuple},    bool, "Arg0 := BLS12_381.g2_valid(Arg1) - Check if G2-value is a valid group member"}
+    , { 'BLS12_381_G2_IS_ZERO', 16#8a,  false, true, true,   30, [a,a],   bls12_381_g2_is_zero,         {tuple},    bool, "Arg0 := BLS12_381.g2_is_zero(Arg1) - Check if G2-value is zero"}
+    , { 'BLS12_381_G2_ADD',     16#8b,  false, true, true,  100, [a,a,a],     bls12_381_g2_add,  {tuple, tuple},   tuple, "Arg0 := BLS12_381.g2_add(Arg1, Arg2) - Add two G2-values"}
+    , { 'BLS12_381_G2_MUL',     16#8c,  false, true, true, 1000, [a,a,a],     bls12_381_g2_mul,  {tuple, tuple},   tuple, "Arg0 := BLS12_381.g2_mul(Arg1, Arg2) - Scalar multiplication for a G2-value (Arg2), and an Fr-value"}
+
+    , { 'BLS12_381_GT_INV',      16#8d,  false, true, true,   100, [a,a],        bls12_381_gt_inv,         {tuple}, tuple, "Arg0 := BLS12_381.gt_inv(Arg1) - Invert a GT-value"}
+    , { 'BLS12_381_GT_ADD',      16#8e,  false, true, true,   100, [a,a,a],      bls12_381_gt_add,  {tuple, tuple}, tuple, "Arg0 := BLS12_381.gt_add(Arg1, Arg2) - Add two GT-values"}
+    , { 'BLS12_381_GT_MUL',      16#8f,  false, true, true,   100, [a,a,a],      bls12_381_gt_mul,  {tuple, tuple}, tuple, "Arg0 := BLS12_381.gt_mul(Arg1, Arg2) - Multiply two GT-values"}
+    , { 'BLS12_381_GT_POW',      16#90,  false, true, true,  2000, [a,a,a],      bls12_381_gt_pow,  {tuple, tuple}, tuple, "Arg0 := BLS12_381.gt_pow(Arg1, Arg2) - Scalar exponentiation for a GT-value (Arg2), and an Fr-value"}
+    , { 'BLS12_381_GT_IS_ONE',   16#91,  false, true, true,    30, [a,a],     bls12_381_gt_is_one,         {tuple},  bool, "Arg0 := BLS12_381.gt_is_one(Arg1) - Check if a GT value is \"one\""}
+    , { 'BLS12_381_PAIRING',     16#92,  false, true, true, 12000, [a,a,a],     bls12_381_pairing,  {tuple, tuple}, tuple, "Arg0 := BLS12_381.pairing(Arg1, Arg2) - Find the pairing of a G1-value (Arg1) and a G2-value (Arg2)"}
+    , { 'BLS12_381_MILLER_LOOP', 16#93,  false, true, true,  5000, [a,a,a], bls12_381_miller_loop,  {tuple, tuple}, tuple, "Arg0 := BLS12_381.miller_loop(Arg1, Arg2) - Do the Miller-loop step of pairing for a G1-value (Arg1) and a G2-value (Arg2)"}
+    , { 'BLS12_381_FINAL_EXP',   16#94,  false, true, true,  7000, [a,a],     bls12_381_final_exp,         {tuple}, tuple, "Arg0 := BLS12_381.final_exp(Arg1) - Do the final exponentiation in pairing"}
+
+    , { 'BLS12_381_INT_TO_FR', 16#95,  false, true, true,   30, [a,a], bls12_381_int_to_fr, {tuple}, tuple, "Arg0 := to_montgomery(Arg1) - Convert (Big)integer to montgomery representation (32 bytes)"}
+    , { 'BLS12_381_INT_TO_FP', 16#96,  false, true, true,   30, [a,a], bls12_381_int_to_fp, {tuple}, tuple, "Arg0 := to_montgomery(Arg1) - Convert (Big)integer to montgomery representation (48 bytes)"}
+    , { 'BLS12_381_FR_TO_INT', 16#97,  false, true, true,   30, [a,a], bls12_381_fr_to_int, {tuple}, tuple, "Arg0 := from_montgomery(Arg1) - Convert montgomery representation (32 bytes) to integer"}
+    , { 'BLS12_381_FP_TO_INT', 16#98,  false, true, true,   30, [a,a], bls12_381_fp_to_int, {tuple}, tuple, "Arg0 := from_montgomery(Arg1) - Convert montgomery representation (48 bytes) to integer"}
+
     , { 'DEACTIVATE',          16#fa,  false,    true,   true,   10, [],           deactivate,                                  {},    none, "Mark the current contract for deactivation."}
     , { 'ABORT',               16#fb,   true,    true,   true,   10, [a],               abort,                            {string},    none, "Abort execution (dont use all gas) with error message in Arg0."}
     , { 'EXIT',                16#fc,   true,    true,   true,   10, [a],                exit,                            {string},    none, "Abort execution (use upp all gas) with error message in Arg0."}

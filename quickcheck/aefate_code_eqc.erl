@@ -77,7 +77,7 @@ prop_opcodes() ->
 
 
 valid_opcodes() ->
-    lists:seq(0, 16#80) ++ lists:seq(16#fa, 16#fd).
+    lists:seq(0, 16#9a) ++ lists:seq(16#fa, 16#fd).
 
 
 fate_code(Failure) ->

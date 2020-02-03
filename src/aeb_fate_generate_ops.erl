@@ -209,6 +209,9 @@ ops_defs() ->
     , { 'BLS12_381_FR_TO_INT', 16#97,  false, true, true,   30, [a,a], bls12_381_fr_to_int, {tuple}, tuple, "Arg0 := from_montgomery(Arg1) - Convert montgomery representation (32 bytes) to integer"}
     , { 'BLS12_381_FP_TO_INT', 16#98,  false, true, true,   30, [a,a], bls12_381_fp_to_int, {tuple}, tuple, "Arg0 := from_montgomery(Arg1) - Convert montgomery representation (48 bytes) to integer"}
 
+    , { 'AENS_LOOKUP',         16#99,  false, false, true,  100, [a,a],        aens_lookup,  {string}, variant, "Lookup the name of Arg0. Returns option(AENS.name)"}
+    , { 'ORACLE_EXPIRY',       16#9a,  false, false, true,  100, [a,a],      oracle_expiry,  {oracle},     int, "Arg0 := expiry block for oracle Arg1"}
+
     , { 'DEACTIVATE',          16#fa,  false,    true,   true,   10, [],           deactivate,                                  {},    none, "Mark the current contract for deactivation."}
     , { 'ABORT',               16#fb,   true,    true,   true,   10, [a],               abort,                            {string},    none, "Abort execution (dont use all gas) with error message in Arg0."}
     , { 'EXIT',                16#fc,   true,    true,   true,   10, [a],                exit,                            {string},    none, "Abort execution (use upp all gas) with error message in Arg0."}

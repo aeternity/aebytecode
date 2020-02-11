@@ -211,6 +211,7 @@ ops_defs() ->
 
     , { 'AENS_LOOKUP',         16#99,  false, false, true,  100, [a,a],        aens_lookup,  {string}, variant, "Lookup the name of Arg0. Returns option(AENS.name)"}
     , { 'ORACLE_EXPIRY',       16#9a,  false, false, true,  100, [a,a],      oracle_expiry,  {oracle},     int, "Arg0 := expiry block for oracle Arg1"}
+    , { 'AUTH_TX',             16#9b,  false,  true, true,  100,   [a],            auth_tx,        {}, variant, "If in GA authentication context return Some(Tx) otherwise None."}
 
     , { 'DEACTIVATE',          16#fa,  false,    true,   true,   10, [],           deactivate,                                  {},    none, "Mark the current contract for deactivation."}
     , { 'ABORT',               16#fb,   true,    true,   true,   10, [a],               abort,                            {string},    none, "Abort execution (dont use all gas) with error message in Arg0."}

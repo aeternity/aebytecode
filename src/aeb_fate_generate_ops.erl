@@ -220,6 +220,8 @@ ops_defs() ->
     , { 'CHAR_TO_INT',         16#a0,  false, true, true,    10, [a,a],   char_to_int,   {char},     int, "Arg0 := integer representation of UTF-8 character"}
     , { 'CHAR_FROM_INT',       16#a1,  false, true, true,    10, [a,a], char_from_int,    {int}, variant, "Arg0 := Some(UTF-8 character) from integer if valid, None if not valid."}
 
+    , { 'CALL_PGR',            16#a2,   true,   false,   true,  100, [a,is,a,a,a,a,a],  call_pgr, {contract, string, typerep, typerep, integer, integer, bool}, variant, "Potentially protected remote call. Arg5 is protected flag, otherwise as CALL_GR."}
+
     , { 'DEACTIVATE',          16#fa,  false,    true,   true,   10, [],           deactivate,                                  {},    none, "Mark the current contract for deactivation."}
     , { 'ABORT',               16#fb,   true,    true,   true,   10, [a],               abort,                            {string},    none, "Abort execution (dont use all gas) with error message in Arg0."}
     , { 'EXIT',                16#fc,   true,    true,   true,   10, [a],                exit,                            {string},    none, "Abort execution (use upp all gas) with error message in Arg0."}

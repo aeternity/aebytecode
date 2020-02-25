@@ -46,7 +46,7 @@ ops_defs() ->
     [ { 'RETURN',              16#00,   true,    true,   true,   10, [],               return,                                   {},     any, "Return from function call, top of stack is return value . The type of the retun value has to match the return type of the function."}
     , { 'RETURNR',             16#01,   true,    true,   true,   10, [a],             returnr,                                {any},     any, "Push Arg0 and return from function. The type of the retun value has to match the return type of the function."}
     , { 'CALL',                16#02,   true,    true,   true,   10, [a],                call,                             {string},     any, "Call the function Arg0 with args on stack. The types of the arguments has to match the argument typs of the function."}
-    , { 'CALL_R',              16#03,   true,   false,   true,  100, [a,is,a,a,a],      call_r, {contract, string, typerep, typerep, integer},     any, "Remote call to contract Arg0 and function Arg1 of type Arg2 => Arg3 with value Arg4. The types of the arguments has to match the argument types of the function."}
+    , { 'CALL_R',              16#03,   true,   false,   true,  100, [a,is,a,a,a],     call_r, {contract, string, typerep, typerep, integer},     any, "Remote call to contract Arg0 and function Arg1 of type Arg2 => Arg3 with value Arg4. The types of the arguments has to match the argument types of the function."}
     , { 'CALL_T',              16#04,   true,    true,   true,   10, [a],              call_t,                             {string},     any, "Tail call to function Arg0. The types of the arguments has to match the argument typs of the function. And the return type of the called function has to match the type of the current function."}
     , { 'CALL_GR',             16#05,   true,   false,   true,  100, [a,is,a,a,a,a],   call_gr, {contract, string, typerep, typerep, integer, integer}, any, "Remote call with gas cap in Arg4. Otherwise as CALL_R."}
     , { 'JUMP',                16#06,   true,    true,   true,   10, [ii],               jump,                            {integer},    none, "Jump to a basic block. The basic block has to exist in the current function."}
@@ -84,7 +84,7 @@ ops_defs() ->
     , { 'NOT',                 16#26,  false,    true,   true,   10, [a,a],            not_op,                            {boolean}, boolean, "Arg0 := not Arg1."}
     , { 'TUPLE',               16#27,  false,    true,   true,   10, [a,ii],            tuple,                            {integer},   tuple, "Arg0 := tuple of size = Arg1. Elements on stack."}
     , { 'ELEMENT',             16#28,  false,    true,   true,   10, [a,a,a],      element_op,                     {integer, tuple},     any, "Arg1 := element(Arg2, Arg3)."}
-    , { 'SETELEMENT',          16#29,  false,    true,   true,   10, [a,a,a,a],    setelement,               {integer, tuple, any},   tuple, "Arg0 := a new tuple similar to Arg2, but with element number Arg1 replaced by Arg3."}
+    , { 'SETELEMENT',          16#29,  false,    true,   true,   10, [a,a,a,a],    setelement,                {integer, tuple, any},   tuple, "Arg0 := a new tuple similar to Arg2, but with element number Arg1 replaced by Arg3."}
     , { 'MAP_EMPTY',           16#2a,  false,    true,   true,   10, [a],           map_empty,                                   {},     map, "Arg0 := #{}."}
     , { 'MAP_LOOKUP',          16#2b,  false,    true,   true,   10, [a,a,a],      map_lookup,                           {map, any},     any, "Arg0 := lookup key Arg2 in map Arg1."}
     , { 'MAP_LOOKUPD',         16#2c,  false,    true,   true,   10, [a,a,a,a],    map_lookup,                      {map, any, any},     any, "Arg0 := lookup key Arg2 in map Arg1 if key exists in map otherwise Arg0 := Arg3."}
@@ -92,8 +92,8 @@ ops_defs() ->
     , { 'MAP_DELETE',          16#2e,  false,    true,   true,   10, [a,a,a],      map_delete,                           {map, any},     map, "Arg0 := delete key Arg2 from map Arg1."}
     , { 'MAP_MEMBER',          16#2f,  false,    true,   true,   10, [a,a,a],      map_member,                           {map, any}, boolean, "Arg0 := true if key Arg2 is in map Arg1."}
     , { 'MAP_FROM_LIST',       16#30,  false,    true,   true,   10, [a,a],     map_from_list,        {{list, {tuple, [any, any]}}},     map, "Arg0 := make a map from (key, value) list in Arg1."}
-    , { 'MAP_SIZE',            16#31,  false,    true,   true,   10, [a,a],         map_size_,                               {map}, integer, "Arg0 := The size of the map Arg1."}
-    , { 'MAP_TO_LIST',         16#32,  false,    true,   true,   10, [a,a],       map_to_list,                               {map},    list, "Arg0 := The tuple list representation of the map Arg1."}
+    , { 'MAP_SIZE',            16#31,  false,    true,   true,   10, [a,a],         map_size_,                                {map}, integer, "Arg0 := The size of the map Arg1."}
+    , { 'MAP_TO_LIST',         16#32,  false,    true,   true,   10, [a,a],       map_to_list,                                {map},    list, "Arg0 := The tuple list representation of the map Arg1."}
     , { 'IS_NIL',              16#33,  false,    true,   true,   10, [a,a],            is_nil,                               {list}, boolean, "Arg0 := true if Arg1 == []."}
     , { 'CONS',                16#34,  false,    true,   true,   10, [a,a,a],            cons,                          {any, list},    list, "Arg0 := [Arg1|Arg2]."}
     , { 'HD',                  16#35,  false,    true,   true,   10, [a,a],                hd,                               {list},     any, "Arg0 := head of list Arg1."}
@@ -105,11 +105,11 @@ ops_defs() ->
     , { 'INT_TO_STR',          16#3b,  false,    true,   true,  100, [a,a],        int_to_str,                            {integer},  string, "Arg0 := turn integer Arg1 into a string."}
     , { 'ADDR_TO_STR',         16#3c,  false,    true,   true,  100, [a,a],       addr_to_str,                            {address},  string, "Arg0 := turn address Arg1 into a string."}
     , { 'STR_REVERSE',         16#3d,  false,    true,   true,  100, [a,a],       str_reverse,                             {string},  string, "Arg0 := the reverse of string Arg1."}
-    , { 'STR_LENGTH',          16#3e,  false,    true,   true,   10, [a,a],        str_length,                            {string}, integer, "Arg0 := The length of the string Arg1."}
-    , { 'BYTES_TO_INT',        16#3f,  false,    true,   true,   10, [a,a],      bytes_to_int,                           {bytes}, integer, "Arg0 := bytes_to_int(Arg1)"}
-    , { 'BYTES_TO_STR',        16#40,  false,    true,   true,  100, [a,a],      bytes_to_str,                             {bytes},  string, "Arg0 := bytes_to_str(Arg1)"}
-    , { 'BYTES_CONCAT',        16#41,  false,    true,   true,   10, [a,a,a],    bytes_concat,                       {bytes, bytes},  bytes, "Arg0 := bytes_concat(Arg1, Arg2)"}
-    , { 'BYTES_SPLIT',         16#42,  false,    true,   true,   10, [a,a,a],     bytes_split,                     {bytes, integer},  bytes, "Arg0 := bytes_split(Arg2, Arg1), where Arg2 is the length of the first chunk."}
+    , { 'STR_LENGTH',          16#3e,  false,    true,   true,   10, [a,a],        str_length,                             {string}, integer, "Arg0 := The length of the string Arg1."}
+    , { 'BYTES_TO_INT',        16#3f,  false,    true,   true,   10, [a,a],      bytes_to_int,                              {bytes}, integer, "Arg0 := bytes_to_int(Arg1)"}
+    , { 'BYTES_TO_STR',        16#40,  false,    true,   true,  100, [a,a],      bytes_to_str,                              {bytes},  string, "Arg0 := bytes_to_str(Arg1)"}
+    , { 'BYTES_CONCAT',        16#41,  false,    true,   true,   10, [a,a,a],    bytes_concat,                        {bytes, bytes},  bytes, "Arg0 := bytes_concat(Arg1, Arg2)"}
+    , { 'BYTES_SPLIT',         16#42,  false,    true,   true,   10, [a,a,a],     bytes_split,                      {bytes, integer},  bytes, "Arg0 := bytes_split(Arg2, Arg1), where Arg2 is the length of the first chunk."}
     , { 'INT_TO_ADDR',         16#43,  false,    true,   true,   10, [a,a],       int_to_addr,                            {integer}, address, "Arg0 := turn integer Arg1 into an address."}
     , { 'VARIANT',             16#44,  false,    true,   true,   10, [a,a,a,a],       variant,          {integer, integer, integer}, variant, "Arg0 := create a variant of size Arg1 with the tag Arg2 (Arg2 < Arg1) and take Arg3 elements from the stack."}
     , { 'VARIANT_TEST',        16#45,  false,    true,   true,   10, [a,a,a],    variant_test,                   {variant, integer}, boolean, "Arg0 := true if variant Arg1 has the tag Arg2."}
@@ -212,6 +212,13 @@ ops_defs() ->
     , { 'AENS_LOOKUP',         16#99,  false, false, true,  100, [a,a],        aens_lookup,  {string}, variant, "Lookup the name of Arg0. Returns option(AENS.name)"}
     , { 'ORACLE_EXPIRY',       16#9a,  false, false, true,  100, [a,a],      oracle_expiry,  {oracle},     int, "Arg0 := expiry block for oracle Arg1"}
     , { 'AUTH_TX',             16#9b,  false,  true, true,  100,   [a],            auth_tx,        {}, variant, "If in GA authentication context return Some(Tx) otherwise None."}
+
+    , { 'STRING_TO_LIST',      16#9c,  false, true, true,   100, [a,a],   str_to_list, {string},    list, "Arg0 := string converted to list of characters"}
+    , { 'STRING_FROM_LIST',    16#9d,  false, true, true,   100, [a,a], str_from_list,   {list},  string, "Arg0 := string converted from list of characters"}
+    , { 'CHAR_TO_INT',         16#9e,  false, true, true,    10, [a,a],   char_to_int,   {char},     int, "Arg0 := integer representation of UTF-8 character"}
+    , { 'CHAR_FROM_INT',       16#9f,  false, true, true,    10, [a,a], char_from_int,    {int}, variant, "Arg0 := Some(UTF-8 character) from integer if valid, None if not valid."}
+    , { 'CHAR_TO_UPPER',       16#a0,  false, true, true,    10, [a,a], char_to_upper,   {char},    char, "Arg0 := to_upper(UTF-8 character)"}
+    , { 'CHAR_TO_LOWER',       16#a1,  false, true, true,    10, [a,a], char_to_lower,   {char},    char, "Arg0 := to_lower(UTF-8 character)"}
 
     , { 'DEACTIVATE',          16#fa,  false,    true,   true,   10, [],           deactivate,                                  {},    none, "Mark the current contract for deactivation."}
     , { 'ABORT',               16#fb,   true,    true,   true,   10, [a],               abort,                            {string},    none, "Abort execution (dont use all gas) with error message in Arg0."}

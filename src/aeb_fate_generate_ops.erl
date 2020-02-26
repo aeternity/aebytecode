@@ -213,12 +213,12 @@ ops_defs() ->
     , { 'ORACLE_EXPIRY',       16#9a,  false, false, true,  100, [a,a],      oracle_expiry,  {oracle},     int, "Arg0 := expiry block for oracle Arg1"}
     , { 'AUTH_TX',             16#9b,  false,  true, true,  100,   [a],            auth_tx,        {}, variant, "If in GA authentication context return Some(Tx) otherwise None."}
 
-    , { 'STRING_TO_LIST',      16#9c,  false, true, true,   100, [a,a],   str_to_list, {string},    list, "Arg0 := string converted to list of characters"}
-    , { 'STRING_FROM_LIST',    16#9d,  false, true, true,   100, [a,a], str_from_list,   {list},  string, "Arg0 := string converted from list of characters"}
-    , { 'CHAR_TO_INT',         16#9e,  false, true, true,    10, [a,a],   char_to_int,   {char},     int, "Arg0 := integer representation of UTF-8 character"}
-    , { 'CHAR_FROM_INT',       16#9f,  false, true, true,    10, [a,a], char_from_int,    {int}, variant, "Arg0 := Some(UTF-8 character) from integer if valid, None if not valid."}
-    , { 'CHAR_TO_UPPER',       16#a0,  false, true, true,    10, [a,a], char_to_upper,   {char},    char, "Arg0 := to_upper(UTF-8 character)"}
-    , { 'CHAR_TO_LOWER',       16#a1,  false, true, true,    10, [a,a], char_to_lower,   {char},    char, "Arg0 := to_lower(UTF-8 character)"}
+    , { 'STR_TO_LIST',         16#9c,  false, true, true,   100, [a,a],   str_to_list, {string},    list, "Arg0 := string converted to list of characters"}
+    , { 'STR_FROM_LIST',       16#9d,  false, true, true,   100, [a,a], str_from_list,   {list},  string, "Arg0 := string converted from list of characters"}
+    , { 'STR_TO_UPPER',        16#9e,  false, true, true,   100, [a,a],  str_to_upper, {string},  string, "Arg0 := to_upper(string)"}
+    , { 'STR_TO_LOWER',        16#9f,  false, true, true,   100, [a,a],  str_to_lower, {string},  string, "Arg0 := to_lower(string)"}
+    , { 'CHAR_TO_INT',         16#a0,  false, true, true,    10, [a,a],   char_to_int,   {char},     int, "Arg0 := integer representation of UTF-8 character"}
+    , { 'CHAR_FROM_INT',       16#a1,  false, true, true,    10, [a,a], char_from_int,    {int}, variant, "Arg0 := Some(UTF-8 character) from integer if valid, None if not valid."}
 
     , { 'DEACTIVATE',          16#fa,  false,    true,   true,   10, [],           deactivate,                                  {},    none, "Mark the current contract for deactivation."}
     , { 'ABORT',               16#fb,   true,    true,   true,   10, [a],               abort,                            {string},    none, "Abort execution (dont use all gas) with error message in Arg0."}

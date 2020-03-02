@@ -25,7 +25,11 @@
 %% Size in bytes of serialization of a map for which we turn it into a store
 %% map. It's not worth turning small maps into store maps.
 %% Under consensus!
+-ifdef(TEST).
+-define(STORE_MAP_THRESHOLD, 0).
+-else.
 -define(STORE_MAP_THRESHOLD, 100).
+-endif.
 
 -type fate_value() :: aeb_fate_data:fate_type().
 -type fate_value_or_tombstone() :: fate_value() | ?FATE_MAP_TOMBSTONE.

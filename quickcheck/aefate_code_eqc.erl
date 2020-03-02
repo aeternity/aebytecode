@@ -77,7 +77,7 @@ prop_opcodes() ->
 
 
 valid_opcodes() ->
-    lists:seq(0, 16#a0) ++ lists:seq(16#fa, 16#fd).
+    [ Op || #{opcode := Op} <- aeb_fate_generate_ops:get_ops() ].
 
 
 fate_code(Failure) ->

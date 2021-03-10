@@ -83,6 +83,15 @@ sources() ->
      aeb_fate_data:make_variant([0,1,2,3,4,5],
                                 3, {aeb_fate_data:make_boolean(true),
                                     aeb_fate_data:make_list(make_int_list(3)),
-                                    aeb_fate_data:make_string(<<"foo">>)})
+                                    aeb_fate_data:make_string(<<"foo">>)}),
+     %% contract C =
+     %%   type state = int
+     %%   entrypoint init() = 2137
 
-    ].
+     %% cb_+FFGA6Af6sHTrctrcNGwEa8MPei7iEHIjnxcsBzlA5IK0Yn11sCllP5E1kQfADcANwAaDoJvgggZAQM/jC8BEUTWRB8RaW5pdIIvAIU0LjMuMAD7u
+     aeb_fate_data:make_contract_bytearray(
+       <<248,81,70,3,160,31,234,193,211,173,203,107,112,209,176,17,175,12,61,232,187,
+         136,65,200,142,124,92,176,28,229,3,146,10,209,137,245,214,192,165,148,254,68,
+         214,68,31,0,55,0,55,0,26,14,130,111,130,8,25,1,3,63,140,47,1,17,68,214,68,31,
+         17,105,110,105,116,130,47,0,133,52,46,51,46,48,0>>)
+      ].

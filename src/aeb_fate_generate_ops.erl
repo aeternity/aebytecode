@@ -221,9 +221,9 @@ ops_defs() ->
     , { 'CHAR_FROM_INT',       16#a1,  false, true, true,    10, [a,a], char_from_int,    {int}, variant, "Arg0 := Some(UTF-8 character) from integer if valid, None if not valid."}
 
     , { 'CALL_PGR',            16#a2,   true,   false,   true,  100, [a,is,a,a,a,a,a],  call_pgr, {contract, string, typerep, typerep, integer, integer, bool}, variant, "Potentially protected remote call. Arg5 is protected flag, otherwise as CALL_GR."}
-    , { 'CREATE',              16#a3,  true,    false,  true,  10000, [a,a,a],            create,     {bytecode, typerep, integer},  variant, "Deploys a contract with a bytecode Arg0 and value Arg2. The `init` arguments should be placed on the stack and match the type in Arg1. Returns `None` on failure."}
-    , { 'CLONE',               16#a4,  true,    false,  true,   1000, [a,a,a],             clone,     {contract, typerep, integer},  variant, "Clones the contract under Arg0 and deploys it with value of Arg2. The `init` arguments should be placed on the stack and match the type in Arg1. Returns `None` on failure."}
-    , { 'BYTECODE_HASH',       16#a5,  false,    true,   true,  100, [a],       bytecode_hash,                          {contract},     hash, "Calculates hash of the contract's bytecode under address given in Arg0."}
+    , { 'CREATE',              16#a3,  true,    false,  true,  10000, [a,a,a,a],          create,     {bytecode, typerep, integer},  variant, "Deploys a contract with a bytecode Arg1 and value Arg3. The `init` arguments should be placed on the stack and match the type in Arg2. Writes contract (or `None`) to Arg0."}
+    , { 'CLONE',               16#a4,  true,    false,  true,   1000, [a,a,a,a],           clone,     {contract, typerep, integer},  variant, "Clones the contract under Arg1 and deploys it with value of Arg3. The `init` arguments should be placed on the stack and match the type in Arg2. Writes contract (or `None`) to Arg0."}
+    , { 'BYTECODE_HASH',       16#a5,  false,    true,   true,   100, [a,a],       bytecode_hash,                       {contract},     hash, "Arg0 := hash of the contract's bytecode under address given in Arg1."}
 
     , { 'DEACTIVATE',          16#fa,  false,    true,   true,   10, [],           deactivate,                                  {},    none, "Mark the current contract for deactivation."}
     , { 'ABORT',               16#fb,   true,    true,   true,   10, [a],               abort,                            {string},    none, "Abort execution (dont use all gas) with error message in Arg0."}

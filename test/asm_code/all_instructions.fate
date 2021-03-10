@@ -259,3 +259,9 @@ FUNCTION foo () : {tuple, []}
   IS_CONTRACT @ak_nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv
 
   IS_PAYABLE @ak_nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv
+
+  CREATE arg125 0
+
+  CLONE arg125 0
+
+  BYTECODE_HASH @ct_nv5B93FPzRHrGNmMdTDfGdd5xGZvep3MVSpJqzcQmMp59bBCv

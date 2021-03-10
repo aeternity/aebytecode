@@ -83,6 +83,8 @@ sources() ->
      aeb_fate_data:make_variant([0,1,2,3,4,5],
                                 3, {aeb_fate_data:make_boolean(true),
                                     aeb_fate_data:make_list(make_int_list(3)),
-                                    aeb_fate_data:make_string(<<"foo">>)})
-
+                                    aeb_fate_data:make_string(<<"foo">>)}),
+     %% contract Const =
+     %%   entrypoint f() = 123
+     aeb_fate_data:make_bytecode(<<158,254,68,214,68,31,0,55,0,55,0,26,14,130,63,1,3,63,254,224,190,252,97,0,55,0,7,1,3,111,59,147,47,2,17,68,214,68,31,17,105,110,105,116,17,224,190,252,97,5,102,130,47,0>>)
     ].

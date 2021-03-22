@@ -82,6 +82,9 @@
 -define(FATE_EMPTY_STRING, <<>>).
 -define(FATE_STRING(S), S).
 -define(FATE_VARIANT(Arity, Tag,T), {variant, Arity, Tag, T}).
+% Result of aeb_fate_code:symbol_identifier(<<"init">>).
+% Stored here to avoid repeated calls to eblake2
+-define(FATE_INIT_ID, <<68,214,68,31>>).
 
 -define(MAKE_FATE_INTEGER(X), X).
 -define(MAKE_FATE_LIST(X), X).

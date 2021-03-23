@@ -95,9 +95,8 @@ insert_annotation(comment =_Type, Line, Comment, FCode) ->
 
 strip_init_function(#fcode{ functions = Funs,
                             symbols   = Syms } = FCode) ->
-    Id    = symbol_identifier(<<"init">>),
-    Funs1 = maps:remove(Id, Funs),
-    Syms1 = maps:remove(Id, Syms),
+    Funs1 = maps:remove(?FATE_INIT_ID, Funs),
+    Syms1 = maps:remove(?FATE_INIT_ID, Syms),
     FCode#fcode{ functions = Funs1, symbols = Syms1 }.
 
 %%%===================================================================

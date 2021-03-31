@@ -281,6 +281,10 @@ to_bytecode([{bytes,_line, Value}|Rest],
     to_bytecode(Rest, Address, Env,
                 [{immediate, aeb_fate_data:make_bytes(Value)}|Code],
                 Opts);
+to_bytecode([{contract_bytearray,_line, FateCode}|Rest], Address, Env, Code, Opts) ->
+    to_bytecode(Rest, Address, Env,
+                [{immediate, aeb_fate_data:make_contract_bytearray(FateCode)}|Code],
+               Opts);
 to_bytecode([{id,_line, ID}|Rest], Address, Env, Code, Opts) ->
     {Env2, Id} = insert_symbol(list_to_binary(ID), Env),
     to_bytecode(Rest, Address, Env2, [{immediate, Id}|Code], Opts);

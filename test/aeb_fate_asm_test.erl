@@ -49,7 +49,7 @@ sources() ->
     , "immediates"
     , "names"
     , "oracles"
-%%    , "all_instructions"
+    , "meta"
     ].
 
 check_roundtrip(File) ->

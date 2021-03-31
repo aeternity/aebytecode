@@ -63,7 +63,7 @@
 -define(SHORT_STRING ,       2#01). %% xxxxxx 01 | [bytes] - when 0 < xxxxxx:size < 64
 %%                                            11  Set below
 -define(SHORT_LIST   ,     2#0011). %% xxxx 0011 | [encoded elements] when  0 < length < 16
-%%                                     xxxx 0111
+%%                                          0111 Set below
 -define(TYPE_INTEGER , 2#00000111). %% 0000 0111 - Integer typedef
 -define(TYPE_BOOLEAN , 2#00010111). %% 0001 0111 - Boolean typedef
 -define(TYPE_LIST    , 2#00100111). %% 0010 0111 | Type
@@ -74,7 +74,7 @@
 -define(TYPE_STRING  , 2#01110111). %% 0111 0111 - string typedef
 -define(TYPE_VARIANT , 2#10000111). %% 1000 0111 | [Arities] | [Type]
 -define(TYPE_BYTES   , 2#10010111). %% 1001 0111 - Bytes typedef
-                                    %% 1010 0111
+-define(TYPE_CONTRACT_BYTEARRAY,2#10100111). %% 1010 0111 - Fate code typedef
                                     %% 1011 0111
                                     %% 1100 0111
                                     %% 1101 0111
@@ -90,7 +90,8 @@
 -define(EMPTY_STRING , 2#01011111). %% 0101 1111
 -define(POS_BIG_INT  , 2#01101111). %% 0110 1111 | RLP encoded (integer - 64)
 -define(FALSE        , 2#01111111). %% 0111 1111
-%%                                  %% 1000 1111 - FREE (Possibly for bytecode in the future.)
+-define(
+   CONTRACT_BYTEARRAY, 2#10001111). %% 1000 1111
 -define(OBJECT       , 2#10011111). %% 1001 1111 | ObjectType | RLP encoded Array
 -define(VARIANT      , 2#10101111). %% 1010 1111 | [encoded arities] | encoded tag | [encoded values]
 -define(MAP_ID       , 2#10111111). %% 1011 1111 | RLP encoded integer (store map id)
@@ -126,7 +127,8 @@
                          X =:= ?TYPE_BYTES orelse
                          X =:= ?TYPE_MAP orelse
                          X =:= ?TYPE_STRING orelse
-                         X =:= ?TYPE_VARIANT)).
+                         X =:= ?TYPE_VARIANT orelse
+                         X =:= ?TYPE_CONTRACT_BYTEARRAY)).
 
 %% --------------------------------------------------
 %% Serialize
@@ -216,7 +218,11 @@ serialize(?FATE_VARIANT(Arities, Tag, Values)) ->
             end
     end;
 serialize(?FATE_TYPEREP(T)) ->
-    iolist_to_binary(serialize_type(T)).
+    iolist_to_binary(serialize_type(T));
+serialize(?FATE_CONTRACT_BYTEARRAY(B)) ->
+    <<?CONTRACT_BYTEARRAY,
+      (serialize_integer(?FATE_CONTRACT_BYTEARRAY_SIZE(B)))/binary
+     , B/binary>>.
 
 
 %% -----------------------------------------------------
@@ -247,7 +253,8 @@ serialize_type({variant, ListOfVariants}) ->
     Size = length(ListOfVariants),
     if Size < 256 ->
             [?TYPE_VARIANT, Size | [serialize_type(T) || T <- ListOfVariants]]
-    end.
+    end;
+serialize_type(contract_bytearray) -> [?TYPE_CONTRACT_BYTEARRAY].
 
 
 -spec deserialize_type(binary()) -> {aeb_fate_data:fate_type_type(), binary()}.
@@ -282,7 +289,8 @@ deserialize_type(<<?TYPE_STRING, Rest/binary>>) ->
     {string, Rest};
 deserialize_type(<<?TYPE_VARIANT, Size, Rest/binary>>) ->
     {Variants, Rest2} = deserialize_variants(Size, Rest, []),
-    {{variant, Variants}, Rest2}.
+    {{variant, Variants}, Rest2};
+deserialize_type(<<?TYPE_CONTRACT_BYTEARRAY, Rest/binary>>) -> {contract_bytearray, Rest}.
 
 deserialize_variants(0, Rest, Variants) ->
     {lists:reverse(Variants), Rest};
@@ -377,6 +385,12 @@ deserialize2(<<?LONG_STRING, Rest/binary>>) ->
     String = binary:part(Rest2, 0, Size),
     Rest3 = binary:part(Rest2, byte_size(Rest2), - (byte_size(Rest2) - Size)),
     {?MAKE_FATE_STRING(String), Rest3};
+deserialize2(<<?CONTRACT_BYTEARRAY, Rest/binary>>) ->
+    {Size, Rest2} = deserialize_one(Rest),
+    true = is_integer(Size) andalso Size >= 0,
+    FateCode = binary:part(Rest2, 0, Size),
+    Rest3 = binary:part(Rest2, byte_size(Rest2), - (byte_size(Rest2) - Size)),
+    {?MAKE_FATE_CONTRACT_BYTEARRAY(FateCode), Rest3};
 deserialize2(<<S:6, ?SHORT_STRING:2, Rest/binary>>) ->
     String = binary:part(Rest, 0, S),
     Rest2 = binary:part(Rest, byte_size(Rest), - (byte_size(Rest) - S)),

@@ -129,7 +129,7 @@ ops_defs() ->
     , { 'BALANCE',             16#53,  false,    true,   true,   10, [a],             balance,                                   {}, integer, "Arg0 := The current contract balance."}
     , { 'ORIGIN',              16#54,  false,    true,   true,   10, [a],              origin,                                   {}, address, "Arg0 := Address of contract called by the call transaction."}
     , { 'CALLER',              16#55,  false,    true,   true,   10, [a],              caller,                                   {}, address, "Arg0 := The address that signed the call transaction."}
-    , { 'BLOCKHASH',           16#56,  false,    true,   true,   10, [a,a],         blockhash,                            {integer},    hash, "Arg0 := The blockhash at height."}
+    , { 'BLOCKHASH',           16#56,  false,    true,   true,   10, [a,a],         blockhash,                            {integer}, variant, "Arg0 := The blockhash at height."}
     , { 'BENEFICIARY',         16#57,  false,    true,   true,   10, [a],         beneficiary,                                   {}, address, "Arg0 := The address of the current beneficiary."}
     , { 'TIMESTAMP',           16#58,  false,    true,   true,   10, [a],           timestamp,                                   {}, integer, "Arg0 := The current timestamp. Unrelaiable, don't use for anything."}
     , { 'GENERATION',          16#59,  false,    true,   true,   10, [a],          generation,                                   {}, integer, "Arg0 := The block height of the cureent generation."}
@@ -221,6 +221,11 @@ ops_defs() ->
     , { 'CHAR_FROM_INT',       16#a1,  false, true, true,    10, [a,a], char_from_int,    {int}, variant, "Arg0 := Some(UTF-8 character) from integer if valid, None if not valid."}
 
     , { 'CALL_PGR',            16#a2,   true,   false,   true,  100, [a,is,a,a,a,a,a],  call_pgr, {contract, string, typerep, typerep, integer, integer, bool}, variant, "Potentially protected remote call. Arg5 is protected flag, otherwise as CALL_GR."}
+
+    , { 'CREATE',              16#a3,   true,   false,   true, 10000,     [a,a,a],        create,          {contract_bytearray, typerep, integer}, contract, "Deploys a contract with a bytecode Arg1 and value Arg3. The `init` arguments should be placed on the stack and match the type in Arg2. Writes contract address to stack top."}
+    , { 'CLONE',               16#a4,   true,   false,   true,  1000,   [a,a,a,a],         clone,              {contract, typerep, integer, bool},      any, "Clones the contract under Arg1 and deploys it with value of Arg3. The `init` arguments should be placed on the stack and match the type in Arg2. Writes contract (or `None` on fail when protected) to stack top."}
+    , { 'CLONE_G',             16#a5,   true,   false,   true,  1000, [a,a,a,a,a],       clone_g,     {contract, typerep, integer, integer, bool},      any, "Like `CLONE` but additionally limits gas of `init` call to Arg3"}
+    , { 'BYTECODE_HASH',       16#a6,  false,    true,   true,   100,       [a,a], bytecode_hash,                                      {contract},  variant, "Arg0 := hash of the deserialized contract's bytecode under address given in Arg1 (or `None` on fail)."}
 
     , { 'DEACTIVATE',          16#fa,  false,    true,   true,   10, [],           deactivate,                                  {},    none, "Mark the current contract for deactivation."}
     , { 'ABORT',               16#fb,   true,    true,   true,   10, [a],               abort,                            {string},    none, "Abort execution (dont use all gas) with error message in Arg0."}

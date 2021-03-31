@@ -22,6 +22,7 @@
 -type fate_tuple()     :: ?FATE_TUPLE_T.
 -type fate_bits()      :: ?FATE_BITS_T.
 -type fate_typerep()   :: ?FATE_TYPEREP_T.
+-type fate_contract_bytearray() :: ?FATE_CONTRACT_BYTEARRAY_T.
 
 -type fate_type_type() :: integer
                         | boolean
@@ -36,7 +37,8 @@
                         | channel
                         | bits
                         | string
-                        | {variant, [fate_type_type()]}.
+                        | {variant, [fate_type_type()]}
+                        | contract_bytearray.
 
 
 -type fate_type() ::
@@ -56,7 +58,8 @@
       | fate_variant()
       | fate_map()
       | fate_bits()
-      | fate_typerep().
+      | fate_typerep()
+      | fate_contract_bytearray().
 
 -export_type([fate_type/0
              , fate_boolean/0
@@ -99,6 +102,7 @@
         , make_bits/1
         , make_unit/0
         , make_typerep/1
+        , make_contract_bytearray/1
         ]).
 -export([
          elt/2
@@ -130,6 +134,7 @@ make_string(S)  when is_list(S) ->
     ?FATE_STRING(iolist_to_binary(S));
 make_string(S)  when is_binary(S) -> ?FATE_STRING(S).
 make_typerep(T) -> ?FATE_TYPEREP(T).
+make_contract_bytearray(B) -> ?FATE_CONTRACT_BYTEARRAY(B).
 
 %% Tag points to the selected variant (zero based)
 %% The arity of this variant is read from the list of provided arities
@@ -179,12 +184,14 @@ format(?FATE_CONTRACT(X))   ->
     ["@", aeser_api_encoder:encode(contract_pubkey, X)];
 format(?FATE_ORACLE(X))     ->
     ["@", aeser_api_encoder:encode(oracle_pubkey, X)];
-format(?FATE_ORACLE_Q(X))     ->
+format(?FATE_ORACLE_Q(X))   ->
     ["@", aeser_api_encoder:encode(oracle_query_id, X)];
 format(?FATE_CHANNEL(X))    ->
     ["@", aeser_api_encoder:encode(channel, X)];
 format(?FATE_TYPEREP(X))    ->
     ["'", io_lib:format("~p", [X])];
+format(?FATE_CONTRACT_BYTEARRAY(B))   ->
+    ["@", aeser_api_encoder:encode(contract_bytearray, B)];
 format(V) -> exit({not_a_fate_type, V}).
 
 format_bits(0, Acc) -> Acc;
@@ -210,6 +217,7 @@ format_kvs(List) ->
 %% Total order of FATE terms.
 %%  Integers < Booleans < Address < Channel < Contract < Oracle
 %%   < Hash < Signature < Bits < String < Tuple < Map < List < Variant
+%%   < Oracle query < FATE code
 -define(ORD_INTEGER  , 0).
 -define(ORD_BOOLEAN  , 1).
 -define(ORD_ADDRESS  , 2).
@@ -224,6 +232,7 @@ format_kvs(List) ->
 -define(ORD_LIST     , 11).
 -define(ORD_VARIANT  , 12).
 -define(ORD_ORACLE_Q , 13).
+-define(ORD_CONTRACT_BYTEARRAY , 14).
 
 -spec ordinal(fate_type()) -> integer().
 ordinal(T) when ?IS_FATE_INTEGER(T)   -> ?ORD_INTEGER;
@@ -239,7 +248,8 @@ ordinal(T) when ?IS_FATE_TUPLE(T)     -> ?ORD_TUPLE;
 ordinal(T) when ?IS_FATE_MAP(T)       -> ?ORD_MAP;
 ordinal(T) when ?IS_FATE_LIST(T)      -> ?ORD_LIST;
 ordinal(T) when ?IS_FATE_VARIANT(T)   -> ?ORD_VARIANT;
-ordinal(T) when ?IS_FATE_ORACLE_Q(T)  -> ?ORD_ORACLE_Q.
+ordinal(T) when ?IS_FATE_ORACLE_Q(T)  -> ?ORD_ORACLE_Q;
+ordinal(T) when ?IS_FATE_CONTRACT_BYTEARRAY(T) -> ?ORD_CONTRACT_BYTEARRAY.
 
 
 -spec lt(fate_type(), fate_type()) -> boolean().

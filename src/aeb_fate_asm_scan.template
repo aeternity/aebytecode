@@ -16,7 +16,9 @@ BASE58   = [123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]
 BASE64   = [A-Za-z0-9+/=]
 INT      = {DIGIT}+
 HEX      = 0x{HEXDIGIT}+
-OBJECT   = @[a-z][a-z]_{BASE58}+
+OBJ_PFX  = (ak|ct|ok|oq|ch|sg)
+OBJECT   = @{OBJ_PFX}_{BASE58}+
+CODE     = @cb_{BASE64}+
 BYTES    = #{BASE64}+
 WS       = [\000-\s]
 ID       = {LOWER}[a-zA-Z0-9_]*
@@ -37,6 +39,8 @@ FUNCTION       : {token, {function, TokenLine, 'FUNCTION' }}.
 
 {BYTES} :
  {token, {bytes, TokenLine, parse_hash(TokenChars)}}.
+{CODE} :
+ {token, {contract_bytearray, TokenLine, parse_contract_bytearray(TokenChars)}}.
 {OBJECT} :
  {token, {object, TokenLine, parse_object(TokenChars)}}.
 {ID} :
@@ -107,9 +111,13 @@ parse_arg("arg" ++ N) -> list_to_integer(N).
 parse_var("var" ++ N) -> list_to_integer(N).
 
 
-
 parse_hash("#" ++ Chars) ->
     base64:decode(Chars).
+
+parse_contract_bytearray("@" ++ Chars) ->
+    case aeser_api_encoder:decode(unicode:characters_to_binary(Chars)) of
+       {contract_bytearray, Bin} -> Bin
+    end.
 
 parse_object([_|Chars]) ->
     case aeser_api_encoder:decode(unicode:characters_to_binary(Chars)) of

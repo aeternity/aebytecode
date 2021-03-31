@@ -9,3 +9,4 @@
 -define(TYPEREP_TYPEREP_TAG, 5).
 -define(TYPEREP_MAP_TAG,     6).
 -define(TYPEREP_FUN_TAG,     7).
+-define(TYPEREP_CONTRACT_BYTEARRAY_TAG,8).

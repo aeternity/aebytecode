@@ -18,6 +18,7 @@
 -define(FATE_TUPLE_T,     {tuple, tuple()}).
 -define(FATE_BITS_T,      {bits, integer()}).
 -define(FATE_TYPEREP_T,   {typerep, fate_type_type()}).
+-define(FATE_CONTRACT_BYTEARRAY_T, {contract_bytearray, binary()}).
 
 -define(IS_FATE_INTEGER(X), (is_integer(X))).
 -define(IS_FATE_LIST(X),    (is_list(X))).
@@ -45,6 +46,8 @@
                                ))).
 -define(IS_FATE_BOOLEAN(X), is_boolean(X)).
 -define(IS_FATE_TYPEREP(X), (is_tuple(X) andalso tuple_size(X) =:= 2 andalso element(1, X) =:= typerep)).
+-define(IS_FATE_CONTRACT_BYTEARRAY(X), (is_tuple(X) andalso tuple_size(X) =:= 2 andalso element(1, X) =:= contract_bytearray
+                             andalso is_binary(element(2, X)))).
 
 -define(FATE_UNIT,         {tuple, {}}).
 -define(FATE_TUPLE(T),     {tuple, T}).
@@ -75,6 +78,7 @@
 -define(FATE_STORE_MAP_ID(X), (element(3, X))).
 -define(FATE_MAP_SIZE(X), (map_size(X))).
 -define(FATE_STRING_SIZE(X), (byte_size(X))).
+-define(FATE_CONTRACT_BYTEARRAY_SIZE(X), (byte_size(X))).
 -define(FATE_TRUE,  true).
 -define(FATE_FALSE, false).
 -define(FATE_NIL,   []).
@@ -82,6 +86,8 @@
 -define(FATE_EMPTY_STRING, <<>>).
 -define(FATE_STRING(S), S).
 -define(FATE_VARIANT(Arity, Tag,T), {variant, Arity, Tag, T}).
+-define(FATE_CONTRACT_BYTEARRAY(B), {contract_bytearray, B}).
+
 % Result of aeb_fate_code:symbol_identifier(<<"init">>).
 % Stored here to avoid repeated calls to eblake2
 -define(FATE_INIT_ID, <<68,214,68,31>>).
@@ -90,3 +96,4 @@
 -define(MAKE_FATE_LIST(X), X).
 -define(MAKE_FATE_MAP(X),  X).
 -define(MAKE_FATE_STRING(X),  X).
+-define(MAKE_FATE_CONTRACT_BYTEARRAY(X),  {contract_bytearray, X}).

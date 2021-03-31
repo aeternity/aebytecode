@@ -133,11 +133,15 @@ to_binary1(Data, Address) when is_binary(Data) ->
     %% a string
     Words = aeb_memory:binary_to_words(Data),
     {Address,<<(size(Data)):256, << <<W:256>> || W <- Words>>/binary>>};
+to_binary1({contract_bytearray, FateCode}, Address) when is_binary(FateCode) ->
+    Words = aeb_memory:binary_to_words(FateCode),
+    {Address,<<(size(FateCode)):256, << <<W:256>> || W <- Words>>/binary>>};
 to_binary1(none, Address)            -> to_binary1({variant, 0, []}, Address);
 to_binary1({some, Value}, Address)   -> to_binary1({variant, 1, [Value]}, Address);
 to_binary1(word, Address)            -> to_binary1({?TYPEREP_WORD_TAG}, Address);
 to_binary1(string, Address)          -> to_binary1({?TYPEREP_STRING_TAG}, Address);
 to_binary1(typerep, Address)         -> to_binary1({?TYPEREP_TYPEREP_TAG}, Address);
+to_binary1(contract_bytearray, Address) -> to_binary1({?TYPEREP_CONTRACT_BYTEARRAY_TAG}, Address);
 to_binary1(function, Address)        -> to_binary1({?TYPEREP_FUN_TAG}, Address);
 to_binary1({list, T}, Address)       -> to_binary1({?TYPEREP_LIST_TAG, T}, Address);
 to_binary1({option, T}, Address)     -> to_binary1({variant, [[], [T]]}, Address);
@@ -268,8 +272,14 @@ from_binary(Visited, typerep, Heap, V) ->
         ?TYPEREP_TUPLE_TAG   -> {tuple,   Arg({list, typerep})};
         ?TYPEREP_VARIANT_TAG -> {variant, Arg({list, {list, typerep}})};
         ?TYPEREP_MAP_TAG     -> {map,     Arg(typerep), Arg1(typerep, 2)};
-        ?TYPEREP_FUN_TAG     -> function
-    end.
+        ?TYPEREP_FUN_TAG     -> function;
+        ?TYPEREP_CONTRACT_BYTEARRAY_TAG -> contract_bytearray
+    end;
+from_binary(_, contract_bytearray, Heap, V) ->
+    FateCodeSize = heap_word(Heap, V),
+    BitAddr = 8*(V+32),
+    <<_:BitAddr,Bytes:FateCodeSize/binary,_/binary>> = Heap,
+    {contract_bytearray, Bytes}.
 
 map_binary_to_value(KeyType, ValType, N, Bin, Ptr) ->
     %% Avoid looping on bogus sizes

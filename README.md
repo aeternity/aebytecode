@@ -1,7 +1,7 @@
 # aebytecode
-An library and stand alone assembler for aeternity bytecode.
+A library and stand alone assembler for aeternity bytecode.
 
-This version supports Aevm bytecode and Fate bytecode.
+This version supports AEVM bytecode and FATE bytecode.
 
 ## Build
 
@@ -19,7 +19,7 @@ Fate code exists in 3 formats:
 3. Internal. This is an Erlang representation of fate code
                Used by this particular engin implementation.
 
-This library handles all tree representations.
+This library handles all three representations.
 The byte code format is described in a separate document.
 The internal format is described in a separate document.
 The text representation is described below.
@@ -106,6 +106,9 @@ Immediate values can be of 10 types:
 
 10. Bytes: #{base64char}+
  `#AQIDCioLFQ==`
+
+11. Contract bytearray (code of another smart contract)
+`@cb_+PJGA6A4Fz4T2LHV5knITCldR3rqO7HrXO2zhOAR9JWNbhf8Q8C4xbhx/gx8JckANwAXfQBVACAAAP4vhlvZADcABwECgv5E1kQfADcBBzcACwAWMBReAHMAFjBvJFMAFjBvggOoFAAUABQSggABAz/+tIwWhAA3AAdTAAD+1jB5kAQ3AAcLAAD+6MRetgA3AQc3ABoGggABAz+4TS8GEQx8JclFY2FsbGVyX2lzX2NyZWF0b3IRL4Zb2Q1nZXQRRNZEHxFpbml0EbSMFoQdYmFsYW5jZRHWMHmQFXZhbHVlEejEXrYNc2V0gi8AhTQuMy4wAUqQ8s4=`
 
 
 Where

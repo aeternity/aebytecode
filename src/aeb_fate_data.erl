@@ -17,6 +17,7 @@
 -type fate_signature() :: ?FATE_BYTES_T(64).
 -type fate_contract()  :: ?FATE_CONTRACT_T.
 -type fate_oracle()    :: ?FATE_ORACLE_T.
+-type fate_oracle_q()  :: ?FATE_ORACLE_Q_T.
 -type fate_channel()   :: ?FATE_CHANNEL_T.
 -type fate_variant()   :: ?FATE_VARIANT_T.
 -type fate_tuple()     :: ?FATE_TUPLE_T.
@@ -34,6 +35,7 @@
                         | signature
                         | contract
                         | oracle
+                        | oracle_query
                         | channel
                         | bits
                         | string
@@ -54,6 +56,7 @@
       | fate_signature()
       | fate_contract()
       | fate_oracle()
+      | fate_oracle_q()
       | fate_channel()
       | fate_variant()
       | fate_map()
@@ -237,19 +240,19 @@ format_kvs(List) ->
 -spec ordinal(fate_type()) -> integer().
 ordinal(T) when ?IS_FATE_INTEGER(T)   -> ?ORD_INTEGER;
 ordinal(T) when ?IS_FATE_BOOLEAN(T)   -> ?ORD_BOOLEAN;
-ordinal(T) when ?IS_FATE_ADDRESS(T)   -> ?ORD_ADDRESS;
-ordinal(T) when ?IS_FATE_CHANNEL(T)   -> ?ORD_CHANNEL;
-ordinal(T) when ?IS_FATE_CONTRACT(T)  -> ?ORD_CONTRACT;
-ordinal(T) when ?IS_FATE_ORACLE(T)    -> ?ORD_ORACLE;
-ordinal(T) when ?IS_FATE_BYTES(T)     -> ?ORD_BYTES;
+ordinal(T) when ?IS_FATE_ADDRESS(T)   -> ?ORD_ADDRESS;%TODO
+ordinal(T) when ?IS_FATE_CHANNEL(T)   -> ?ORD_CHANNEL;%TODO
+ordinal(T) when ?IS_FATE_CONTRACT(T)  -> ?ORD_CONTRACT;%TODO
+ordinal(T) when ?IS_FATE_ORACLE(T)    -> ?ORD_ORACLE;%TODO
+ordinal(T) when ?IS_FATE_BYTES(T)     -> ?ORD_BYTES;%TODO
 ordinal(T) when ?IS_FATE_BITS(T)      -> ?ORD_BITS;
 ordinal(T) when ?IS_FATE_STRING(T)    -> ?ORD_STRING;
 ordinal(T) when ?IS_FATE_TUPLE(T)     -> ?ORD_TUPLE;
 ordinal(T) when ?IS_FATE_MAP(T)       -> ?ORD_MAP;
 ordinal(T) when ?IS_FATE_LIST(T)      -> ?ORD_LIST;
 ordinal(T) when ?IS_FATE_VARIANT(T)   -> ?ORD_VARIANT;
-ordinal(T) when ?IS_FATE_ORACLE_Q(T)  -> ?ORD_ORACLE_Q;
-ordinal(T) when ?IS_FATE_CONTRACT_BYTEARRAY(T) -> ?ORD_CONTRACT_BYTEARRAY.
+ordinal(T) when ?IS_FATE_ORACLE_Q(T)  -> ?ORD_ORACLE_Q;%TODO
+ordinal(T) when ?IS_FATE_CONTRACT_BYTEARRAY(T) -> ?ORD_CONTRACT_BYTEARRAY.%TODO
 
 
 -spec lt(fate_type(), fate_type()) -> boolean().
@@ -277,15 +280,10 @@ lt(?ORD_BITS, A, B) when ?IS_FATE_BITS(A), ?IS_FATE_BITS(B) ->
             true;
        true -> BitsA < BitsB
     end;
-lt(?ORD_STRING,?FATE_STRING(A), ?FATE_STRING(B)) ->
-    SizeA = size(A),
-    SizeB = size(B),
-    case SizeA - SizeB of
-        0 -> A < B;
-        N -> N < 0
-    end;
+lt(?ORD_STRING, ?FATE_STRING(A), ?FATE_STRING(B)) ->
+    compare_bytes(A, B);
 
-lt(?ORD_TUPLE,?FATE_TUPLE(A), ?FATE_TUPLE(B)) ->
+lt(?ORD_TUPLE, ?FATE_TUPLE(A), ?FATE_TUPLE(B)) ->
     SizeA = size(A),
     SizeB = size(B),
     case SizeA - SizeB of
@@ -324,7 +322,28 @@ lt(?ORD_VARIANT, ?FATE_VARIANT(AritiesA, TagA, TA),
                     end
             end
     end;
-lt(_, A, B) -> A < B.
+lt(?ORD_ADDRESS, ?FATE_ADDRESS(A), ?FATE_ADDRESS(B)) ->
+  A < B;
+lt(?ORD_CHANNEL, ?FATE_CHANNEL(A), ?FATE_CHANNEL(B)) ->
+  A < B;
+lt(?ORD_CONTRACT, ?FATE_CONTRACT(A), ?FATE_CONTRACT(B)) ->
+  A < B;
+lt(?ORD_ORACLE, ?FATE_ORACLE(A), ?FATE_ORACLE(B)) ->
+  A < B;
+lt(?ORD_ORACLE_Q, ?FATE_ORACLE_Q(A), ?FATE_ORACLE_Q(B)) ->
+  A < B;
+lt(?ORD_BYTES, ?FATE_BYTES(A), ?FATE_BYTES(B)) ->
+  compare_bytes(A, B);
+lt(?ORD_CONTRACT_BYTEARRAY, ?FATE_CONTRACT_BYTEARRAY(A), ?FATE_CONTRACT_BYTEARRAY(B)) ->
+  compare_bytes(A, B).
+
+compare_bytes(A, B) ->
+  SizeA = byte_size(A),
+  SizeB = byte_size(B),
+  case SizeA - SizeB of
+    0 -> A < B;
+    N -> N < 0
+  end.
 
 tuple_elements_lt(N,_A,_B, N) ->
     false;

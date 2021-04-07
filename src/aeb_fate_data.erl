@@ -280,12 +280,9 @@ lt(?ORD_BITS, A, B) when ?IS_FATE_BITS(A), ?IS_FATE_BITS(B) ->
             true;
        true -> BitsA < BitsB
     end;
-lt(?ORD_STRING, ?FATE_STRING(A), ?FATE_STRING(B)) ->
-    compare_bytes(A, B);
-
 lt(?ORD_TUPLE, ?FATE_TUPLE(A), ?FATE_TUPLE(B)) ->
-    SizeA = size(A),
-    SizeB = size(B),
+    SizeA = tuple_size(A),
+    SizeB = tuple_size(B),
     case SizeA - SizeB of
         0 -> tuple_elements_lt(0, A, B, SizeA);
         N -> N < 0
@@ -300,19 +297,15 @@ lt(?ORD_MAP, ?FATE_MAP_VALUE(A), ?FATE_MAP_VALUE(B)) ->
 lt(?ORD_LIST, ?FATE_LIST_VALUE(_), ?FATE_LIST_VALUE([])) -> false;
 lt(?ORD_LIST, ?FATE_LIST_VALUE([]), ?FATE_LIST_VALUE(_)) -> true;
 lt(?ORD_LIST, ?FATE_LIST_VALUE([A|RA]), ?FATE_LIST_VALUE([B|RB])) ->
-    O1 = ordinal(A),
-    O2 = ordinal(B),
-    if O1 == O2 ->
-            if A == B -> lt(RA, RB);
-               true -> A < B
-            end;
-       true -> O1 < O2
+    if A == B -> lt(RA, RB);
+       true -> lt(A, B)
     end;
 lt(?ORD_VARIANT, ?FATE_VARIANT(AritiesA, TagA, TA),
    ?FATE_VARIANT(AritiesB, TagB, TB)) ->
     if length(AritiesA) < length(AritiesB) -> true;
        length(AritiesA) > length(AritiesB) -> false;
        true ->
+            % Compare element by element consistent with Erlang compare
             if AritiesA < AritiesB -> true;
                AritiesA > AritiesB -> false;
                true ->
@@ -332,18 +325,13 @@ lt(?ORD_ORACLE, ?FATE_ORACLE(A), ?FATE_ORACLE(B)) ->
   A < B;
 lt(?ORD_ORACLE_Q, ?FATE_ORACLE_Q(A), ?FATE_ORACLE_Q(B)) ->
   A < B;
+% Compare by first different bit. If one is prefix of another than shorter is smaller. (like in Erlang)
+lt(?ORD_STRING, ?FATE_STRING(A), ?FATE_STRING(B)) ->
+  A < B;
 lt(?ORD_BYTES, ?FATE_BYTES(A), ?FATE_BYTES(B)) ->
-  compare_bytes(A, B);
+  A < B;
 lt(?ORD_CONTRACT_BYTEARRAY, ?FATE_CONTRACT_BYTEARRAY(A), ?FATE_CONTRACT_BYTEARRAY(B)) ->
-  compare_bytes(A, B).
-
-compare_bytes(A, B) ->
-  SizeA = byte_size(A),
-  SizeB = byte_size(B),
-  case SizeA - SizeB of
-    0 -> A < B;
-    N -> N < 0
-  end.
+  A < B.
 
 tuple_elements_lt(N,_A,_B, N) ->
     false;

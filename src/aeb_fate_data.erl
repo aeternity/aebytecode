@@ -17,6 +17,7 @@
 -type fate_signature() :: ?FATE_BYTES_T(64).
 -type fate_contract()  :: ?FATE_CONTRACT_T.
 -type fate_oracle()    :: ?FATE_ORACLE_T.
+-type fate_oracle_q()  :: ?FATE_ORACLE_Q_T.
 -type fate_channel()   :: ?FATE_CHANNEL_T.
 -type fate_variant()   :: ?FATE_VARIANT_T.
 -type fate_tuple()     :: ?FATE_TUPLE_T.
@@ -34,6 +35,7 @@
                         | signature
                         | contract
                         | oracle
+                        | oracle_query
                         | channel
                         | bits
                         | string
@@ -54,6 +56,7 @@
       | fate_signature()
       | fate_contract()
       | fate_oracle()
+      | fate_oracle_q()
       | fate_channel()
       | fate_variant()
       | fate_map()
@@ -277,17 +280,9 @@ lt(?ORD_BITS, A, B) when ?IS_FATE_BITS(A), ?IS_FATE_BITS(B) ->
             true;
        true -> BitsA < BitsB
     end;
-lt(?ORD_STRING,?FATE_STRING(A), ?FATE_STRING(B)) ->
-    SizeA = size(A),
-    SizeB = size(B),
-    case SizeA - SizeB of
-        0 -> A < B;
-        N -> N < 0
-    end;
-
-lt(?ORD_TUPLE,?FATE_TUPLE(A), ?FATE_TUPLE(B)) ->
-    SizeA = size(A),
-    SizeB = size(B),
+lt(?ORD_TUPLE, ?FATE_TUPLE(A), ?FATE_TUPLE(B)) ->
+    SizeA = tuple_size(A),
+    SizeB = tuple_size(B),
     case SizeA - SizeB of
         0 -> tuple_elements_lt(0, A, B, SizeA);
         N -> N < 0
@@ -302,19 +297,15 @@ lt(?ORD_MAP, ?FATE_MAP_VALUE(A), ?FATE_MAP_VALUE(B)) ->
 lt(?ORD_LIST, ?FATE_LIST_VALUE(_), ?FATE_LIST_VALUE([])) -> false;
 lt(?ORD_LIST, ?FATE_LIST_VALUE([]), ?FATE_LIST_VALUE(_)) -> true;
 lt(?ORD_LIST, ?FATE_LIST_VALUE([A|RA]), ?FATE_LIST_VALUE([B|RB])) ->
-    O1 = ordinal(A),
-    O2 = ordinal(B),
-    if O1 == O2 ->
-            if A == B -> lt(RA, RB);
-               true -> A < B
-            end;
-       true -> O1 < O2
+    if A == B -> lt(RA, RB);
+       true -> lt(A, B)
     end;
 lt(?ORD_VARIANT, ?FATE_VARIANT(AritiesA, TagA, TA),
    ?FATE_VARIANT(AritiesB, TagB, TB)) ->
     if length(AritiesA) < length(AritiesB) -> true;
        length(AritiesA) > length(AritiesB) -> false;
        true ->
+            % Compare element by element consistent with Erlang compare
             if AritiesA < AritiesB -> true;
                AritiesA > AritiesB -> false;
                true ->
@@ -324,7 +315,23 @@ lt(?ORD_VARIANT, ?FATE_VARIANT(AritiesA, TagA, TA),
                     end
             end
     end;
-lt(_, A, B) -> A < B.
+lt(?ORD_ADDRESS, ?FATE_ADDRESS(A), ?FATE_ADDRESS(B)) ->
+  A < B;
+lt(?ORD_CHANNEL, ?FATE_CHANNEL(A), ?FATE_CHANNEL(B)) ->
+  A < B;
+lt(?ORD_CONTRACT, ?FATE_CONTRACT(A), ?FATE_CONTRACT(B)) ->
+  A < B;
+lt(?ORD_ORACLE, ?FATE_ORACLE(A), ?FATE_ORACLE(B)) ->
+  A < B;
+lt(?ORD_ORACLE_Q, ?FATE_ORACLE_Q(A), ?FATE_ORACLE_Q(B)) ->
+  A < B;
+% Compare by first different bit. If one is prefix of another than shorter is smaller. (like in Erlang)
+lt(?ORD_STRING, ?FATE_STRING(A), ?FATE_STRING(B)) ->
+  A < B;
+lt(?ORD_BYTES, ?FATE_BYTES(A), ?FATE_BYTES(B)) ->
+  A < B;
+lt(?ORD_CONTRACT_BYTEARRAY, ?FATE_CONTRACT_BYTEARRAY(A), ?FATE_CONTRACT_BYTEARRAY(B)) ->
+  A < B.
 
 tuple_elements_lt(N,_A,_B, N) ->
     false;

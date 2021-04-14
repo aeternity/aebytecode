@@ -325,13 +325,22 @@ lt(?ORD_ORACLE, ?FATE_ORACLE(A), ?FATE_ORACLE(B)) ->
   A < B;
 lt(?ORD_ORACLE_Q, ?FATE_ORACLE_Q(A), ?FATE_ORACLE_Q(B)) ->
   A < B;
-% Compare by first different bit. If one is prefix of another than shorter is smaller. (like in Erlang)
 lt(?ORD_STRING, ?FATE_STRING(A), ?FATE_STRING(B)) ->
-  A < B;
+  compare_bytes(A, B);
 lt(?ORD_BYTES, ?FATE_BYTES(A), ?FATE_BYTES(B)) ->
-  A < B;
+  compare_bytes(A, B);
 lt(?ORD_CONTRACT_BYTEARRAY, ?FATE_CONTRACT_BYTEARRAY(A), ?FATE_CONTRACT_BYTEARRAY(B)) ->
-  A < B.
+  compare_bytes(A, B).
+
+% Shorter comes first
+% On same length compare by first different bit
+compare_bytes(A, B) ->
+  SizeA = byte_size(A),
+  SizeB = byte_size(B),
+  case SizeA - SizeB of
+    0 -> A < B;
+    N -> N < 0
+  end.
 
 tuple_elements_lt(N,_A,_B, N) ->
     false;

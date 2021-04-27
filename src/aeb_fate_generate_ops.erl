@@ -227,6 +227,8 @@ ops_defs() ->
     , { 'CLONE_G',             16#a5,   true,   false,   true,  1000, [a,a,a,a,a],       clone_g,     {contract, typerep, integer, integer, bool},      any, "Like `CLONE` but additionally limits gas of `init` call to Arg3"}
     , { 'BYTECODE_HASH',       16#a6,  false,    true,   true,   100,       [a,a], bytecode_hash,                                      {contract},  variant, "Arg0 := hash of the deserialized contract's bytecode under address given in Arg1 (or `None` on fail)."}
 
+    , { 'FEE',                 16#a7,  false,    true,   true,   10, [a],                 fee,                                  {}, integer, "Arg0 := The fee for the current call tx."}
+
     , { 'DEACTIVATE',          16#fa,  false,    true,   true,   10, [],           deactivate,                                  {},    none, "Mark the current contract for deactivation."}
     , { 'ABORT',               16#fb,   true,    true,   true,   10, [a],               abort,                            {string},    none, "Abort execution (dont use all gas) with error message in Arg0."}
     , { 'EXIT',                16#fc,   true,    true,   true,   10, [a],                exit,                            {string},    none, "Abort execution (use upp all gas) with error message in Arg0."}

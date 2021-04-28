@@ -39,200 +39,204 @@ check_numbering(N, [T|Rest]) ->
     end;
 check_numbering(_, []) -> true.
 
+-define(LIMA_PROTOCOL_VSN, 4).
+-define(IRIS_PROTOCOL_VSN, 5).
 
-%% TODO: Some real gas numbers...
+-define(GAS(A), A).
+-define(GAS_IRIS(A, B), [{?IRIS_PROTOCOL_VSN, B}, {?LIMA_PROTOCOL_VSN, A}]).
+
 ops_defs() ->
     %%  Opname,               Opcode, end_bb, in_auth offchain, gas, format,      Constructor,                              ArgType, ResType, Documentation
-    [ { 'RETURN',              16#00,   true,    true,   true,   10, [],               return,                                   {},     any, "Return from function call, top of stack is return value . The type of the retun value has to match the return type of the function."}
-    , { 'RETURNR',             16#01,   true,    true,   true,   10, [a],             returnr,                                {any},     any, "Push Arg0 and return from function. The type of the retun value has to match the return type of the function."}
-    , { 'CALL',                16#02,   true,    true,   true,   10, [a],                call,                             {string},     any, "Call the function Arg0 with args on stack. The types of the arguments has to match the argument typs of the function."}
-    , { 'CALL_R',              16#03,   true,   false,   true,  100, [a,is,a,a,a],     call_r, {contract, string, typerep, typerep, integer},     any, "Remote call to contract Arg0 and function Arg1 of type Arg2 => Arg3 with value Arg4. The types of the arguments has to match the argument types of the function."}
-    , { 'CALL_T',              16#04,   true,    true,   true,   10, [a],              call_t,                             {string},     any, "Tail call to function Arg0. The types of the arguments has to match the argument typs of the function. And the return type of the called function has to match the type of the current function."}
-    , { 'CALL_GR',             16#05,   true,   false,   true,  100, [a,is,a,a,a,a],   call_gr, {contract, string, typerep, typerep, integer, integer}, any, "Remote call with gas cap in Arg4. Otherwise as CALL_R."}
-    , { 'JUMP',                16#06,   true,    true,   true,   10, [ii],               jump,                            {integer},    none, "Jump to a basic block. The basic block has to exist in the current function."}
-    , { 'JUMPIF',              16#07,   true,    true,   true,   10, [a,ii],           jumpif,                   {boolean, integer},    none, "Conditional jump to a basic block. If Arg0 then jump to Arg1."}
-    , { 'SWITCH_V2',           16#08,   true,    true,   true,   10, [a,ii,ii],        switch,          {variant, integer, ingeger},    none, "Conditional jump to a basic block on variant tag."}
-    , { 'SWITCH_V3',           16#09,   true,    true,   true,   10, [a,ii,ii,ii],     switch, {variant, integer, integer, ingeger},    none, "Conditional jump to a basic block on variant tag."}
-    , { 'SWITCH_VN',           16#0a,   true,    true,   true,   10, [a, li],          switch,           {variant, {list, integer}},    none, "Conditional jump to a basic block on variant tag."}
-    , { 'CALL_VALUE',          16#0b,  false,    true,   true,   10, [a],          call_value,                                   {}, integer, "The value sent in the current remote call."}
-    , { 'PUSH',                16#0c,  false,    true,   true,   10, [a],                push,                                {any},     any, "Push argument to stack."}
-    , { 'DUPA',                16#0d,  false,    true,   true,   10, [],                  dup,                                {any},     any, "Duplicate top of stack."}
-    , { 'DUP',                 16#0e,  false,    true,   true,   10, [a],                 dup,                                {any},     any, "push Arg0 stack pos on top of stack."}
-    , { 'POP',                 16#0f,  false,    true,   true,   10, [a],                 pop,                            {integer}, integer, "Arg0 := top of stack."}
-    , { 'INCA',                16#10,  false,    true,   true,   10, [],                  inc,                            {integer}, integer, "Increment accumulator."}
-    , { 'INC',                 16#11,  false,    true,   true,   10, [a],                 inc,                            {integer}, integer, "Increment argument."}
-    , { 'DECA',                16#12,  false,    true,   true,   10, [],                  dec,                            {integer}, integer, "Decrement accumulator."}
-    , { 'DEC',                 16#13,  false,    true,   true,   10, [a],                 dec,                            {integer}, integer, "Decrement argument."}
-    , { 'ADD',                 16#14,  false,    true,   true,   10, [a,a,a],             add,                   {integer, integer}, integer, "Arg0 := Arg1 + Arg2."}
-    , { 'SUB',                 16#15,  false,    true,   true,   10, [a,a,a],             sub,                   {integer, integer}, integer, "Arg0 := Arg1 - Arg2."}
-    , { 'MUL',                 16#16,  false,    true,   true,   10, [a,a,a],             mul,                   {integer, integer}, integer, "Arg0 := Arg1 * Arg2."}
-    , { 'DIV',                 16#17,  false,    true,   true,   10, [a,a,a],          divide,                   {integer, integer}, integer, "Arg0 := Arg1 / Arg2."}
-    , { 'MOD',                 16#18,  false,    true,   true,   10, [a,a,a],          modulo,                   {integer, integer}, integer, "Arg0 := Arg1 mod Arg2."}
-    , { 'POW',                 16#19,  false,    true,   true,   10, [a,a,a],             pow,                   {integer, integer}, integer, "Arg0 := Arg1  ^ Arg2."}
-    , { 'STORE',               16#1a,  false,    true,   true,   10, [a,a],             store,                                {any},     any, "Arg0 := Arg1."}
-    , { 'SHA3',                16#1b,  false,    true,   true,  100, [a,a],              sha3,                                {any},    hash, "Arg0 := sha3(Arg1)."}
-    , { 'SHA256',              16#1c,  false,    true,   true,  100, [a,a],            sha256,                                {any},    hash, "Arg0 := sha256(Arg1)."}
-    , { 'BLAKE2B',             16#1d,  false,    true,   true,  100, [a,a],           blake2b,                                {any},    hash, "Arg0 := blake2b(Arg1)."}
-    , { 'LT',                  16#1e,  false,    true,   true,   10, [a,a,a],              lt,                   {integer, integer}, boolean, "Arg0 := Arg1  < Arg2."}
-    , { 'GT',                  16#1f,  false,    true,   true,   10, [a,a,a],              gt,                   {integer, integer}, boolean, "Arg0 := Arg1  > Arg2."}
-    , { 'EQ',                  16#20,  false,    true,   true,   10, [a,a,a],              eq,                   {integer, integer}, boolean, "Arg0 := Arg1  = Arg2."}
-    , { 'ELT',                 16#21,  false,    true,   true,   10, [a,a,a],             elt,                   {integer, integer}, boolean, "Arg0 := Arg1 =< Arg2."}
-    , { 'EGT',                 16#22,  false,    true,   true,   10, [a,a,a],             egt,                   {integer, integer}, boolean, "Arg0 := Arg1 >= Arg2."}
-    , { 'NEQ',                 16#23,  false,    true,   true,   10, [a,a,a],             neq,                   {integer, integer}, boolean, "Arg0 := Arg1 /= Arg2."}
-    , { 'AND',                 16#24,  false,    true,   true,   10, [a,a,a],          and_op,                   {boolean, boolean}, boolean, "Arg0 := Arg1 and Arg2."}
-    , { 'OR',                  16#25,  false,    true,   true,   10, [a,a,a],           or_op,                   {boolean, boolean}, boolean, "Arg0 := Arg1  or Arg2."}
-    , { 'NOT',                 16#26,  false,    true,   true,   10, [a,a],            not_op,                            {boolean}, boolean, "Arg0 := not Arg1."}
-    , { 'TUPLE',               16#27,  false,    true,   true,   10, [a,ii],            tuple,                            {integer},   tuple, "Arg0 := tuple of size = Arg1. Elements on stack."}
-    , { 'ELEMENT',             16#28,  false,    true,   true,   10, [a,a,a],      element_op,                     {integer, tuple},     any, "Arg1 := element(Arg2, Arg3)."}
-    , { 'SETELEMENT',          16#29,  false,    true,   true,   10, [a,a,a,a],    setelement,                {integer, tuple, any},   tuple, "Arg0 := a new tuple similar to Arg2, but with element number Arg1 replaced by Arg3."}
-    , { 'MAP_EMPTY',           16#2a,  false,    true,   true,   10, [a],           map_empty,                                   {},     map, "Arg0 := #{}."}
-    , { 'MAP_LOOKUP',          16#2b,  false,    true,   true,   10, [a,a,a],      map_lookup,                           {map, any},     any, "Arg0 := lookup key Arg2 in map Arg1."}
-    , { 'MAP_LOOKUPD',         16#2c,  false,    true,   true,   10, [a,a,a,a],    map_lookup,                      {map, any, any},     any, "Arg0 := lookup key Arg2 in map Arg1 if key exists in map otherwise Arg0 := Arg3."}
-    , { 'MAP_UPDATE',          16#2d,  false,    true,   true,   10, [a,a,a,a],    map_update,                      {map, any, any},     map, "Arg0 := update key Arg2 in map Arg1 with value Arg3."}
-    , { 'MAP_DELETE',          16#2e,  false,    true,   true,   10, [a,a,a],      map_delete,                           {map, any},     map, "Arg0 := delete key Arg2 from map Arg1."}
-    , { 'MAP_MEMBER',          16#2f,  false,    true,   true,   10, [a,a,a],      map_member,                           {map, any}, boolean, "Arg0 := true if key Arg2 is in map Arg1."}
-    , { 'MAP_FROM_LIST',       16#30,  false,    true,   true,   10, [a,a],     map_from_list,        {{list, {tuple, [any, any]}}},     map, "Arg0 := make a map from (key, value) list in Arg1."}
-    , { 'MAP_SIZE',            16#31,  false,    true,   true,   10, [a,a],         map_size_,                                {map}, integer, "Arg0 := The size of the map Arg1."}
-    , { 'MAP_TO_LIST',         16#32,  false,    true,   true,   10, [a,a],       map_to_list,                                {map},    list, "Arg0 := The tuple list representation of the map Arg1."}
-    , { 'IS_NIL',              16#33,  false,    true,   true,   10, [a,a],            is_nil,                               {list}, boolean, "Arg0 := true if Arg1 == []."}
-    , { 'CONS',                16#34,  false,    true,   true,   10, [a,a,a],            cons,                          {any, list},    list, "Arg0 := [Arg1|Arg2]."}
-    , { 'HD',                  16#35,  false,    true,   true,   10, [a,a],                hd,                               {list},     any, "Arg0 := head of list Arg1."}
-    , { 'TL',                  16#36,  false,    true,   true,   10, [a,a],                tl,                               {list},    list, "Arg0 := tail of list Arg1."}
-    , { 'LENGTH',              16#37,  false,    true,   true,   10, [a,a],            length,                               {list}, integer, "Arg0 := length of list Arg1."}
-    , { 'NIL',                 16#38,  false,    true,   true,   10, [a],                 nil,                                   {},    list, "Arg0 := []."}
-    , { 'APPEND',              16#39,  false,    true,   true,   10, [a,a,a],          append,                         {list, list},    list, "Arg0 := Arg1 ++ Arg2."}
-    , { 'STR_JOIN',            16#3a,  false,    true,   true,   10, [a,a,a],        str_join,                     {string, string},  string, "Arg0 := string Arg1 followed by string Arg2."}
-    , { 'INT_TO_STR',          16#3b,  false,    true,   true,  100, [a,a],        int_to_str,                            {integer},  string, "Arg0 := turn integer Arg1 into a string."}
-    , { 'ADDR_TO_STR',         16#3c,  false,    true,   true,  100, [a,a],       addr_to_str,                            {address},  string, "Arg0 := turn address Arg1 into a string."}
-    , { 'STR_REVERSE',         16#3d,  false,    true,   true,  100, [a,a],       str_reverse,                             {string},  string, "Arg0 := the reverse of string Arg1."}
-    , { 'STR_LENGTH',          16#3e,  false,    true,   true,   10, [a,a],        str_length,                             {string}, integer, "Arg0 := The length of the string Arg1."}
-    , { 'BYTES_TO_INT',        16#3f,  false,    true,   true,   10, [a,a],      bytes_to_int,                              {bytes}, integer, "Arg0 := bytes_to_int(Arg1)"}
-    , { 'BYTES_TO_STR',        16#40,  false,    true,   true,  100, [a,a],      bytes_to_str,                              {bytes},  string, "Arg0 := bytes_to_str(Arg1)"}
-    , { 'BYTES_CONCAT',        16#41,  false,    true,   true,   10, [a,a,a],    bytes_concat,                        {bytes, bytes},  bytes, "Arg0 := bytes_concat(Arg1, Arg2)"}
-    , { 'BYTES_SPLIT',         16#42,  false,    true,   true,   10, [a,a,a],     bytes_split,                      {bytes, integer},  bytes, "Arg0 := bytes_split(Arg2, Arg1), where Arg2 is the length of the first chunk."}
-    , { 'INT_TO_ADDR',         16#43,  false,    true,   true,   10, [a,a],       int_to_addr,                            {integer}, address, "Arg0 := turn integer Arg1 into an address."}
-    , { 'VARIANT',             16#44,  false,    true,   true,   10, [a,a,a,a],       variant,          {integer, integer, integer}, variant, "Arg0 := create a variant of size Arg1 with the tag Arg2 (Arg2 < Arg1) and take Arg3 elements from the stack."}
-    , { 'VARIANT_TEST',        16#45,  false,    true,   true,   10, [a,a,a],    variant_test,                   {variant, integer}, boolean, "Arg0 := true if variant Arg1 has the tag Arg2."}
-    , { 'VARIANT_ELEMENT',     16#46,  false,    true,   true,   10, [a,a,a], variant_element,                   {variant, integer},     any, "Arg0 := element number Arg2 from variant Arg1."}
-    , { 'BITS_NONEA',          16#47,  false,    true,   true,   10, [],            bits_none,                                   {},    bits, "push an empty bitmap on the stack."}
-    , { 'BITS_NONE',           16#48,  false,    true,   true,   10, [a],           bits_none,                                   {},    bits, "Arg0 := empty bitmap."}
-    , { 'BITS_ALLA',           16#49,  false,    true,   true,   10, [],             bits_all,                                   {},    bits, "push a full bitmap on the stack."}
-    , { 'BITS_ALL',            16#4a,  false,    true,   true,   10, [a],            bits_all,                                   {},    bits, "Arg0 := full bitmap."}
-    , { 'BITS_ALL_N',          16#4b,  false,    true,   true,   10, [a,a],        bits_all_n,                            {integer},    bits, "Arg0 := bitmap with Arg1 bits set."}
-    , { 'BITS_SET',            16#4c,  false,    true,   true,   10, [a,a,a],        bits_set,                      {bits, integer},    bits, "Arg0 := set bit Arg2 of bitmap Arg1."}
-    , { 'BITS_CLEAR',          16#4d,  false,    true,   true,   10, [a,a,a],      bits_clear,                      {bits, integer},    bits, "Arg0 := clear bit Arg2 of bitmap Arg1."}
-    , { 'BITS_TEST',           16#4e,  false,    true,   true,   10, [a,a,a],       bits_test,                      {bits, integer}, boolean, "Arg0 := true if bit Arg2 of bitmap Arg1 is set."}
-    , { 'BITS_SUM',            16#4f,  false,    true,   true,   10, [a,a],          bits_sum,                               {bits}, integer, "Arg0 := sum of set bits in bitmap Arg1. Exception if infinit bitmap."}
-    , { 'BITS_OR',             16#50,  false,    true,   true,   10, [a,a,a],         bits_or,                         {bits, bits},    bits, "Arg0 := Arg1 v Arg2."}
-    , { 'BITS_AND',            16#51,  false,    true,   true,   10, [a,a,a],        bits_and,                         {bits, bits},    bits, "Arg0 := Arg1 ^ Arg2."}
-    , { 'BITS_DIFF',           16#52,  false,    true,   true,   10, [a,a,a],       bits_diff,                         {bits, bits},    bits, "Arg0 := Arg1 - Arg2."}
-    , { 'BALANCE',             16#53,  false,    true,   true,   10, [a],             balance,                                   {}, integer, "Arg0 := The current contract balance."}
-    , { 'ORIGIN',              16#54,  false,    true,   true,   10, [a],              origin,                                   {}, address, "Arg0 := Address of contract called by the call transaction."}
-    , { 'CALLER',              16#55,  false,    true,   true,   10, [a],              caller,                                   {}, address, "Arg0 := The address that signed the call transaction."}
-    , { 'BLOCKHASH',           16#56,  false,    true,   true,   10, [a,a],         blockhash,                            {integer}, variant, "Arg0 := The blockhash at height."}
-    , { 'BENEFICIARY',         16#57,  false,    true,   true,   10, [a],         beneficiary,                                   {}, address, "Arg0 := The address of the current beneficiary."}
-    , { 'TIMESTAMP',           16#58,  false,    true,   true,   10, [a],           timestamp,                                   {}, integer, "Arg0 := The current timestamp. Unrelaiable, don't use for anything."}
-    , { 'GENERATION',          16#59,  false,    true,   true,   10, [a],          generation,                                   {}, integer, "Arg0 := The block height of the cureent generation."}
-    , { 'MICROBLOCK',          16#5a,  false,    true,   true,   10, [a],          microblock,                                   {}, integer, "Arg0 := The current micro block number."}
-    , { 'DIFFICULTY',          16#5b,  false,    true,   true,   10, [a],          difficulty,                                   {}, integer, "Arg0 := The current difficulty."}
-    , { 'GASLIMIT',            16#5c,  false,    true,   true,   10, [a],            gaslimit,                                   {}, integer, "Arg0 := The current gaslimit."}
-    , { 'GAS',                 16#5d,  false,    true,   true,   10, [a],                 gas,                                   {}, integer, "Arg0 := The amount of gas left."}
-    , { 'ADDRESS',             16#5e,  false,    true,   true,   10, [a],             address,                                   {}, address, "Arg0 := The current contract address."}
-    , { 'GASPRICE',            16#5f,  false,    true,   true,   10, [a],            gasprice,                                   {}, integer, "Arg0 := The current gas price."}
+    [ { 'RETURN',              16#00,   true,    true,   true,   ?GAS(10),            [],               return,                                   {},     any, "Return from function call, top of stack is return value . The type of the retun value has to match the return type of the function."}
+    , { 'RETURNR',             16#01,   true,    true,   true,   ?GAS(10),            [a],             returnr,                                {any},     any, "Push Arg0 and return from function. The type of the retun value has to match the return type of the function."}
+    , { 'CALL',                16#02,   true,    true,   true,   ?GAS(10),            [a],                call,                             {string},     any, "Call the function Arg0 with args on stack. The types of the arguments has to match the argument typs of the function."}
+    , { 'CALL_R',              16#03,   true,   false,   true,  ?GAS(100),            [a,is,a,a,a],     call_r, {contract, string, typerep, typerep, integer},     any, "Remote call to contract Arg0 and function Arg1 of type Arg2 => Arg3 with value Arg4. The types of the arguments has to match the argument types of the function."}
+    , { 'CALL_T',              16#04,   true,    true,   true,   ?GAS(10),            [a],              call_t,                             {string},     any, "Tail call to function Arg0. The types of the arguments has to match the argument typs of the function. And the return type of the called function has to match the type of the current function."}
+    , { 'CALL_GR',             16#05,   true,   false,   true,  ?GAS(100),            [a,is,a,a,a,a],   call_gr, {contract, string, typerep, typerep, integer, integer}, any, "Remote call with gas cap in Arg4. Otherwise as CALL_R."}
+    , { 'JUMP',                16#06,   true,    true,   true,   ?GAS(10),            [ii],               jump,                            {integer},    none, "Jump to a basic block. The basic block has to exist in the current function."}
+    , { 'JUMPIF',              16#07,   true,    true,   true,   ?GAS(10),            [a,ii],           jumpif,                   {boolean, integer},    none, "Conditional jump to a basic block. If Arg0 then jump to Arg1."}
+    , { 'SWITCH_V2',           16#08,   true,    true,   true,   ?GAS(10),            [a,ii,ii],        switch,          {variant, integer, ingeger},    none, "Conditional jump to a basic block on variant tag."}
+    , { 'SWITCH_V3',           16#09,   true,    true,   true,   ?GAS(10),            [a,ii,ii,ii],     switch, {variant, integer, integer, ingeger},    none, "Conditional jump to a basic block on variant tag."}
+    , { 'SWITCH_VN',           16#0a,   true,    true,   true,   ?GAS(10),            [a, li],          switch,           {variant, {list, integer}},    none, "Conditional jump to a basic block on variant tag."}
+    , { 'CALL_VALUE',          16#0b,  false,    true,   true,   ?GAS(10),            [a],          call_value,                                   {}, integer, "The value sent in the current remote call."}
+    , { 'PUSH',                16#0c,  false,    true,   true,   ?GAS(10),            [a],                push,                                {any},     any, "Push argument to stack."}
+    , { 'DUPA',                16#0d,  false,    true,   true,   ?GAS(10),            [],                  dup,                                {any},     any, "Duplicate top of stack."}
+    , { 'DUP',                 16#0e,  false,    true,   true,   ?GAS(10),            [a],                 dup,                                {any},     any, "push Arg0 stack pos on top of stack."}
+    , { 'POP',                 16#0f,  false,    true,   true,   ?GAS(10),            [a],                 pop,                            {integer}, integer, "Arg0 := top of stack."}
+    , { 'INCA',                16#10,  false,    true,   true,   ?GAS(10),            [],                  inc,                            {integer}, integer, "Increment accumulator."}
+    , { 'INC',                 16#11,  false,    true,   true,   ?GAS(10),            [a],                 inc,                            {integer}, integer, "Increment argument."}
+    , { 'DECA',                16#12,  false,    true,   true,   ?GAS(10),            [],                  dec,                            {integer}, integer, "Decrement accumulator."}
+    , { 'DEC',                 16#13,  false,    true,   true,   ?GAS(10),            [a],                 dec,                            {integer}, integer, "Decrement argument."}
+    , { 'ADD',                 16#14,  false,    true,   true,   ?GAS(10),            [a,a,a],             add,                   {integer, integer}, integer, "Arg0 := Arg1 + Arg2."}
+    , { 'SUB',                 16#15,  false,    true,   true,   ?GAS(10),            [a,a,a],             sub,                   {integer, integer}, integer, "Arg0 := Arg1 - Arg2."}
+    , { 'MUL',                 16#16,  false,    true,   true,   ?GAS(10),            [a,a,a],             mul,                   {integer, integer}, integer, "Arg0 := Arg1 * Arg2."}
+    , { 'DIV',                 16#17,  false,    true,   true,   ?GAS(10),            [a,a,a],          divide,                   {integer, integer}, integer, "Arg0 := Arg1 / Arg2."}
+    , { 'MOD',                 16#18,  false,    true,   true,   ?GAS(10),            [a,a,a],          modulo,                   {integer, integer}, integer, "Arg0 := Arg1 mod Arg2."}
+    , { 'POW',                 16#19,  false,    true,   true,   ?GAS(10),            [a,a,a],             pow,                   {integer, integer}, integer, "Arg0 := Arg1  ^ Arg2."}
+    , { 'STORE',               16#1a,  false,    true,   true,   ?GAS(10),            [a,a],             store,                                {any},     any, "Arg0 := Arg1."}
+    , { 'SHA3',                16#1b,  false,    true,   true,  ?GAS(100),            [a,a],              sha3,                                {any},    hash, "Arg0 := sha3(Arg1)."}
+    , { 'SHA256',              16#1c,  false,    true,   true,  ?GAS(100),            [a,a],            sha256,                                {any},    hash, "Arg0 := sha256(Arg1)."}
+    , { 'BLAKE2B',             16#1d,  false,    true,   true,  ?GAS(100),            [a,a],           blake2b,                                {any},    hash, "Arg0 := blake2b(Arg1)."}
+    , { 'LT',                  16#1e,  false,    true,   true,   ?GAS(10),            [a,a,a],              lt,                   {integer, integer}, boolean, "Arg0 := Arg1  < Arg2."}
+    , { 'GT',                  16#1f,  false,    true,   true,   ?GAS(10),            [a,a,a],              gt,                   {integer, integer}, boolean, "Arg0 := Arg1  > Arg2."}
+    , { 'EQ',                  16#20,  false,    true,   true,   ?GAS(10),            [a,a,a],              eq,                   {integer, integer}, boolean, "Arg0 := Arg1  = Arg2."}
+    , { 'ELT',                 16#21,  false,    true,   true,   ?GAS(10),            [a,a,a],             elt,                   {integer, integer}, boolean, "Arg0 := Arg1 =< Arg2."}
+    , { 'EGT',                 16#22,  false,    true,   true,   ?GAS(10),            [a,a,a],             egt,                   {integer, integer}, boolean, "Arg0 := Arg1 >= Arg2."}
+    , { 'NEQ',                 16#23,  false,    true,   true,   ?GAS(10),            [a,a,a],             neq,                   {integer, integer}, boolean, "Arg0 := Arg1 /= Arg2."}
+    , { 'AND',                 16#24,  false,    true,   true,   ?GAS(10),            [a,a,a],          and_op,                   {boolean, boolean}, boolean, "Arg0 := Arg1 and Arg2."}
+    , { 'OR',                  16#25,  false,    true,   true,   ?GAS(10),            [a,a,a],           or_op,                   {boolean, boolean}, boolean, "Arg0 := Arg1  or Arg2."}
+    , { 'NOT',                 16#26,  false,    true,   true,   ?GAS(10),            [a,a],            not_op,                            {boolean}, boolean, "Arg0 := not Arg1."}
+    , { 'TUPLE',               16#27,  false,    true,   true,   ?GAS(10),            [a,ii],            tuple,                            {integer},   tuple, "Arg0 := tuple of size = Arg1. Elements on stack."}
+    , { 'ELEMENT',             16#28,  false,    true,   true,   ?GAS(10),            [a,a,a],      element_op,                     {integer, tuple},     any, "Arg1 := element(Arg2, Arg3)."}
+    , { 'SETELEMENT',          16#29,  false,    true,   true,   ?GAS(10),            [a,a,a,a],    setelement,                {integer, tuple, any},   tuple, "Arg0 := a new tuple similar to Arg2, but with element number Arg1 replaced by Arg3."}
+    , { 'MAP_EMPTY',           16#2a,  false,    true,   true,   ?GAS(10),            [a],           map_empty,                                   {},     map, "Arg0 := #{}."}
+    , { 'MAP_LOOKUP',          16#2b,  false,    true,   true,   ?GAS(10),            [a,a,a],      map_lookup,                           {map, any},     any, "Arg0 := lookup key Arg2 in map Arg1."}
+    , { 'MAP_LOOKUPD',         16#2c,  false,    true,   true,   ?GAS(10),            [a,a,a,a],    map_lookup,                      {map, any, any},     any, "Arg0 := lookup key Arg2 in map Arg1 if key exists in map otherwise Arg0 := Arg3."}
+    , { 'MAP_UPDATE',          16#2d,  false,    true,   true,   ?GAS(10),            [a,a,a,a],    map_update,                      {map, any, any},     map, "Arg0 := update key Arg2 in map Arg1 with value Arg3."}
+    , { 'MAP_DELETE',          16#2e,  false,    true,   true,   ?GAS(10),            [a,a,a],      map_delete,                           {map, any},     map, "Arg0 := delete key Arg2 from map Arg1."}
+    , { 'MAP_MEMBER',          16#2f,  false,    true,   true,   ?GAS(10),            [a,a,a],      map_member,                           {map, any}, boolean, "Arg0 := true if key Arg2 is in map Arg1."}
+    , { 'MAP_FROM_LIST',       16#30,  false,    true,   true,   ?GAS(10),            [a,a],     map_from_list,        {{list, {tuple, [any, any]}}},     map, "Arg0 := make a map from (key, value) list in Arg1."}
+    , { 'MAP_SIZE',            16#31,  false,    true,   true,   ?GAS(10),            [a,a],         map_size_,                                {map}, integer, "Arg0 := The size of the map Arg1."}
+    , { 'MAP_TO_LIST',         16#32,  false,    true,   true,   ?GAS(10),            [a,a],       map_to_list,                                {map},    list, "Arg0 := The tuple list representation of the map Arg1."}
+    , { 'IS_NIL',              16#33,  false,    true,   true,   ?GAS(10),            [a,a],            is_nil,                               {list}, boolean, "Arg0 := true if Arg1 == []."}
+    , { 'CONS',                16#34,  false,    true,   true,   ?GAS(10),            [a,a,a],            cons,                          {any, list},    list, "Arg0 := [Arg1|Arg2]."}
+    , { 'HD',                  16#35,  false,    true,   true,   ?GAS(10),            [a,a],                hd,                               {list},     any, "Arg0 := head of list Arg1."}
+    , { 'TL',                  16#36,  false,    true,   true,   ?GAS(10),            [a,a],                tl,                               {list},    list, "Arg0 := tail of list Arg1."}
+    , { 'LENGTH',              16#37,  false,    true,   true,   ?GAS(10),            [a,a],            length,                               {list}, integer, "Arg0 := length of list Arg1."}
+    , { 'NIL',                 16#38,  false,    true,   true,   ?GAS(10),            [a],                 nil,                                   {},    list, "Arg0 := []."}
+    , { 'APPEND',              16#39,  false,    true,   true,   ?GAS(10),            [a,a,a],          append,                         {list, list},    list, "Arg0 := Arg1 ++ Arg2."}
+    , { 'STR_JOIN',            16#3a,  false,    true,   true,   ?GAS(10),            [a,a,a],        str_join,                     {string, string},  string, "Arg0 := string Arg1 followed by string Arg2."}
+    , { 'INT_TO_STR',          16#3b,  false,    true,   true,  ?GAS(100),            [a,a],        int_to_str,                            {integer},  string, "Arg0 := turn integer Arg1 into a string."}
+    , { 'ADDR_TO_STR',         16#3c,  false,    true,   true,  ?GAS(100),            [a,a],       addr_to_str,                            {address},  string, "Arg0 := turn address Arg1 into a string."}
+    , { 'STR_REVERSE',         16#3d,  false,    true,   true,  ?GAS(100),            [a,a],       str_reverse,                             {string},  string, "Arg0 := the reverse of string Arg1."}
+    , { 'STR_LENGTH',          16#3e,  false,    true,   true,   ?GAS(10),            [a,a],        str_length,                             {string}, integer, "Arg0 := The length of the string Arg1."}
+    , { 'BYTES_TO_INT',        16#3f,  false,    true,   true,   ?GAS(10),            [a,a],      bytes_to_int,                              {bytes}, integer, "Arg0 := bytes_to_int(Arg1)"}
+    , { 'BYTES_TO_STR',        16#40,  false,    true,   true,  ?GAS(100),            [a,a],      bytes_to_str,                              {bytes},  string, "Arg0 := bytes_to_str(Arg1)"}
+    , { 'BYTES_CONCAT',        16#41,  false,    true,   true,   ?GAS(10),            [a,a,a],    bytes_concat,                        {bytes, bytes},  bytes, "Arg0 := bytes_concat(Arg1, Arg2)"}
+    , { 'BYTES_SPLIT',         16#42,  false,    true,   true,   ?GAS(10),            [a,a,a],     bytes_split,                      {bytes, integer},  bytes, "Arg0 := bytes_split(Arg2, Arg1), where Arg2 is the length of the first chunk."}
+    , { 'INT_TO_ADDR',         16#43,  false,    true,   true,   ?GAS(10),            [a,a],       int_to_addr,                            {integer}, address, "Arg0 := turn integer Arg1 into an address."}
+    , { 'VARIANT',             16#44,  false,    true,   true,   ?GAS(10),            [a,a,a,a],       variant,          {integer, integer, integer}, variant, "Arg0 := create a variant of size Arg1 with the tag Arg2 (Arg2 < Arg1) and take Arg3 elements from the stack."}
+    , { 'VARIANT_TEST',        16#45,  false,    true,   true,   ?GAS(10),            [a,a,a],    variant_test,                   {variant, integer}, boolean, "Arg0 := true if variant Arg1 has the tag Arg2."}
+    , { 'VARIANT_ELEMENT',     16#46,  false,    true,   true,   ?GAS(10),            [a,a,a], variant_element,                   {variant, integer},     any, "Arg0 := element number Arg2 from variant Arg1."}
+    , { 'BITS_NONEA',          16#47,  false,    true,   true,   ?GAS(10),            [],            bits_none,                                   {},    bits, "push an empty bitmap on the stack."}
+    , { 'BITS_NONE',           16#48,  false,    true,   true,   ?GAS(10),            [a],           bits_none,                                   {},    bits, "Arg0 := empty bitmap."}
+    , { 'BITS_ALLA',           16#49,  false,    true,   true,   ?GAS(10),            [],             bits_all,                                   {},    bits, "push a full bitmap on the stack."}
+    , { 'BITS_ALL',            16#4a,  false,    true,   true,   ?GAS(10),            [a],            bits_all,                                   {},    bits, "Arg0 := full bitmap."}
+    , { 'BITS_ALL_N',          16#4b,  false,    true,   true,   ?GAS(10),            [a,a],        bits_all_n,                            {integer},    bits, "Arg0 := bitmap with Arg1 bits set."}
+    , { 'BITS_SET',            16#4c,  false,    true,   true,   ?GAS(10),            [a,a,a],        bits_set,                      {bits, integer},    bits, "Arg0 := set bit Arg2 of bitmap Arg1."}
+    , { 'BITS_CLEAR',          16#4d,  false,    true,   true,   ?GAS(10),            [a,a,a],      bits_clear,                      {bits, integer},    bits, "Arg0 := clear bit Arg2 of bitmap Arg1."}
+    , { 'BITS_TEST',           16#4e,  false,    true,   true,   ?GAS(10),            [a,a,a],       bits_test,                      {bits, integer}, boolean, "Arg0 := true if bit Arg2 of bitmap Arg1 is set."}
+    , { 'BITS_SUM',            16#4f,  false,    true,   true,   ?GAS(10),            [a,a],          bits_sum,                               {bits}, integer, "Arg0 := sum of set bits in bitmap Arg1. Exception if infinit bitmap."}
+    , { 'BITS_OR',             16#50,  false,    true,   true,   ?GAS(10),            [a,a,a],         bits_or,                         {bits, bits},    bits, "Arg0 := Arg1 v Arg2."}
+    , { 'BITS_AND',            16#51,  false,    true,   true,   ?GAS(10),            [a,a,a],        bits_and,                         {bits, bits},    bits, "Arg0 := Arg1 ^ Arg2."}
+    , { 'BITS_DIFF',           16#52,  false,    true,   true,   ?GAS(10),            [a,a,a],       bits_diff,                         {bits, bits},    bits, "Arg0 := Arg1 - Arg2."}
+    , { 'BALANCE',             16#53,  false,    true,   true,   ?GAS(10),            [a],             balance,                                   {}, integer, "Arg0 := The current contract balance."}
+    , { 'ORIGIN',              16#54,  false,    true,   true,   ?GAS(10),            [a],              origin,                                   {}, address, "Arg0 := Address of contract called by the call transaction."}
+    , { 'CALLER',              16#55,  false,    true,   true,   ?GAS(10),            [a],              caller,                                   {}, address, "Arg0 := The address that signed the call transaction."}
+    , { 'BLOCKHASH',           16#56,  false,    true,   true,   ?GAS_IRIS(10, 1000), [a,a],         blockhash,                            {integer}, variant, "Arg0 := The blockhash at height."}
+    , { 'BENEFICIARY',         16#57,  false,    true,   true,   ?GAS(10),            [a],         beneficiary,                                   {}, address, "Arg0 := The address of the current beneficiary."}
+    , { 'TIMESTAMP',           16#58,  false,    true,   true,   ?GAS(10),            [a],           timestamp,                                   {}, integer, "Arg0 := The current timestamp. Unrelaiable, don't use for anything."}
+    , { 'GENERATION',          16#59,  false,    true,   true,   ?GAS(10),            [a],          generation,                                   {}, integer, "Arg0 := The block height of the cureent generation."}
+    , { 'MICROBLOCK',          16#5a,  false,    true,   true,   ?GAS(10),            [a],          microblock,                                   {}, integer, "Arg0 := The current micro block number."}
+    , { 'DIFFICULTY',          16#5b,  false,    true,   true,   ?GAS(10),            [a],          difficulty,                                   {}, integer, "Arg0 := The current difficulty."}
+    , { 'GASLIMIT',            16#5c,  false,    true,   true,   ?GAS(10),            [a],            gaslimit,                                   {}, integer, "Arg0 := The current gaslimit."}
+    , { 'GAS',                 16#5d,  false,    true,   true,   ?GAS(10),            [a],                 gas,                                   {}, integer, "Arg0 := The amount of gas left."}
+    , { 'ADDRESS',             16#5e,  false,    true,   true,   ?GAS(10),            [a],             address,                                   {}, address, "Arg0 := The current contract address."}
+    , { 'GASPRICE',            16#5f,  false,    true,   true,   ?GAS(10),            [a],            gasprice,                                   {}, integer, "Arg0 := The current gas price."}
 
-    , { 'LOG0',                16#60,  false,    true,   true, 1000, [a],                 log,                             {string},    none, "Create a log message in the call object."}
-    , { 'LOG1',                16#61,  false,    true,   true, 1100, [a,a],               log,                    {integer, string},    none, "Create a log message with one topic in the call object."}
-    , { 'LOG2',                16#62,  false,    true,   true, 1200, [a,a,a],             log,           {integer, integer, string},    none, "Create a log message with two topics in the call object."}
-    , { 'LOG3',                16#63,  false,    true,   true, 1300, [a,a,a,a],           log,  {integer, integer, integer, string},    none, "Create a log message with three topics in the call object."}
-    , { 'LOG4',                16#64,  false,    true,   true, 1400, [a,a,a,a,a],         log, {integer, integer, integer, integer, string},    none, "Create a log message with four topics in the call object."}
+    , { 'LOG0',                16#60,  false,    true,   true, ?GAS(1000), [a],                 log,                             {string},    none, "Create a log message in the call object."}
+    , { 'LOG1',                16#61,  false,    true,   true, ?GAS(1100), [a,a],               log,                    {integer, string},    none, "Create a log message with one topic in the call object."}
+    , { 'LOG2',                16#62,  false,    true,   true, ?GAS(1200), [a,a,a],             log,           {integer, integer, string},    none, "Create a log message with two topics in the call object."}
+    , { 'LOG3',                16#63,  false,    true,   true, ?GAS(1300), [a,a,a,a],           log,  {integer, integer, integer, string},    none, "Create a log message with three topics in the call object."}
+    , { 'LOG4',                16#64,  false,    true,   true, ?GAS(1400), [a,a,a,a,a],         log, {integer, integer, integer, integer, string},    none, "Create a log message with four topics in the call object."}
       %% Transaction ops
-    , { 'SPEND',               16#65,  false,   false,   true,  100, [a,a],             spend,                  {address, integer},     none, "Transfer Arg1 tokens to account Arg0. (If the contract account has at least that many tokens."}
-    , { 'ORACLE_REGISTER',     16#66,  false,   false,  false,  100, [a,a,a,a,a,a,a], oracle_register, {signature, address, integer, variant, typerep, typerep}, oracle, "Arg0 := New oracle with address Arg2, query fee Arg3, TTL Arg4, query type Arg5 and response type Arg6. Arg0 contains delegation signature."}
-    , { 'ORACLE_QUERY',        16#67,  false,   false,  false,  100, [a,a,a,a,a,a,a,a], oracle_query, {oracle, any, integer, variant, variant, typerep, typerep}, oracle_query, "Arg0 := New oracle query for oracle Arg1, question in Arg2, query fee in Arg3, query TTL in Arg4, response TTL in Arg5. Typereps for checking oracle type is in Arg6 and Arg7."}
-    , { 'ORACLE_RESPOND',      16#68,  false,   false,  false,  100, [a,a,a,a,a,a], oracle_respond, {signature, oracle, oracle_query,any, typerep, typerep},   none, "Respond as oracle Arg1 to query in Arg2 with response Arg3. Arg0 contains delegation signature. Typereps for checking oracle type is in Arg4 and Arg5."}
-    , { 'ORACLE_EXTEND',       16#69,  false,   false,  false,  100, [a,a,a],   oracle_extend,        {signature, oracle, variant},     none, "Extend oracle in Arg1 with TTL in Arg2. Arg0 contains delegation signature."}
-    , { 'ORACLE_GET_ANSWER',   16#6a,  false,   false,   true,  100, [a,a,a,a,a], oracle_get_answer, {oracle, oracle_query, typerep, typerep}, any, "Arg0 := option variant with answer (if any) from oracle query in Arg1 given by oracle Arg0. Typereps for checking oracle type is in Arg3 and Arg4."}
-    , { 'ORACLE_GET_QUESTION', 16#6b,  false,   false,   true,  100, [a,a,a,a,a], oracle_get_question, {oracle, oracle_query, typerep, typerep}, any, "Arg0 := question in oracle query Arg2 given to oracle Arg1. Typereps for checking oracle type is in Arg3 and Arg4."}
-    , { 'ORACLE_QUERY_FEE',    16#6c,  false,   false,   true,  100, [a,a],  oracle_query_fee,                            {oracle},  integer, "Arg0 := query fee for oracle Arg1"}
-    , { 'AENS_RESOLVE',        16#6d,  false,   false,   true,  100, [a,a,a,a],  aens_resolve,           {string, string, typerep},  variant, "Resolve name in Arg0 with tag Arg1. Arg2 describes the type parameter of the resolved name."}
-    , { 'AENS_PRECLAIM',       16#6e,  false,   false,  false,  100, [a,a,a],   aens_preclaim,          {signature, address, hash},    none, "Preclaim the hash in Arg2 for address in Arg1. Arg0 contains delegation signature."}
-    , { 'AENS_CLAIM',          16#6f,  false,   false,  false,  100, [a,a,a,a,a],    aens_claim, {signature, address, string, integer, integer},  none, "Attempt to claim the name in Arg2 for address in Arg1 at a price in Arg4. Arg3 contains the salt used to hash the preclaim. Arg0 contains delegation signature."}
-    , { 'AENS_UPDATE',         16#70,  false,   false,  false,  100, [a,a,a,a,a,a],  aens_update, {signature, address, string, variant, variant, variant}, none, "Updates name in Arg2 for address in Arg1. Arg3 contains optional ttl (of type Chain.ttl), Arg4 contains optional client_ttl (of type int), Arg5 contains optional pointers (of type map(string, pointee))"}
-    , { 'AENS_TRANSFER',       16#71,  false,   false,  false,  100, [a,a,a,a], aens_transfer,{signature, address, address, string},   none, "Transfer ownership of name Arg3 from account Arg1 to Arg2. Arg0 contains delegation signature."}
-    , { 'AENS_REVOKE',         16#72,  false,   false,  false,  100, [a,a,a],     aens_revoke,        {signature, address, string},    none, "Revoke the name in Arg2 from owner Arg1. Arg0 contains delegation signature."}
-    , { 'BALANCE_OTHER',       16#73,  false,    true,   true,   50, [a,a],     balance_other,                           {address}, integer, "Arg0 := The balance of address Arg1."}
+    , { 'SPEND',               16#65,  false,   false,   true,  ?GAS(100), [a,a],             spend,                  {address, integer},     none, "Transfer Arg1 tokens to account Arg0. (If the contract account has at least that many tokens."}
+    , { 'ORACLE_REGISTER',     16#66,  false,   false,  false,  ?GAS(100), [a,a,a,a,a,a,a], oracle_register, {signature, address, integer, variant, typerep, typerep}, oracle, "Arg0 := New oracle with address Arg2, query fee Arg3, TTL Arg4, query type Arg5 and response type Arg6. Arg0 contains delegation signature."}
+    , { 'ORACLE_QUERY',        16#67,  false,   false,  false,  ?GAS(100), [a,a,a,a,a,a,a,a], oracle_query, {oracle, any, integer, variant, variant, typerep, typerep}, oracle_query, "Arg0 := New oracle query for oracle Arg1, question in Arg2, query fee in Arg3, query TTL in Arg4, response TTL in Arg5. Typereps for checking oracle type is in Arg6 and Arg7."}
+    , { 'ORACLE_RESPOND',      16#68,  false,   false,  false,  ?GAS(100), [a,a,a,a,a,a], oracle_respond, {signature, oracle, oracle_query,any, typerep, typerep},   none, "Respond as oracle Arg1 to query in Arg2 with response Arg3. Arg0 contains delegation signature. Typereps for checking oracle type is in Arg4 and Arg5."}
+    , { 'ORACLE_EXTEND',       16#69,  false,   false,  false,  ?GAS(100), [a,a,a],   oracle_extend,        {signature, oracle, variant},     none, "Extend oracle in Arg1 with TTL in Arg2. Arg0 contains delegation signature."}
+    , { 'ORACLE_GET_ANSWER',   16#6a,  false,   false,   true,  ?GAS(100), [a,a,a,a,a], oracle_get_answer, {oracle, oracle_query, typerep, typerep}, any, "Arg0 := option variant with answer (if any) from oracle query in Arg1 given by oracle Arg0. Typereps for checking oracle type is in Arg3 and Arg4."}
+    , { 'ORACLE_GET_QUESTION', 16#6b,  false,   false,   true,  ?GAS(100), [a,a,a,a,a], oracle_get_question, {oracle, oracle_query, typerep, typerep}, any, "Arg0 := question in oracle query Arg2 given to oracle Arg1. Typereps for checking oracle type is in Arg3 and Arg4."}
+    , { 'ORACLE_QUERY_FEE',    16#6c,  false,   false,   true,  ?GAS(100), [a,a],  oracle_query_fee,                            {oracle},  integer, "Arg0 := query fee for oracle Arg1"}
+    , { 'AENS_RESOLVE',        16#6d,  false,   false,   true,  ?GAS(100), [a,a,a,a],  aens_resolve,           {string, string, typerep},  variant, "Resolve name in Arg0 with tag Arg1. Arg2 describes the type parameter of the resolved name."}
+    , { 'AENS_PRECLAIM',       16#6e,  false,   false,  false,  ?GAS(100), [a,a,a],   aens_preclaim,          {signature, address, hash},    none, "Preclaim the hash in Arg2 for address in Arg1. Arg0 contains delegation signature."}
+    , { 'AENS_CLAIM',          16#6f,  false,   false,  false,  ?GAS(100), [a,a,a,a,a],    aens_claim, {signature, address, string, integer, integer},  none, "Attempt to claim the name in Arg2 for address in Arg1 at a price in Arg4. Arg3 contains the salt used to hash the preclaim. Arg0 contains delegation signature."}
+    , { 'AENS_UPDATE',         16#70,  false,   false,  false,  ?GAS(100), [a,a,a,a,a,a],  aens_update, {signature, address, string, variant, variant, variant}, none, "Updates name in Arg2 for address in Arg1. Arg3 contains optional ttl (of type Chain.ttl), Arg4 contains optional client_ttl (of type int), Arg5 contains optional pointers (of type map(string, pointee))"}
+    , { 'AENS_TRANSFER',       16#71,  false,   false,  false,  ?GAS(100), [a,a,a,a], aens_transfer,{signature, address, address, string},   none, "Transfer ownership of name Arg3 from account Arg1 to Arg2. Arg0 contains delegation signature."}
+    , { 'AENS_REVOKE',         16#72,  false,   false,  false,  ?GAS(100), [a,a,a],     aens_revoke,        {signature, address, string},    none, "Revoke the name in Arg2 from owner Arg1. Arg0 contains delegation signature."}
+    , { 'BALANCE_OTHER',       16#73,  false,    true,   true,   ?GAS(50), [a,a],     balance_other,                           {address}, integer, "Arg0 := The balance of address Arg1."}
 
-    , { 'VERIFY_SIG',          16#74,  false,    true,   true, 1300, [a,a,a,a],           verify_sig, {bytes, address, bytes}, boolean, "Arg0 := verify_sig(Hash, PubKey, Signature)"}
-    , { 'VERIFY_SIG_SECP256K1',16#75,  false,    true,   true, 1300, [a,a,a,a], verify_sig_secp256k1,   {bytes, bytes, bytes}, boolean, "Arg0 := verify_sig_secp256k1(Hash, PubKey, Signature)"}
+    , { 'VERIFY_SIG',          16#74,  false,    true,   true, ?GAS(1300), [a,a,a,a],           verify_sig, {bytes, address, bytes}, boolean, "Arg0 := verify_sig(Hash, PubKey, Signature)"}
+    , { 'VERIFY_SIG_SECP256K1',16#75,  false,    true,   true, ?GAS(1300), [a,a,a,a], verify_sig_secp256k1,   {bytes, bytes, bytes}, boolean, "Arg0 := verify_sig_secp256k1(Hash, PubKey, Signature)"}
 
-    , { 'CONTRACT_TO_ADDRESS', 16#76,  false,    true,   true,   10, [a,a], contract_to_address,                        {contract}, address, "Arg0 := Arg1 - A no-op type conversion"}
-    , { 'AUTH_TX_HASH',        16#77,  false,    true,   true,   10, [a],          auth_tx_hash,                                {}, variant, "If in GA authentication context return Some(TxHash) otherwise None."}
+    , { 'CONTRACT_TO_ADDRESS', 16#76,  false,    true,   true,   ?GAS(10), [a,a], contract_to_address,                        {contract}, address, "Arg0 := Arg1 - A no-op type conversion"}
+    , { 'AUTH_TX_HASH',        16#77,  false,    true,   true,   ?GAS(10), [a],          auth_tx_hash,                                {}, variant, "If in GA authentication context return Some(TxHash) otherwise None."}
 
-    , { 'ORACLE_CHECK',        16#78,  false,   false,   true,  100, [a,a,a,a],    oracle_check,        {oracle, typerep, typerep},    bool, "Arg0 := is Arg1 an oracle with the given query (Arg2) and response (Arg3) types"}
-    , { 'ORACLE_CHECK_QUERY',  16#79,  false,   false,   true,  100, [a,a,a,a,a], oracle_check_query, {oracle, oracle_query, typerep, typerep}, bool, "Arg0 := is Arg2 a query for the oracle Arg1 with the given types (Arg3, Arg4)"}
+    , { 'ORACLE_CHECK',        16#78,  false,   false,   true,  ?GAS(100), [a,a,a,a],    oracle_check,        {oracle, typerep, typerep},    bool, "Arg0 := is Arg1 an oracle with the given query (Arg2) and response (Arg3) types"}
+    , { 'ORACLE_CHECK_QUERY',  16#79,  false,   false,   true,  ?GAS(100), [a,a,a,a,a], oracle_check_query, {oracle, oracle_query, typerep, typerep}, bool, "Arg0 := is Arg2 a query for the oracle Arg1 with the given types (Arg3, Arg4)"}
 
-    , { 'IS_ORACLE',           16#7a,  false,   false,   true,  100, [a,a],         is_oracle,               {address},    bool, "Arg0 := is Arg1 an oracle"}
-    , { 'IS_CONTRACT',         16#7b,  false,   false,   true,  100, [a,a],       is_contract,               {address},    bool, "Arg0 := is Arg1 a contract"}
-    , { 'IS_PAYABLE',          16#7c,  false,   false,   true,  100, [a,a],        is_payable,               {address},    bool, "Arg0 := is Arg1 a payable address"}
-    , { 'CREATOR',             16#7d,  false,    true,   true,   10, [a],    contract_creator,                      {}, address, "Arg0 := contract creator"}
+    , { 'IS_ORACLE',           16#7a,  false,   false,   true,  ?GAS(100), [a,a],         is_oracle,               {address},    bool, "Arg0 := is Arg1 an oracle"}
+    , { 'IS_CONTRACT',         16#7b,  false,   false,   true,  ?GAS(100), [a,a],       is_contract,               {address},    bool, "Arg0 := is Arg1 a contract"}
+    , { 'IS_PAYABLE',          16#7c,  false,   false,   true,  ?GAS(100), [a,a],        is_payable,               {address},    bool, "Arg0 := is Arg1 a payable address"}
+    , { 'CREATOR',             16#7d,  false,    true,   true,   ?GAS(10), [a],    contract_creator,                      {}, address, "Arg0 := contract creator"}
 
-    , { 'ECVERIFY_SECP256K1',  16#7e,  false,    true,   true, 1300, [a,a,a,a], ecverify_secp256k1,  {bytes, bytes, bytes}, bytes, "Arg0 := ecverify_secp256k1(Hash, Addr, Signature)"}
-    , { 'ECRECOVER_SECP256K1', 16#7f,  false,    true,   true, 1300,   [a,a,a], ecrecover_secp256k1,        {bytes, bytes}, bytes, "Arg0 := ecrecover_secp256k1(Hash, Signature)"}
+    , { 'ECVERIFY_SECP256K1',  16#7e,  false,    true,   true, ?GAS(1300), [a,a,a,a], ecverify_secp256k1,  {bytes, bytes, bytes}, bytes, "Arg0 := ecverify_secp256k1(Hash, Addr, Signature)"}
+    , { 'ECRECOVER_SECP256K1', 16#7f,  false,    true,   true, ?GAS(1300),   [a,a,a], ecrecover_secp256k1,        {bytes, bytes}, bytes, "Arg0 := ecrecover_secp256k1(Hash, Signature)"}
 
-    , { 'ADDRESS_TO_CONTRACT', 16#80,  false,    true,   true,   10, [a,a], address_to_contract,                        {address}, contract, "Arg0 := Arg1 - A no-op type conversion"}
+    , { 'ADDRESS_TO_CONTRACT', 16#80,  false,    true,   true,   ?GAS(10), [a,a], address_to_contract,                        {address}, contract, "Arg0 := Arg1 - A no-op type conversion"}
 
-    , { 'BLS12_381_G1_NEG',     16#81,  false, true, true,  100, [a,a],       bls12_381_g1_neg,         {tuple},   tuple, "Arg0 := BLS12_381.g1_neg(Arg1) - Negate a G1-value"}
-    , { 'BLS12_381_G1_NORM',    16#82,  false, true, true,  100, [a,a],      bls12_381_g1_norm,         {tuple},   tuple, "Arg0 := BLS12_381.g1_normalize(Arg1) - Normalize a G1-value"}
-    , { 'BLS12_381_G1_VALID',   16#83,  false, true, true, 2000, [a,a],     bls12_381_g1_valid,         {tuple},    bool, "Arg0 := BLS12_381.g1_valid(Arg1) - Check if G1-value is a valid group member"}
-    , { 'BLS12_381_G1_IS_ZERO', 16#84,  false, true, true,   30, [a,a],   bls12_381_g1_is_zero,         {tuple},    bool, "Arg0 := BLS12_381.g1_is_zero(Arg1) - Check if G1-value is zero"}
-    , { 'BLS12_381_G1_ADD',     16#85,  false, true, true,  100, [a,a,a],     bls12_381_g1_add,  {tuple, tuple},   tuple, "Arg0 := BLS12_381.g1_add(Arg1, Arg2) - Add two G1-values"}
-    , { 'BLS12_381_G1_MUL',     16#86,  false, true, true, 1000, [a,a,a],     bls12_381_g1_mul,  {tuple, tuple},   tuple, "Arg0 := BLS12_381.g1_mul(Arg1, Arg2) - Scalar multiplication for a G1-value (Arg1), and an Fr-value"}
+    , { 'BLS12_381_G1_NEG',     16#81,  false, true, true,  ?GAS(100), [a,a],       bls12_381_g1_neg,         {tuple},   tuple, "Arg0 := BLS12_381.g1_neg(Arg1) - Negate a G1-value"}
+    , { 'BLS12_381_G1_NORM',    16#82,  false, true, true,  ?GAS(100), [a,a],      bls12_381_g1_norm,         {tuple},   tuple, "Arg0 := BLS12_381.g1_normalize(Arg1) - Normalize a G1-value"}
+    , { 'BLS12_381_G1_VALID',   16#83,  false, true, true, ?GAS(2000), [a,a],     bls12_381_g1_valid,         {tuple},    bool, "Arg0 := BLS12_381.g1_valid(Arg1) - Check if G1-value is a valid group member"}
+    , { 'BLS12_381_G1_IS_ZERO', 16#84,  false, true, true,   ?GAS(30), [a,a],   bls12_381_g1_is_zero,         {tuple},    bool, "Arg0 := BLS12_381.g1_is_zero(Arg1) - Check if G1-value is zero"}
+    , { 'BLS12_381_G1_ADD',     16#85,  false, true, true,  ?GAS(100), [a,a,a],     bls12_381_g1_add,  {tuple, tuple},   tuple, "Arg0 := BLS12_381.g1_add(Arg1, Arg2) - Add two G1-values"}
+    , { 'BLS12_381_G1_MUL',     16#86,  false, true, true, ?GAS(1000), [a,a,a],     bls12_381_g1_mul,  {tuple, tuple},   tuple, "Arg0 := BLS12_381.g1_mul(Arg1, Arg2) - Scalar multiplication for a G1-value (Arg1), and an Fr-value"}
 
-    , { 'BLS12_381_G2_NEG',     16#87,  false, true, true,  100, [a,a],       bls12_381_g2_neg,         {tuple},   tuple, "Arg0 := BLS12_381.g2_neg(Arg1) - Negate a G2-value"}
-    , { 'BLS12_381_G2_NORM',    16#88,  false, true, true,  100, [a,a],      bls12_381_g2_norm,         {tuple},   tuple, "Arg0 := BLS12_381.g2_normalize(Arg1) - Normalize a G2-value"}
-    , { 'BLS12_381_G2_VALID',   16#89,  false, true, true, 2000, [a,a],     bls12_381_g2_valid,         {tuple},    bool, "Arg0 := BLS12_381.g2_valid(Arg1) - Check if G2-value is a valid group member"}
-    , { 'BLS12_381_G2_IS_ZERO', 16#8a,  false, true, true,   30, [a,a],   bls12_381_g2_is_zero,         {tuple},    bool, "Arg0 := BLS12_381.g2_is_zero(Arg1) - Check if G2-value is zero"}
-    , { 'BLS12_381_G2_ADD',     16#8b,  false, true, true,  100, [a,a,a],     bls12_381_g2_add,  {tuple, tuple},   tuple, "Arg0 := BLS12_381.g2_add(Arg1, Arg2) - Add two G2-values"}
-    , { 'BLS12_381_G2_MUL',     16#8c,  false, true, true, 1000, [a,a,a],     bls12_381_g2_mul,  {tuple, tuple},   tuple, "Arg0 := BLS12_381.g2_mul(Arg1, Arg2) - Scalar multiplication for a G2-value (Arg2), and an Fr-value"}
+    , { 'BLS12_381_G2_NEG',     16#87,  false, true, true,  ?GAS(100), [a,a],       bls12_381_g2_neg,         {tuple},   tuple, "Arg0 := BLS12_381.g2_neg(Arg1) - Negate a G2-value"}
+    , { 'BLS12_381_G2_NORM',    16#88,  false, true, true,  ?GAS(100), [a,a],      bls12_381_g2_norm,         {tuple},   tuple, "Arg0 := BLS12_381.g2_normalize(Arg1) - Normalize a G2-value"}
+    , { 'BLS12_381_G2_VALID',   16#89,  false, true, true, ?GAS(2000), [a,a],     bls12_381_g2_valid,         {tuple},    bool, "Arg0 := BLS12_381.g2_valid(Arg1) - Check if G2-value is a valid group member"}
+    , { 'BLS12_381_G2_IS_ZERO', 16#8a,  false, true, true,   ?GAS(30), [a,a],   bls12_381_g2_is_zero,         {tuple},    bool, "Arg0 := BLS12_381.g2_is_zero(Arg1) - Check if G2-value is zero"}
+    , { 'BLS12_381_G2_ADD',     16#8b,  false, true, true,  ?GAS(100), [a,a,a],     bls12_381_g2_add,  {tuple, tuple},   tuple, "Arg0 := BLS12_381.g2_add(Arg1, Arg2) - Add two G2-values"}
+    , { 'BLS12_381_G2_MUL',     16#8c,  false, true, true, ?GAS(1000), [a,a,a],     bls12_381_g2_mul,  {tuple, tuple},   tuple, "Arg0 := BLS12_381.g2_mul(Arg1, Arg2) - Scalar multiplication for a G2-value (Arg2), and an Fr-value"}
 
-    , { 'BLS12_381_GT_INV',      16#8d,  false, true, true,   100, [a,a],        bls12_381_gt_inv,         {tuple}, tuple, "Arg0 := BLS12_381.gt_inv(Arg1) - Invert a GT-value"}
-    , { 'BLS12_381_GT_ADD',      16#8e,  false, true, true,   100, [a,a,a],      bls12_381_gt_add,  {tuple, tuple}, tuple, "Arg0 := BLS12_381.gt_add(Arg1, Arg2) - Add two GT-values"}
-    , { 'BLS12_381_GT_MUL',      16#8f,  false, true, true,   100, [a,a,a],      bls12_381_gt_mul,  {tuple, tuple}, tuple, "Arg0 := BLS12_381.gt_mul(Arg1, Arg2) - Multiply two GT-values"}
-    , { 'BLS12_381_GT_POW',      16#90,  false, true, true,  2000, [a,a,a],      bls12_381_gt_pow,  {tuple, tuple}, tuple, "Arg0 := BLS12_381.gt_pow(Arg1, Arg2) - Scalar exponentiation for a GT-value (Arg2), and an Fr-value"}
-    , { 'BLS12_381_GT_IS_ONE',   16#91,  false, true, true,    30, [a,a],     bls12_381_gt_is_one,         {tuple},  bool, "Arg0 := BLS12_381.gt_is_one(Arg1) - Check if a GT value is \"one\""}
-    , { 'BLS12_381_PAIRING',     16#92,  false, true, true, 12000, [a,a,a],     bls12_381_pairing,  {tuple, tuple}, tuple, "Arg0 := BLS12_381.pairing(Arg1, Arg2) - Find the pairing of a G1-value (Arg1) and a G2-value (Arg2)"}
-    , { 'BLS12_381_MILLER_LOOP', 16#93,  false, true, true,  5000, [a,a,a], bls12_381_miller_loop,  {tuple, tuple}, tuple, "Arg0 := BLS12_381.miller_loop(Arg1, Arg2) - Do the Miller-loop step of pairing for a G1-value (Arg1) and a G2-value (Arg2)"}
-    , { 'BLS12_381_FINAL_EXP',   16#94,  false, true, true,  7000, [a,a],     bls12_381_final_exp,         {tuple}, tuple, "Arg0 := BLS12_381.final_exp(Arg1) - Do the final exponentiation in pairing"}
+    , { 'BLS12_381_GT_INV',      16#8d,  false, true, true,   ?GAS(100), [a,a],        bls12_381_gt_inv,         {tuple}, tuple, "Arg0 := BLS12_381.gt_inv(Arg1) - Invert a GT-value"}
+    , { 'BLS12_381_GT_ADD',      16#8e,  false, true, true,   ?GAS(100), [a,a,a],      bls12_381_gt_add,  {tuple, tuple}, tuple, "Arg0 := BLS12_381.gt_add(Arg1, Arg2) - Add two GT-values"}
+    , { 'BLS12_381_GT_MUL',      16#8f,  false, true, true,   ?GAS(100), [a,a,a],      bls12_381_gt_mul,  {tuple, tuple}, tuple, "Arg0 := BLS12_381.gt_mul(Arg1, Arg2) - Multiply two GT-values"}
+    , { 'BLS12_381_GT_POW',      16#90,  false, true, true,  ?GAS(2000), [a,a,a],      bls12_381_gt_pow,  {tuple, tuple}, tuple, "Arg0 := BLS12_381.gt_pow(Arg1, Arg2) - Scalar exponentiation for a GT-value (Arg2), and an Fr-value"}
+    , { 'BLS12_381_GT_IS_ONE',   16#91,  false, true, true,    ?GAS(30), [a,a],     bls12_381_gt_is_one,         {tuple},  bool, "Arg0 := BLS12_381.gt_is_one(Arg1) - Check if a GT value is \"one\""}
+    , { 'BLS12_381_PAIRING',     16#92,  false, true, true, ?GAS(12000), [a,a,a],     bls12_381_pairing,  {tuple, tuple}, tuple, "Arg0 := BLS12_381.pairing(Arg1, Arg2) - Find the pairing of a G1-value (Arg1) and a G2-value (Arg2)"}
+    , { 'BLS12_381_MILLER_LOOP', 16#93,  false, true, true,  ?GAS(5000), [a,a,a], bls12_381_miller_loop,  {tuple, tuple}, tuple, "Arg0 := BLS12_381.miller_loop(Arg1, Arg2) - Do the Miller-loop step of pairing for a G1-value (Arg1) and a G2-value (Arg2)"}
+    , { 'BLS12_381_FINAL_EXP',   16#94,  false, true, true,  ?GAS(7000), [a,a],     bls12_381_final_exp,         {tuple}, tuple, "Arg0 := BLS12_381.final_exp(Arg1) - Do the final exponentiation in pairing"}
 
-    , { 'BLS12_381_INT_TO_FR', 16#95,  false, true, true,   30, [a,a], bls12_381_int_to_fr, {tuple}, tuple, "Arg0 := to_montgomery(Arg1) - Convert (Big)integer to montgomery representation (32 bytes)"}
-    , { 'BLS12_381_INT_TO_FP', 16#96,  false, true, true,   30, [a,a], bls12_381_int_to_fp, {tuple}, tuple, "Arg0 := to_montgomery(Arg1) - Convert (Big)integer to montgomery representation (48 bytes)"}
-    , { 'BLS12_381_FR_TO_INT', 16#97,  false, true, true,   30, [a,a], bls12_381_fr_to_int, {tuple}, tuple, "Arg0 := from_montgomery(Arg1) - Convert montgomery representation (32 bytes) to integer"}
-    , { 'BLS12_381_FP_TO_INT', 16#98,  false, true, true,   30, [a,a], bls12_381_fp_to_int, {tuple}, tuple, "Arg0 := from_montgomery(Arg1) - Convert montgomery representation (48 bytes) to integer"}
+    , { 'BLS12_381_INT_TO_FR', 16#95,  false, true, true,   ?GAS(30), [a,a], bls12_381_int_to_fr, {tuple}, tuple, "Arg0 := to_montgomery(Arg1) - Convert (Big)integer to montgomery representation (32 bytes)"}
+    , { 'BLS12_381_INT_TO_FP', 16#96,  false, true, true,   ?GAS(30), [a,a], bls12_381_int_to_fp, {tuple}, tuple, "Arg0 := to_montgomery(Arg1) - Convert (Big)integer to montgomery representation (48 bytes)"}
+    , { 'BLS12_381_FR_TO_INT', 16#97,  false, true, true,   ?GAS(30), [a,a], bls12_381_fr_to_int, {tuple}, tuple, "Arg0 := from_montgomery(Arg1) - Convert montgomery representation (32 bytes) to integer"}
+    , { 'BLS12_381_FP_TO_INT', 16#98,  false, true, true,   ?GAS(30), [a,a], bls12_381_fp_to_int, {tuple}, tuple, "Arg0 := from_montgomery(Arg1) - Convert montgomery representation (48 bytes) to integer"}
 
-    , { 'AENS_LOOKUP',         16#99,  false, false, true,  100, [a,a],        aens_lookup,  {string}, variant, "Lookup the name of Arg0. Returns option(AENS.name)"}
-    , { 'ORACLE_EXPIRY',       16#9a,  false, false, true,  100, [a,a],      oracle_expiry,  {oracle},     int, "Arg0 := expiry block for oracle Arg1"}
-    , { 'AUTH_TX',             16#9b,  false,  true, true,  100,   [a],            auth_tx,        {}, variant, "If in GA authentication context return Some(Tx) otherwise None."}
+    , { 'AENS_LOOKUP',         16#99,  false, false, true,  ?GAS(100), [a,a],        aens_lookup,  {string}, variant, "Lookup the name of Arg0. Returns option(AENS.name)"}
+    , { 'ORACLE_EXPIRY',       16#9a,  false, false, true,  ?GAS(100), [a,a],      oracle_expiry,  {oracle},     int, "Arg0 := expiry block for oracle Arg1"}
+    , { 'AUTH_TX',             16#9b,  false,  true, true,  ?GAS(100),   [a],            auth_tx,        {}, variant, "If in GA authentication context return Some(Tx) otherwise None."}
 
-    , { 'STR_TO_LIST',         16#9c,  false, true, true,   100, [a,a],   str_to_list, {string},    list, "Arg0 := string converted to list of characters"}
-    , { 'STR_FROM_LIST',       16#9d,  false, true, true,   100, [a,a], str_from_list,   {list},  string, "Arg0 := string converted from list of characters"}
-    , { 'STR_TO_UPPER',        16#9e,  false, true, true,   100, [a,a],  str_to_upper, {string},  string, "Arg0 := to_upper(string)"}
-    , { 'STR_TO_LOWER',        16#9f,  false, true, true,   100, [a,a],  str_to_lower, {string},  string, "Arg0 := to_lower(string)"}
-    , { 'CHAR_TO_INT',         16#a0,  false, true, true,    10, [a,a],   char_to_int,   {char},     int, "Arg0 := integer representation of UTF-8 character"}
-    , { 'CHAR_FROM_INT',       16#a1,  false, true, true,    10, [a,a], char_from_int,    {int}, variant, "Arg0 := Some(UTF-8 character) from integer if valid, None if not valid."}
+    , { 'STR_TO_LIST',         16#9c,  false, true, true,   ?GAS(100), [a,a],   str_to_list, {string},    list, "Arg0 := string converted to list of characters"}
+    , { 'STR_FROM_LIST',       16#9d,  false, true, true,   ?GAS(100), [a,a], str_from_list,   {list},  string, "Arg0 := string converted from list of characters"}
+    , { 'STR_TO_UPPER',        16#9e,  false, true, true,   ?GAS(100), [a,a],  str_to_upper, {string},  string, "Arg0 := to_upper(string)"}
+    , { 'STR_TO_LOWER',        16#9f,  false, true, true,   ?GAS(100), [a,a],  str_to_lower, {string},  string, "Arg0 := to_lower(string)"}
+    , { 'CHAR_TO_INT',         16#a0,  false, true, true,    ?GAS(10), [a,a],   char_to_int,   {char},     int, "Arg0 := integer representation of UTF-8 character"}
+    , { 'CHAR_FROM_INT',       16#a1,  false, true, true,    ?GAS(10), [a,a], char_from_int,    {int}, variant, "Arg0 := Some(UTF-8 character) from integer if valid, None if not valid."}
 
-    , { 'CALL_PGR',            16#a2,   true,   false,   true,  100, [a,is,a,a,a,a,a],  call_pgr, {contract, string, typerep, typerep, integer, integer, bool}, variant, "Potentially protected remote call. Arg5 is protected flag, otherwise as CALL_GR."}
+    , { 'CALL_PGR',            16#a2,   true,   false,   true,  ?GAS(100), [a,is,a,a,a,a,a],  call_pgr, {contract, string, typerep, typerep, integer, integer, bool}, variant, "Potentially protected remote call. Arg5 is protected flag, otherwise as CALL_GR."}
 
-    , { 'CREATE',              16#a3,   true,   false,   true, 10000,     [a,a,a],        create,          {contract_bytearray, typerep, integer}, contract, "Deploys a contract with a bytecode Arg1 and value Arg3. The `init` arguments should be placed on the stack and match the type in Arg2. Writes contract address to stack top."}
-    , { 'CLONE',               16#a4,   true,   false,   true,  1000,   [a,a,a,a],         clone,              {contract, typerep, integer, bool},      any, "Clones the contract under Arg1 and deploys it with value of Arg3. The `init` arguments should be placed on the stack and match the type in Arg2. Writes contract (or `None` on fail when protected) to stack top."}
-    , { 'CLONE_G',             16#a5,   true,   false,   true,  1000, [a,a,a,a,a],       clone_g,     {contract, typerep, integer, integer, bool},      any, "Like `CLONE` but additionally limits gas of `init` call to Arg3"}
-    , { 'BYTECODE_HASH',       16#a6,  false,    true,   true,   100,       [a,a], bytecode_hash,                                      {contract},  variant, "Arg0 := hash of the deserialized contract's bytecode under address given in Arg1 (or `None` on fail)."}
+    , { 'CREATE',              16#a3,   true,   false,   true, ?GAS(10000),     [a,a,a],        create,          {contract_bytearray, typerep, integer}, contract, "Deploys a contract with a bytecode Arg1 and value Arg3. The `init` arguments should be placed on the stack and match the type in Arg2. Writes contract address to stack top."}
+    , { 'CLONE',               16#a4,   true,   false,   true,  ?GAS(1000),   [a,a,a,a],         clone,              {contract, typerep, integer, bool},      any, "Clones the contract under Arg1 and deploys it with value of Arg3. The `init` arguments should be placed on the stack and match the type in Arg2. Writes contract (or `None` on fail when protected) to stack top."}
+    , { 'CLONE_G',             16#a5,   true,   false,   true,  ?GAS(1000), [a,a,a,a,a],       clone_g,     {contract, typerep, integer, integer, bool},      any, "Like `CLONE` but additionally limits gas of `init` call to Arg3"}
+    , { 'BYTECODE_HASH',       16#a6,  false,    true,   true,   ?GAS(100),       [a,a], bytecode_hash,                                      {contract},  variant, "Arg0 := hash of the deserialized contract's bytecode under address given in Arg1 (or `None` on fail)."}
 
-    , { 'FEE',                 16#a7,  false,    true,   true,   10, [a],                 fee,                                  {}, integer, "Arg0 := The fee for the current call tx."}
+    , { 'FEE',                 16#a7,  false,    true,   true,   ?GAS(10), [a],                 fee,                                  {}, integer, "Arg0 := The fee for the current call tx."}
 
-    , { 'DEACTIVATE',          16#fa,  false,    true,   true,   10, [],           deactivate,                                  {},    none, "Mark the current contract for deactivation."}
-    , { 'ABORT',               16#fb,   true,    true,   true,   10, [a],               abort,                            {string},    none, "Abort execution (dont use all gas) with error message in Arg0."}
-    , { 'EXIT',                16#fc,   true,    true,   true,   10, [a],                exit,                            {string},    none, "Abort execution (use upp all gas) with error message in Arg0."}
-    , { 'NOP',                 16#fd,  false,    true,   true,    1, [],                  nop,                                  {},    none, "The no op. does nothing."}
+    , { 'DEACTIVATE',          16#fa,  false,    true,   true,   ?GAS(10), [],           deactivate,                                  {},    none, "Mark the current contract for deactivation."}
+    , { 'ABORT',               16#fb,   true,    true,   true,   ?GAS(10), [a],               abort,                            {string},    none, "Abort execution (dont use all gas) with error message in Arg0."}
+    , { 'EXIT',                16#fc,   true,    true,   true,   ?GAS(10), [a],                exit,                            {string},    none, "Abort execution (use upp all gas) with error message in Arg0."}
+    , { 'NOP',                 16#fd,  false,    true,   true,    ?GAS(1), [],                  nop,                                  {},    none, "The no op. does nothing."}
     %% FUNCTION                16#fe                                         "Function declaration and entrypoint."
     %% EXTEND                  16#ff                                         "Reserved for future extensions beyond one byte opcodes."
     ].

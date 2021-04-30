@@ -229,7 +229,7 @@ ops_defs() ->
     , { 'CREATE',              16#a3,   true,   false,   true, ?GAS(10000),     [a,a,a],        create,          {contract_bytearray, typerep, integer}, contract, "Deploys a contract with a bytecode Arg1 and value Arg3. The `init` arguments should be placed on the stack and match the type in Arg2. Writes contract address to stack top."}
     , { 'CLONE',               16#a4,   true,   false,   true,  ?GAS(5000),   [a,a,a,a],         clone,              {contract, typerep, integer, bool},      any, "Clones the contract under Arg1 and deploys it with value of Arg3. The `init` arguments should be placed on the stack and match the type in Arg2. Writes contract (or `None` on fail when protected) to stack top."}
     , { 'CLONE_G',             16#a5,   true,   false,   true,  ?GAS(5000), [a,a,a,a,a],       clone_g,     {contract, typerep, integer, integer, bool},      any, "Like `CLONE` but additionally limits gas of `init` call to Arg3"}
-    , { 'BYTECODE_HASH',       16#a6,  false,    true,   true,  ?GAS(2000),       [a,a], bytecode_hash,                                      {contract},  variant, "Arg0 := hash of the deserialized contract's bytecode under address given in Arg1 (or `None` on fail)."}
+    , { 'BYTECODE_HASH',       16#a6,  false,    true,   true,   ?GAS(100),       [a,a], bytecode_hash,                                      {contract},  variant, "Arg0 := hash of the deserialized contract's bytecode under address given in Arg1 (or `None` on fail)."}
 
     , { 'FEE',                 16#a7,  false,    true,   true,   ?GAS(10), [a],                 fee,                                  {}, integer, "Arg0 := The fee for the current call tx."}
 

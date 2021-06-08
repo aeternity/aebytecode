@@ -5,6 +5,7 @@
 -export(
    [ gen_protocol_opcodes_flags_and_gas/1
    , gen_protocol_description_of_operations/1
+   , gen_protocol_opcodes/1
    ]).
 
 -define(LIMA_PROTOCOL_VSN, 4).
@@ -123,4 +124,9 @@ gen_protocol_description_of_operations(Filename) ->
 gen_protocol_opcodes_flags_and_gas(Filename) ->
     generate_documentation(
       Filename, [opcode, opname, end_bb, in_auth, offchain, gas]
+     ).
+
+gen_protocol_opcodes(Filename) ->
+    generate_documentation(
+      Filename, [opcode, opname]
      ).

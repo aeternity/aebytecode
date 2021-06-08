@@ -2,7 +2,6 @@
 
 -export([ gen_and_halt/1
         , generate/0
-        , generate_documentation/1
         , get_ops/0
         , test_asm_generator/1 ]).
 
@@ -46,7 +45,7 @@ check_numbering(_, []) -> true.
 -define(GAS_IRIS(A, B), [{?IRIS_PROTOCOL_VSN, B}, {?LIMA_PROTOCOL_VSN, A}]).
 
 ops_defs() ->
-    %%  Opname,               Opcode, end_bb, in_auth offchain, gas, format,      Constructor,                              ArgType, ResType, Documentation
+    %%  Opname,               Opcode, end_bb, in_auth,offchain,       gas,        format,          Constructor,                              ArgType, ResType, Documentation
     [ { 'RETURN',              16#00,   true,    true,   true,   ?GAS(10),            [],               return,                                   {},     any, "Return from function call, top of stack is return value . The type of the retun value has to match the return type of the function."}
     , { 'RETURNR',             16#01,   true,    true,   true,   ?GAS(10),            [a],             returnr,                                {any},     any, "Push Arg0 and return from function. The type of the retun value has to match the return type of the function."}
     , { 'CALL',                16#02,   true,    true,   true,   ?GAS(10),            [a],                call,                             {string},     any, "Call the function Arg0 with args on stack. The types of the arguments has to match the argument typs of the function."}
@@ -778,50 +777,3 @@ gen_variant() ->
         3 -> "(| 2 | 0 | ( " ++ imm_arg() ++ ", " ++ imm_arg() ++ " ) |)"
     end.
 
-
-%% TODO: add gas cost and end_bb/in_auth?
-generate_documentation(Filename) ->
-    {ok, File} = file:open(Filename, [write]),
-    Instructions = lists:flatten([gen_doc(Op)++"\n" || Op <- get_ops()]),
-    io:format(File,
-              "### Operations\n\n"
-              "| OpCode | Name | Args | Description |\n"
-              "| ---    | ---  | ---  |        ---  |\n"
-              "~s"
-             , [Instructions]),
-    io:format(File, "\n", []),
-    file:close(File).
-
-gen_doc(#{ opname            := Name
-         , opcode            := OpCode
-         , arity             := _Arity
-         , end_bb            := _EndBB
-         , format            := FateFormat
-         , macro             := _Macro
-         , type_name         := _TypeName
-         , doc               := Doc
-         , gas               := _Gas
-         , type              := _Type
-         , constructor       := _Constructor
-         , constructor_type  := _ConstructorType
-         }) ->
-    Arguments =
-        case FateFormat of
-            [] -> "";
-            _ ->  lists:join(" ",
-                             [format_arg_doc(A) ||
-                                 A <-
-                                     lists:zip(FateFormat,
-                                               lists:seq(0,length(FateFormat)-1))])
-        end,
-    io_lib:format("| 0x~.16b | ~w | ~s | ~s |\n",
-                  [ OpCode
-                  , Name
-                  , Arguments
-                  , Doc]).
-
-format_arg_doc({a, N}) -> io_lib:format("Arg~w", [N]);
-format_arg_doc({is,_N}) -> "Identifier";
-format_arg_doc({ii,_N}) -> "Integer";
-format_arg_doc({li,_N}) -> "[Integers]";
-format_arg_doc({t,_N}) -> "Type".

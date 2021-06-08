@@ -7,14 +7,13 @@
    , gen_protocol_description_of_operations/1
    ]).
 
+-define(LIMA_PROTOCOL_VSN, 4).
+-define(IRIS_PROTOCOL_VSN, 5).
+
 generate_documentation(Filename, Fields) ->
     generate_documentation(Filename, Fields, fun(_) -> true end).
 generate_documentation(Filename, Fields, Filter) when is_function(Filter, 1) ->
     {ok, File} = file:open(Filename, [write]),
-    Instructions =
-        lists:flatten(
-          [gen_doc_for_op(Op, [F || F <- Fields])
-           ++ "\n" || Op <- aeb_fate_generate_ops:get_ops(), Filter(Op)]),
     Header =
         lists:flatten(
           "|" ++ [" " ++ header_name(F) ++ " |" || F <- Fields] ++ "\n"
@@ -23,6 +22,10 @@ generate_documentation(Filename, Fields, Filter) when is_function(Filter, 1) ->
         lists:flatten(
           "|" ++ [" " ++ ["-" || _ <- header_name(F)] ++ " |" || F <- Fields] ++ "\n"
          ),
+    Instructions =
+        lists:flatten(
+          [gen_doc_for_op(Op, Fields)
+           ++ "\n" || Op <- aeb_fate_generate_ops:get_ops(), Filter(Op)]),
     io:format(File, "~s~s~s\n", [Header, Separator, Instructions]),
     file:close(File).
 
@@ -81,13 +84,27 @@ gen_doc_for_op(#{ opname            := OpName
                                                   lists:seq(0,length(FateFormat)-1))])
                     end;
                 doc -> Doc;
-                gas -> io_lib:format("~p", [Gas]);
+                          gas when is_integer(Gas) -> io_lib:format("~p", [Gas]);
+                gas when is_list(Gas) ->
+                    lists:flatten(
+                      string:join(
+                        [ io_lib:format(
+                            "~p (~s)",
+                            [GasVal, protocol_name(Prot)]
+                                     )
+                          || {Prot, GasVal} <- Gas
+                        ], ", "));
                 arg_types -> io_lib:format("~p", [ArgTypes]);
                 res_type -> io_lib:format("~p", [ResType])
             end
-           || Field <- Fields
+            || Field <- Fields
           ],
           " | ") ++ " |".
+
+protocol_name(?LIMA_PROTOCOL_VSN) ->
+    "lima";
+protocol_name(?IRIS_PROTOCOL_VSN) ->
+    "iris".
 
 format_arg_doc({a, N}) -> io_lib:format("Arg~w", [N]);
 format_arg_doc({is,_N}) -> "Identifier";

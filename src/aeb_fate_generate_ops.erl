@@ -232,6 +232,16 @@ ops_defs() ->
 
     , { 'FEE',                 16#a7,  false,    true,   true,   ?GAS(10), [a],                 fee,                                  {}, integer, "Arg0 := The fee for the current call tx."}
 
+    , { 'ADDRESS_TO_BYTES',    16#a8,  false,    true,   true,   ?GAS(10),       [a, a], addr_to_bytes,                   {address},   bytes, "Arg0 := the byte representation of the address"}
+    , { 'POSEIDON',            16#a9,  false,    true,   true, ?GAS(6000),    [a, a, a],      poseidon,          {integer, integer}, integer, "Arg0 := the Poseidon hash of Arg1 and Arg2 - all integers in the BLS12-381 scalar field"}
+    , { 'MULMOD',              16#aa,  false,    true,   true,   ?GAS(10), [a, a, a, a],        mulmod, {integer, integer, integer}, integer, "Arg0 := (Arg1 * Arg2) mod Arg3"}
+    , { 'BAND',                16#ab,  false,    true,   true,   ?GAS(10),    [a, a, a],       bin_and,          {integer, integer}, integer, "Arg0 := Arg1 & Arg2"}
+    , { 'BOR',                 16#ac,  false,    true,   true,   ?GAS(10),    [a, a, a],        bin_or,          {integer, integer}, integer, "Arg0 := Arg1 | Arg2"}
+    , { 'BXOR',                16#ad,  false,    true,   true,   ?GAS(10),    [a, a, a],       bin_xor,          {integer, integer}, integer, "Arg0 := Arg1 ^ Arg2"}
+    , { 'BNOT',                16#ae,  false,    true,   true,   ?GAS(10),       [a, a],       bin_not,                   {integer}, integer, "Arg0 := ~Arg1"}
+    , { 'BSL',                 16#af,  false,    true,   true,   ?GAS(10),    [a, a, a],        bin_sl,          {integer, integer}, integer, "Arg0 := Arg1 << Arg2"}
+    , { 'BSR',                 16#b0,  false,    true,   true,   ?GAS(10),    [a, a, a],        bin_sr,          {integer, integer}, integer, "Arg0 := Arg1 >> Arg2"}
+
     , { 'DEACTIVATE',          16#fa,  false,    true,   true,   ?GAS(10), [],           deactivate,                                  {},    none, "Mark the current contract for deactivation."}
     , { 'ABORT',               16#fb,   true,    true,   true,   ?GAS(10), [a],               abort,                            {string},    none, "Abort execution (dont use all gas) with error message in Arg0."}
     , { 'EXIT',                16#fc,   true,    true,   true,   ?GAS(10), [a],                exit,                            {string},    none, "Abort execution (use upp all gas) with error message in Arg0."}

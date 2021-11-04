@@ -2,7 +2,6 @@
 
 -export([ gen_and_halt/1
         , generate/0
-        , generate_documentation/1
         , get_ops/0
         , test_asm_generator/1 ]).
 
@@ -46,7 +45,7 @@ check_numbering(_, []) -> true.
 -define(GAS_IRIS(A, B), [{?IRIS_PROTOCOL_VSN, B}, {?LIMA_PROTOCOL_VSN, A}]).
 
 ops_defs() ->
-    %%  Opname,               Opcode, end_bb, in_auth offchain, gas, format,      Constructor,                              ArgType, ResType, Documentation
+    %%  Opname,               Opcode, end_bb, in_auth,offchain,       gas,        format,          Constructor,                              ArgType, ResType, Documentation
     [ { 'RETURN',              16#00,   true,    true,   true,   ?GAS(10),            [],               return,                                   {},     any, "Return from function call, top of stack is return value . The type of the retun value has to match the return type of the function."}
     , { 'RETURNR',             16#01,   true,    true,   true,   ?GAS(10),            [a],             returnr,                                {any},     any, "Push Arg0 and return from function. The type of the retun value has to match the return type of the function."}
     , { 'CALL',                16#02,   true,    true,   true,   ?GAS(10),            [a],                call,                             {string},     any, "Call the function Arg0 with args on stack. The types of the arguments has to match the argument typs of the function."}
@@ -226,10 +225,10 @@ ops_defs() ->
 
     , { 'CALL_PGR',            16#a2,   true,   false,   true, ?GAS(100), [a,is,a,a,a,a,a],  call_pgr, {contract, string, typerep, typerep, integer, integer, bool}, variant, "Potentially protected remote call. Arg5 is protected flag, otherwise as CALL_GR."}
 
-    , { 'CREATE',              16#a3,   true,   false,   true, ?GAS(10000),     [a,a,a],        create,          {contract_bytearray, typerep, integer}, contract, "Deploys a contract with a bytecode Arg1 and value Arg3. The `init` arguments should be placed on the stack and match the type in Arg2. Writes contract address to stack top."}
-    , { 'CLONE',               16#a4,   true,   false,   true,  ?GAS(5000),   [a,a,a,a],         clone,              {contract, typerep, integer, bool},      any, "Clones the contract under Arg1 and deploys it with value of Arg3. The `init` arguments should be placed on the stack and match the type in Arg2. Writes contract (or `None` on fail when protected) to stack top."}
-    , { 'CLONE_G',             16#a5,   true,   false,   true,  ?GAS(5000), [a,a,a,a,a],       clone_g,     {contract, typerep, integer, integer, bool},      any, "Like `CLONE` but additionally limits gas of `init` call to Arg3"}
-    , { 'BYTECODE_HASH',       16#a6,  false,    true,   true,   ?GAS(100),       [a,a], bytecode_hash,                                      {contract},  variant, "Arg0 := hash of the deserialized contract's bytecode under address given in Arg1 (or `None` on fail)."}
+    , { 'CREATE',              16#a3,   true,   false,   true, ?GAS(10000),     [a,a,a],        create,          {contract_bytearray, typerep, integer}, contract, "Deploys a contract with a bytecode Arg1 and value Arg3. The `init` arguments should be placed on the stack and match the type in Arg2. Writes contract address to the top of the accumulator stack. If an account on the resulting address did exist before the call, the `payable` flag will be updated."}
+    , { 'CLONE',               16#a4,   true,   false,   true,  ?GAS(5000),   [a,a,a,a],         clone,              {contract, typerep, integer, bool},      any, "Clones the contract under Arg1 and deploys it with value of Arg3. The `init` arguments should be placed on the stack and match the type in Arg2. Writes contract (or `None` on fail when protected) to the top of the accumulator stack. Does not copy the existing contract's store – it will be initialized by a fresh call to the `init` function. If an account on the resulting address did exist before the call, the `payable` flag will be updated."}
+    , { 'CLONE_G',             16#a5,   true,   false,   true,  ?GAS(5000), [a,a,a,a,a],       clone_g,     {contract, typerep, integer, integer, bool},      any, "Like `CLONE` but additionally limits the gas of the `init` call by Arg3"}
+    , { 'BYTECODE_HASH',       16#a6,  false,    true,   true,   ?GAS(100),       [a,a], bytecode_hash,                                      {contract},  variant, "Arg0 := hash of the deserialized contract's bytecode under address given in Arg1 (or `None` on fail). Fails on AEVM contracts and contracts deployed before Iris."}
 
     , { 'FEE',                 16#a7,  false,    true,   true,   ?GAS(10), [a],                 fee,                                  {}, integer, "Arg0 := The fee for the current call tx."}
 
@@ -778,50 +777,3 @@ gen_variant() ->
         3 -> "(| 2 | 0 | ( " ++ imm_arg() ++ ", " ++ imm_arg() ++ " ) |)"
     end.
 
-
-%% TODO: add gas cost and end_bb/in_auth?
-generate_documentation(Filename) ->
-    {ok, File} = file:open(Filename, [write]),
-    Instructions = lists:flatten([gen_doc(Op)++"\n" || Op <- get_ops()]),
-    io:format(File,
-              "### Operations\n\n"
-              "| OpCode | Name | Args | Description |\n"
-              "| ---    | ---  | ---  |        ---  |\n"
-              "~s"
-             , [Instructions]),
-    io:format(File, "\n", []),
-    file:close(File).
-
-gen_doc(#{ opname            := Name
-         , opcode            := OpCode
-         , arity             := _Arity
-         , end_bb            := _EndBB
-         , format            := FateFormat
-         , macro             := _Macro
-         , type_name         := _TypeName
-         , doc               := Doc
-         , gas               := _Gas
-         , type              := _Type
-         , constructor       := _Constructor
-         , constructor_type  := _ConstructorType
-         }) ->
-    Arguments =
-        case FateFormat of
-            [] -> "";
-            _ ->  lists:join(" ",
-                             [format_arg_doc(A) ||
-                                 A <-
-                                     lists:zip(FateFormat,
-                                               lists:seq(0,length(FateFormat)-1))])
-        end,
-    io_lib:format("| 0x~.16b | ~w | ~s | ~s |\n",
-                  [ OpCode
-                  , Name
-                  , Arguments
-                  , Doc]).
-
-format_arg_doc({a, N}) -> io_lib:format("Arg~w", [N]);
-format_arg_doc({is,_N}) -> "Identifier";
-format_arg_doc({ii,_N}) -> "Integer";
-format_arg_doc({li,_N}) -> "[Integers]";
-format_arg_doc({t,_N}) -> "Type".

@@ -356,7 +356,7 @@ parse_tuple(Tokens) ->
 
 
 parse_variant([{start_variant,_line}
-              , {'[', _line}
+              , {'[', _}
               | Rest]) ->
     {Arities, Rest2} = parse_list(Rest),
     %% Make sure Arities is a list of bytes.
@@ -364,7 +364,7 @@ parse_variant([{start_variant,_line}
                     is_integer(A), A < 256],
 
     [{'|',_}
-    , {int,_line, Tag}
+    , {int,_, Tag}
     , {'|',_}
     , {'(',_} | Rest3] = Rest2,
     {Elements , [{end_variant, _} | Rest4]} = parse_tuple(Rest3),

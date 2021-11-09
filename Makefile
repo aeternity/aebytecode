@@ -30,7 +30,7 @@ test: local
 	@$(REBAR) as local eunit
 
 ebin/%.beam: src/%.erl
-	erlc -o $(dir $@) $<
+	erlc +debug_info -o $(dir $@) $<
 
 $(GENERATED_SRC): $(GENERATOR_DEPS)
 	erl -pa ebin/ -noshell -s aeb_fate_generate_ops gen_and_halt src/ include/

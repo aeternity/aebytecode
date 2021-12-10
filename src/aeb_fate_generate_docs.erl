@@ -14,7 +14,7 @@
 generate_documentation(Filename, Fields) ->
     generate_documentation(Filename, Fields, fun(_) -> true end).
 generate_documentation(Filename, Fields, Filter) when is_function(Filter, 1) ->
-    {ok, File} = file:open(Filename, [write]),
+    {ok, File} = file:open(Filename, [write, {encoding, utf8}]),
     Header =
         lists:flatten(
           "|" ++ [" " ++ header_name(F) ++ " |" || F <- Fields] ++ "\n"
@@ -27,7 +27,7 @@ generate_documentation(Filename, Fields, Filter) when is_function(Filter, 1) ->
         lists:flatten(
           [gen_doc_for_op(Op, Fields)
            ++ "\n" || Op <- aeb_fate_generate_ops:get_ops(), Filter(Op)]),
-    io:format(File, "~s~s~s\n", [Header, Separator, Instructions]),
+    io:format(File, "~ts~ts~ts\n", [Header, Separator, Instructions]),
     file:close(File).
 
 header_name(opname) ->

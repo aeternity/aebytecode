@@ -27,11 +27,9 @@
 -include("../include/aeb_fate_opcodes.hrl").
 -include("../include/aeb_fate_data.hrl").
 
--ifdef(EQC).
 -export([ update_annotations/2
         , update_functions/2
         , update_symbols/2]).
--endif.
 
 -record(fcode, { functions   = #{} :: map()
                , symbols     = #{} :: map()

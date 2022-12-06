@@ -242,6 +242,8 @@ ops_defs() ->
     , { 'BSL',                 16#af,  false,    true,   true,   ?GAS(10),    [a, a, a],        bin_sl,          {integer, integer}, integer, "Arg0 := Arg1 << Arg2"}
     , { 'BSR',                 16#b0,  false,    true,   true,   ?GAS(10),    [a, a, a],        bin_sr,          {integer, integer}, integer, "Arg0 := Arg1 >> Arg2"}
 
+    , { 'DBGLOC',              16#b1,  false,    true,   true,    ?GAS(0),    [a, a, a],        dbgloc,  {string, integer, integer},    none, "Arg" }
+
     , { 'DEACTIVATE',          16#fa,  false,    true,   true,   ?GAS(10), [],           deactivate,                                  {},    none, "Mark the current contract for deactivation."}
     , { 'ABORT',               16#fb,   true,    true,   true,   ?GAS(10), [a],               abort,                            {string},    none, "Abort execution (dont use all gas) with error message in Arg0."}
     , { 'EXIT',                16#fc,   true,    true,   true,   ?GAS(10), [a],                exit,                            {string},    none, "Abort execution (use upp all gas) with error message in Arg0."}

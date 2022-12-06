@@ -143,6 +143,8 @@
 -define(         'RETURN', 16#f3).
 -define(   'DELEGATECALL', 16#f4).
 
+-define(         'DBGLOC', 16#b1).
+
 -define(     'STATICCALL', 16#fa).
 
 -define(         'REVERT', 16#fd).

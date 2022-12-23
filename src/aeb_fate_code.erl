@@ -220,6 +220,7 @@ safe_sanity_check(IsLast, Op, Args) ->
        true ->
            case IsLast == aeb_fate_opcodes:end_bb(Op) of
                true  -> ok;
+               false when Op == 6 -> ok;
                false -> error({wrong_opcode_in_bb, Op})
            end;
        false -> error({wrong_nr_args_opcode, Op})

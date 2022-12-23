@@ -244,7 +244,7 @@ ops_defs() ->
 
     , { 'DBGLOC',              16#b1,  false,    true,   true,    ?GAS(0),    [a, a, a],        dbgloc,  {string, integer, integer},    none, "Arg" }
     , { 'DBGDEF',              16#b2,  false,    true,   true,    ?GAS(0),       [a, a],        dbgdef,               {string, any},    none, "Arg" }
-    , { 'DBGUNDEF',            16#b3,   true,    true,   true,    ?GAS(0),       [a, a],      dbgundef,               {string, any},    none, "Arg" }
+    , { 'DBGUNDEF',            16#b3,  false,    true,   true,    ?GAS(0),       [a, a],      dbgundef,               {string, any},    none, "Arg" }
 
     , { 'DEACTIVATE',          16#fa,  false,    true,   true,   ?GAS(10), [],           deactivate,                                  {},    none, "Mark the current contract for deactivation."}
     , { 'ABORT',               16#fb,   true,    true,   true,   ?GAS(10), [a],               abort,                            {string},    none, "Abort execution (dont use all gas) with error message in Arg0."}

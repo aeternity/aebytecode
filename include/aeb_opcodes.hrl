@@ -144,8 +144,8 @@
 -define(   'DELEGATECALL', 16#f4).
 
 -define(         'DBGLOC', 16#b1).
--define(         'DBGDEF', 16#b2).
--define(       'DBGUNDEF', 16#b3).
+-define(        'DBG_DEF', 16#b2).
+-define(      'DBG_UNDEF', 16#b3).
 
 -define(     'STATICCALL', 16#fa).
 

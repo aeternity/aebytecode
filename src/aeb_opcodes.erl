@@ -163,6 +163,8 @@ opcode(?STATICCALL)     -> ?STATICCALL; %% TODO
 opcode(?REVERT)         -> ?REVERT;
 opcode({comment,X})     -> ?COMMENT(X);
 opcode(?DBGLOC)         -> ?DBGLOC;
+opcode(?DBGDEF)         -> ?DBGDEF;
+opcode(?DBGUNDEF)       -> ?DBGUNDEF;
 opcode(?SUICIDE)        -> ?SUICIDE.
 
 
@@ -305,6 +307,8 @@ mnemonic(?STATICCALL)     -> 'STATICCALL'     ;
 mnemonic(?REVERT)         -> 'REVERT'         ;
 mnemonic({comment,_})     -> 'COMMENT'        ;
 mnemonic(?DBGLOC)         -> 'DBGLOC'         ;
+mnemonic(?DBGDEF)         -> 'DBGDEF'         ;
+mnemonic(?DBGUNDEF)       -> 'DBGUNDEF'       ;
 mnemonic(?SUICIDE)        -> 'SUICIDE'        .
 
 
@@ -449,6 +453,8 @@ m_to_op('REVERT')         -> ?REVERT         ;
 m_to_op('COMMENT')        -> ?COMMENT("")    ;
 m_to_op('SUICIDE')        -> ?SUICIDE        ;
 m_to_op('DBGLOC')         -> ?DBGLOC         ;
+m_to_op('DBGDEF')         -> ?DBGDEF         ;
+m_to_op('DBGUNDEF')       -> ?DBGUNDEF       ;
 m_to_op(Data) when 0=<Data, Data=<255
                           -> Data            .
 

@@ -242,7 +242,7 @@ ops_defs() ->
     , { 'BSL',                 16#af,  false,    true,   true,   ?GAS(10),    [a, a, a],        bin_sl,          {integer, integer}, integer, "Arg0 := Arg1 << Arg2"}
     , { 'BSR',                 16#b0,  false,    true,   true,   ?GAS(10),    [a, a, a],        bin_sr,          {integer, integer}, integer, "Arg0 := Arg1 >> Arg2"}
 
-    , { 'DBG_LOC',             16#b1,  false,    true,   true,    ?GAS(0),    [a, a, a],       dbg_loc,  {string, integer, integer},    none, "Arg" }
+    , { 'DBG_LOC',             16#b1,  false,    true,   true,    ?GAS(0),       [a, a],       dbg_loc,           {string, integer},    none, "Arg" }
     , { 'DBG_DEF',             16#b2,  false,    true,   true,    ?GAS(0),       [a, a],       dbg_def,               {string, any},    none, "Arg" }
     , { 'DBG_UNDEF',           16#b3,  false,    true,   true,    ?GAS(0),       [a, a],     dbg_undef,               {string, any},    none, "Arg" }
 

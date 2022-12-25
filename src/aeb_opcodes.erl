@@ -162,7 +162,7 @@ opcode(?DELEGATECALL)   -> ?DELEGATECALL;
 opcode(?STATICCALL)     -> ?STATICCALL; %% TODO
 opcode(?REVERT)         -> ?REVERT;
 opcode({comment,X})     -> ?COMMENT(X);
-opcode(?DBGLOC)         -> ?DBGLOC;
+opcode(?DBG_LOC)        -> ?DBG_LOC;
 opcode(?DBG_DEF)        -> ?DBG_DEF;
 opcode(?DBG_UNDEF)      -> ?DBG_UNDEF;
 opcode(?SUICIDE)        -> ?SUICIDE.
@@ -306,9 +306,9 @@ mnemonic(?DELEGATECALL)   -> 'DELEGATECALL'   ;
 mnemonic(?STATICCALL)     -> 'STATICCALL'     ;
 mnemonic(?REVERT)         -> 'REVERT'         ;
 mnemonic({comment,_})     -> 'COMMENT'        ;
-mnemonic(?DBGLOC)         -> 'DBGLOC'         ;
-mnemonic(?DBG_DEF)        -> 'DBG_DEF'         ;
-mnemonic(?DBG_UNDEF)      -> 'DBG_UNDEF'       ;
+mnemonic(?DBG_LOC)        -> 'DBG_LOC'        ;
+mnemonic(?DBG_DEF)        -> 'DBG_DEF'        ;
+mnemonic(?DBG_UNDEF)      -> 'DBG_UNDEF'      ;
 mnemonic(?SUICIDE)        -> 'SUICIDE'        .
 
 
@@ -452,9 +452,9 @@ m_to_op('STATICCALL')     -> ?STATICCALL     ;
 m_to_op('REVERT')         -> ?REVERT         ;
 m_to_op('COMMENT')        -> ?COMMENT("")    ;
 m_to_op('SUICIDE')        -> ?SUICIDE        ;
-m_to_op('DBGLOC')         -> ?DBGLOC         ;
-m_to_op('DBG_DEF')        -> ?DBG_DEF         ;
-m_to_op('DBG_UNDEF')      -> ?DBG_UNDEF       ;
+m_to_op('DBG_LOC')        -> ?DBG_LOC        ;
+m_to_op('DBG_DEF')        -> ?DBG_DEF        ;
+m_to_op('DBG_UNDEF')      -> ?DBG_UNDEF      ;
 m_to_op(Data) when 0=<Data, Data=<255
                           -> Data            .
 

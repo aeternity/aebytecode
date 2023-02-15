@@ -242,11 +242,11 @@ ops_defs() ->
     , { 'BSL',                 16#af,  false,    true,   true,   ?GAS(10),    [a, a, a],        bin_sl,          {integer, integer}, integer, "Arg0 := Arg1 << Arg2"}
     , { 'BSR',                 16#b0,  false,    true,   true,   ?GAS(10),    [a, a, a],        bin_sr,          {integer, integer}, integer, "Arg0 := Arg1 >> Arg2"}
 
-    , { 'DBG_LOC',             16#b1,  false,    true,   true,    ?GAS(0),       [a, a],       dbg_loc,           {string, integer},    none, "Arg" }
-    , { 'DBG_DEF',             16#b2,  false,    true,   true,    ?GAS(0),       [a, a],       dbg_def,               {string, any},    none, "Arg" }
-    , { 'DBG_UNDEF',           16#b3,  false,    true,   true,    ?GAS(0),       [a, a],     dbg_undef,               {string, any},    none, "Arg" }
-    , { 'DBG_CALL',            16#b4,  false,    true,   true,    ?GAS(0),    [a, a, a],      dbg_call,  {address, string, boolean},    none, "Arg" }
-    , { 'DBG_RETURN',          16#b5,  false,    true,   true,    ?GAS(0),           [],    dbg_return,                          {},    none, "Arg" }
+    , { 'DBG_LOC',             16#b1,  false,    true,   true,    ?GAS(0),       [a, a],       dbg_loc,           {string, integer},    none, "Debug Op: Execution location. Args = {file_name, line_num}" }
+    , { 'DBG_DEF',             16#b2,  false,    true,   true,    ?GAS(0),       [a, a],       dbg_def,               {string, any},    none, "Debug Op: Define a variable. Args = {var_name, register}" }
+    , { 'DBG_UNDEF',           16#b3,  false,    true,   true,    ?GAS(0),       [a, a],     dbg_undef,               {string, any},    none, "Debug Op: Undefine a variable. Args = {var_name, register}" }
+    , { 'DBG_CALL',            16#b4,  false,    true,   true,    ?GAS(0),    [a, a, a],      dbg_call,  {address, string, boolean},    none, "Debug Op: Push to call stack. Args = {contract_pk, fun_name, is_tail_call}" }
+    , { 'DBG_RETURN',          16#b5,  false,    true,   true,    ?GAS(0),           [],    dbg_return,                          {},    none, "Debug Op: Pop from call stack" }
 
     , { 'DEACTIVATE',          16#fa,  false,    true,   true,   ?GAS(10), [],           deactivate,                                  {},    none, "Mark the current contract for deactivation."}
     , { 'ABORT',               16#fb,   true,    true,   true,   ?GAS(10), [a],               abort,                            {string},    none, "Abort execution (dont use all gas) with error message in Arg0."}

@@ -1,0 +1,19 @@
+{a_email,[]}.
+{author,"Aeternity Authors"}.
+{c_email,[]}.
+{copyright,"Aeternity Authors"}.
+{deps,[{"otpr","aeserialization",{0,1,0}},
+       {"otpr","eblake2",{1,0,0}},
+       {"otpr","getopt",{1,0,2}}]}.
+{desc,"A library and stand alone assembler for aeternity bytecode. This version supports AEVM bytecode and FATE bytecode."}.
+{file_exts,[]}.
+{key_name,none}.
+{license,skip}.
+{modules,[]}.
+{name,"AE Bytecode"}.
+{package_id,{"otpr","aebytecode",{3,2,0}}}.
+{prefix,none}.
+{repo_url,"https://github.com/aeternity/aebytecode"}.
+{tags,["aeternity","blockchain","fate","bytecode","crypto","ae"]}.
+{type,lib}.
+{ws_url,[]}.

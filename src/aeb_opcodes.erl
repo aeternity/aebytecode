@@ -166,6 +166,7 @@ opcode(?DBG_LOC)        -> ?DBG_LOC;
 opcode(?DBG_DEF)        -> ?DBG_DEF;
 opcode(?DBG_UNDEF)      -> ?DBG_UNDEF;
 opcode(?DBG_CALL)       -> ?DBG_CALL;
+opcode(?DBG_CALL_R)     -> ?DBG_CALL_R;
 opcode(?DBG_RETURN)     -> ?DBG_RETURN;
 opcode(?SUICIDE)        -> ?SUICIDE.
 
@@ -312,6 +313,7 @@ mnemonic(?DBG_LOC)        -> 'DBG_LOC'        ;
 mnemonic(?DBG_DEF)        -> 'DBG_DEF'        ;
 mnemonic(?DBG_UNDEF)      -> 'DBG_UNDEF'      ;
 mnemonic(?DBG_CALL)       -> 'DBG_CALL'       ;
+mnemonic(?DBG_CALL_R)     -> 'DBG_CALL_R'       ;
 mnemonic(?DBG_RETURN)     -> 'DBG_RETURN'     ;
 mnemonic(?SUICIDE)        -> 'SUICIDE'        .
 
@@ -460,6 +462,7 @@ m_to_op('DBG_LOC')        -> ?DBG_LOC        ;
 m_to_op('DBG_DEF')        -> ?DBG_DEF        ;
 m_to_op('DBG_UNDEF')      -> ?DBG_UNDEF      ;
 m_to_op('DBG_CALL')       -> ?DBG_CALL       ;
+m_to_op('DBG_CALL_R')     -> ?DBG_CALL_R     ;
 m_to_op('DBG_RETURN')     -> ?DBG_RETURN     ;
 m_to_op(Data) when 0=<Data, Data=<255
                           -> Data            .

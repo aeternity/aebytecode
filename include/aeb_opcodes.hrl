@@ -146,6 +146,7 @@
 -define(        'DBG_LOC', 16#b1).
 -define(        'DBG_DEF', 16#b2).
 -define(      'DBG_UNDEF', 16#b3).
+-define(   'DBG_CONTRACT', 16#b4).
 
 -define(     'STATICCALL', 16#fa).
 

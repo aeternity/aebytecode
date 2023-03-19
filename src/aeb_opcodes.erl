@@ -165,6 +165,7 @@ opcode({comment,X})     -> ?COMMENT(X);
 opcode(?DBG_LOC)        -> ?DBG_LOC;
 opcode(?DBG_DEF)        -> ?DBG_DEF;
 opcode(?DBG_UNDEF)      -> ?DBG_UNDEF;
+opcode(?DBG_CONTRACT)   -> ?DBG_CONTRACT;
 opcode(?SUICIDE)        -> ?SUICIDE.
 
 
@@ -309,6 +310,7 @@ mnemonic({comment,_})     -> 'COMMENT'        ;
 mnemonic(?DBG_LOC)        -> 'DBG_LOC'        ;
 mnemonic(?DBG_DEF)        -> 'DBG_DEF'        ;
 mnemonic(?DBG_UNDEF)      -> 'DBG_UNDEF'      ;
+mnemonic(?DBG_CONTRACT)   -> 'DBG_CONTRACT'   ;
 mnemonic(?SUICIDE)        -> 'SUICIDE'        .
 
 
@@ -455,6 +457,7 @@ m_to_op('SUICIDE')        -> ?SUICIDE        ;
 m_to_op('DBG_LOC')        -> ?DBG_LOC        ;
 m_to_op('DBG_DEF')        -> ?DBG_DEF        ;
 m_to_op('DBG_UNDEF')      -> ?DBG_UNDEF      ;
+m_to_op('DBG_CONTRACT')   -> ?DBG_CONTRACT   ;
 m_to_op(Data) when 0=<Data, Data=<255
                           -> Data            .
 

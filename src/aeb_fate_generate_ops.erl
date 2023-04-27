@@ -247,6 +247,12 @@ ops_defs() ->
     , { 'DBG_UNDEF',           16#b3,  false,    true,   true,    ?GAS(0),       [a, a],     dbg_undef,               {string, any},    none, "Debug Op: Undefine a variable. Args = {var_name, register}" }
     , { 'DBG_CONTRACT',        16#b4,  false,    true,   true,    ?GAS(0),          [a],  dbg_contract,                    {string},    none, "Debug Op: Name the current contract. Args: {contract_name}"}
 
+    , { 'BYTES_SPLIT_ANY',     16#b5,  false,    true,   true,   ?GAS(10), [a, a, a],     bytes_split_any,   {bytes, integer}, variant, "Arg0 := bytes_split_any(Arg1, Arg2), where a positive Arg2 is the length of the first chunk, and a negative Arg2 is the length of the second chunk. Returns None if byte array is not long enough."}
+    , { 'BYTES_SIZE',          16#b6,  false,    true,   true,   ?GAS(10),    [a, a],          bytes_size,            {bytes}, integer, "Arg0 := bytes_size(Arg1), returns the number of bytes in the byte array."}
+    , { 'BYTES_TO_FIXED_SIZE', 16#b7,  false,    true,   true,   ?GAS(10), [a, a, a], bytes_to_fixed_size,   {bytes, integer}, variant, "Arg0 := bytes_to_fixed_size(Arg1, Arg2), returns Some(Arg1) if byte_size(Arg1) == Arg2, None otherwise."}
+    , { 'INT_TO_BYTES',        16#b8,  false,    true,   true,   ?GAS(10), [a, a, a],        int_to_bytes, {integer, integer},   bytes, "Arg0 := turn integer Arg1 into a byte array (big endian) length Arg2 (truncating if not fit)."}
+    , { 'STR_TO_BYTES',        16#b9,  false,    true,   true,   ?GAS(10),    [a, a],        str_to_bytes,          {integer},   bytes, "Arg0 := turn string Arg1 into the corresponding byte array."}
+
     , { 'DEACTIVATE',          16#fa,  false,    true,   true,   ?GAS(10), [],           deactivate,                                  {},    none, "Mark the current contract for deactivation."}
     , { 'ABORT',               16#fb,   true,    true,   true,   ?GAS(10), [a],               abort,                            {string},    none, "Abort execution (dont use all gas) with error message in Arg0."}
     , { 'EXIT',                16#fc,   true,    true,   true,   ?GAS(10), [a],                exit,                            {string},    none, "Abort execution (use upp all gas) with error message in Arg0."}

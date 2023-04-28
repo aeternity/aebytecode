@@ -14,5 +14,7 @@ do
     sed -i 's/\.\.\/include\///g' "$f"
     sed -i 's/include_lib/include/g' "$f"
 done
+cd ..
 rm -f ebin/*.beam
-cp aebytecode.app ebin/
+rm -f rebar*
+rm -rf quickcheck

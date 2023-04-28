@@ -94,8 +94,8 @@
         , to_asm/1
         ]).
 
--include_lib("aebytecode/include/aeb_fate_opcodes.hrl").
--include_lib("aebytecode/include/aeb_fate_data.hrl").
+-include("aeb_fate_opcodes.hrl").
+-include("aeb_fate_data.hrl").
 -define(HASH_BYTES, 32).
 
 assemble_file(InFile, OutFile, Options) ->

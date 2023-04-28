@@ -16,7 +16,7 @@
         , get_function_type_from_function_hash/2
         , abi_version/0 ]).
 
--include("../include/aeb_fate_data.hrl").
+-include("aeb_fate_data.hrl").
 
 %%%===================================================================
 %%% API

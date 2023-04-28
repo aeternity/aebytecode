@@ -24,8 +24,8 @@
         , symbols/1
         ]).
 
--include("../include/aeb_fate_opcodes.hrl").
--include("../include/aeb_fate_data.hrl").
+-include("aeb_fate_opcodes.hrl").
+-include("aeb_fate_data.hrl").
 
 -export([ update_annotations/2
         , update_functions/2

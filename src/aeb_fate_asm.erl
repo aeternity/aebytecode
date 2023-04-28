@@ -84,6 +84,7 @@
 %%%-------------------------------------------------------------------
 
 -module(aeb_fate_asm).
+-vsn("3.2.1").
 
 -export([ assemble_file/3
         , asm_to_bytecode/2

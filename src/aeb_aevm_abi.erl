@@ -8,6 +8,7 @@
 %%%
 %%%-------------------------------------------------------------------
 -module(aeb_aevm_abi).
+-vsn("3.2.1").
 -define(HASH_SIZE, 32).
 
 -export([ create_calldata/4

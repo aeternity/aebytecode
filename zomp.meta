@@ -11,7 +11,7 @@
 {license,skip}.
 {modules,[]}.
 {name,"AE Bytecode"}.
-{package_id,{"otpr","aebytecode",{3,2,0}}}.
+{package_id,{"otpr","aebytecode",{3,2,1}}}.
 {prefix,none}.
 {repo_url,"https://github.com/aeternity/aebytecode"}.
 {tags,["aeternity","blockchain","fate","bytecode","crypto","ae"]}.

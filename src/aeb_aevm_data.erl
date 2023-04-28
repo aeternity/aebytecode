@@ -1,4 +1,5 @@
 -module(aeb_aevm_data).
+-vsn("3.2.1").
 
 -export_type([data/0,
               type/0,

@@ -1,4 +1,5 @@
 -module(aeb_fate_generate_ops).
+-vsn("3.2.1").
 
 -export([ gen_and_halt/1
         , generate/0

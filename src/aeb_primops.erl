@@ -8,6 +8,7 @@
 %%%-------------------------------------------------------------------
 
 -module(aeb_primops).
+-vsn("3.2.1").
 -export([ is_local_primop_op/1
         , op_needs_type_check/1
         ]).

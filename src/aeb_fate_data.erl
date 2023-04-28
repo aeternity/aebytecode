@@ -3,6 +3,7 @@
 -include("aeb_fate_data.hrl").
 
 -module(aeb_fate_data).
+-vsn("3.2.1").
 
 -type fate_integer()   :: ?FATE_INTEGER_T.
 -type fate_boolean()   :: ?FATE_BOOLEAN_T.

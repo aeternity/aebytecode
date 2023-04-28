@@ -1,4 +1,5 @@
 -module(aeb_fate_generate_docs).
+-vsn("3.2.1").
 
 -export([generate_documentation/2, generate_documentation/3]).
 

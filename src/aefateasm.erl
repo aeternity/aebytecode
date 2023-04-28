@@ -1,4 +1,5 @@
 -module(aefateasm).
+-vsn("3.2.1").
 
 -export([main/1]).
 

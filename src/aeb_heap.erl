@@ -1,4 +1,5 @@
 -module(aeb_heap).
+-vsn("3.2.1").
 
 -export([ to_binary/1
         , to_binary/2

@@ -8,6 +8,7 @@
 %%%
 %%%-------------------------------------------------------------------
 -module(aeb_fate_abi).
+-vsn("3.2.1").
 
 -export([ create_calldata/2
         , decode_calldata/2

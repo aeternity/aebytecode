@@ -40,6 +40,7 @@
 %%
 %% ------------------------------------------------------------------------
 -module(aeb_fate_encoding).
+-vsn("3.2.1").
 
 -export([ deserialize/1
         , deserialize_one/1

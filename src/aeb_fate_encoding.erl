@@ -238,6 +238,8 @@ serialize_type({tuple, Ts}) ->
         N when N =< 255 ->
             [?TYPE_TUPLE, N | [serialize_type(T) || T <- Ts]]
     end;
+serialize_type({bytes, any}) ->
+    [?TYPE_BYTES | binary_to_list(serialize_integer(-1))];
 serialize_type({bytes, N}) when 0 =< N ->
     [?TYPE_BYTES | binary_to_list(serialize_integer(N))];
 serialize_type(address)     -> [?TYPE_OBJECT, ?OTYPE_ADDRESS];
@@ -270,8 +272,12 @@ deserialize_type(<<?TYPE_TUPLE, N, Rest/binary>>) ->
     {{tuple, Ts}, Rest2};
 deserialize_type(<<?TYPE_BYTES, Rest/binary>>) ->
     {N, Rest2} = deserialize_one(Rest),
-    true       = is_integer(N) andalso N >= 0,
-    {{bytes, N}, Rest2};
+    true       = is_integer(N),
+    if N == -1 ->
+        {{bytes, any}, Rest2};
+       0 =< N ->
+        {{bytes, N}, Rest2}
+    end;
 deserialize_type(<<?TYPE_OBJECT, ObjectType, Rest/binary>>) ->
     case ObjectType of
         ?OTYPE_ADDRESS   -> {address, Rest};

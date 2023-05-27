@@ -232,20 +232,25 @@ ops_defs() ->
 
     , { 'FEE',                 16#a7,  false,    true,   true,   ?GAS(10), [a],                 fee,                                  {}, integer, "Arg0 := The fee for the current call tx."}
 
-    , { 'ADDRESS_TO_BYTES',    16#a8,  false,    true,   true,   ?GAS(10),       [a, a], addr_to_bytes,                   {address},   bytes, "Arg0 := the byte representation of the address"}
-    , { 'POSEIDON',            16#a9,  false,    true,   true, ?GAS(6000),    [a, a, a],      poseidon,          {integer, integer}, integer, "Arg0 := the Poseidon hash of Arg1 and Arg2 - all integers in the BLS12-381 scalar field"}
-    , { 'MULMOD',              16#aa,  false,    true,   true,   ?GAS(10), [a, a, a, a],        mulmod, {integer, integer, integer}, integer, "Arg0 := (Arg1 * Arg2) mod Arg3"}
-    , { 'BAND',                16#ab,  false,    true,   true,   ?GAS(10),    [a, a, a],       bin_and,          {integer, integer}, integer, "Arg0 := Arg1 & Arg2"}
-    , { 'BOR',                 16#ac,  false,    true,   true,   ?GAS(10),    [a, a, a],        bin_or,          {integer, integer}, integer, "Arg0 := Arg1 | Arg2"}
-    , { 'BXOR',                16#ad,  false,    true,   true,   ?GAS(10),    [a, a, a],       bin_xor,          {integer, integer}, integer, "Arg0 := Arg1 ^ Arg2"}
-    , { 'BNOT',                16#ae,  false,    true,   true,   ?GAS(10),       [a, a],       bin_not,                   {integer}, integer, "Arg0 := ~Arg1"}
-    , { 'BSL',                 16#af,  false,    true,   true,   ?GAS(10),    [a, a, a],        bin_sl,          {integer, integer}, integer, "Arg0 := Arg1 << Arg2"}
-    , { 'BSR',                 16#b0,  false,    true,   true,   ?GAS(10),    [a, a, a],        bin_sr,          {integer, integer}, integer, "Arg0 := Arg1 >> Arg2"}
+    , { 'ADDRESS_TO_BYTES',    16#a8,  false,    true,   true,   ?GAS(10),       [a, a],       addr_to_bytes,                   {address},   bytes, "Arg0 := the byte representation of the address"}
+    , { 'POSEIDON',            16#a9,  false,    true,   true, ?GAS(6000),    [a, a, a],            poseidon,          {integer, integer}, integer, "Arg0 := the Poseidon hash of Arg1 and Arg2 - all integers in the BLS12-381 scalar field"}
+    , { 'MULMOD',              16#aa,  false,    true,   true,   ?GAS(10), [a, a, a, a],              mulmod, {integer, integer, integer}, integer, "Arg0 := (Arg1 * Arg2) mod Arg3"}
+    , { 'BAND',                16#ab,  false,    true,   true,   ?GAS(10),    [a, a, a],             bin_and,          {integer, integer}, integer, "Arg0 := Arg1 & Arg2"}
+    , { 'BOR',                 16#ac,  false,    true,   true,   ?GAS(10),    [a, a, a],              bin_or,          {integer, integer}, integer, "Arg0 := Arg1 | Arg2"}
+    , { 'BXOR',                16#ad,  false,    true,   true,   ?GAS(10),    [a, a, a],             bin_xor,          {integer, integer}, integer, "Arg0 := Arg1 ^ Arg2"}
+    , { 'BNOT',                16#ae,  false,    true,   true,   ?GAS(10),       [a, a],             bin_not,                   {integer}, integer, "Arg0 := ~Arg1"}
+    , { 'BSL',                 16#af,  false,    true,   true,   ?GAS(10),    [a, a, a],              bin_sl,          {integer, integer}, integer, "Arg0 := Arg1 << Arg2"}
+    , { 'BSR',                 16#b0,  false,    true,   true,   ?GAS(10),    [a, a, a],              bin_sr,          {integer, integer}, integer, "Arg0 := Arg1 >> Arg2"}
+    , { 'BYTES_SPLIT_ANY',     16#b1,  false,    true,   true,   ?GAS(10),    [a, a, a],     bytes_split_any,            {bytes, integer}, variant, "Arg0 := bytes_split_any(Arg1, Arg2), where a positive Arg2 is the length of the first chunk, and a negative Arg2 is the length of the second chunk. Returns None if byte array is not long enough."}
+    , { 'BYTES_SIZE',          16#b2,  false,    true,   true,   ?GAS(10),       [a, a],          bytes_size,                     {bytes}, integer, "Arg0 := bytes_size(Arg1), returns the number of bytes in the byte array."}
+    , { 'BYTES_TO_FIXED_SIZE', 16#b3,  false,    true,   true,   ?GAS(10),    [a, a, a], bytes_to_fixed_size,            {bytes, integer}, variant, "Arg0 := bytes_to_fixed_size(Arg1, Arg2), returns Some(Arg1') if byte_size(Arg1) == Arg2, None otherwise. The type of Arg1' is bytes(Arg2) but the value is unchanged"}
+    , { 'INT_TO_BYTES',        16#b4,  false,    true,   true,   ?GAS(10),    [a, a, a],        int_to_bytes,          {integer, integer},   bytes, "Arg0 := turn integer Arg1 into a byte array (big endian) length Arg2 (truncating if not fit)."}
+    , { 'STR_TO_BYTES',        16#b5,  false,    true,   true,   ?GAS(10),       [a, a],        str_to_bytes,                   {integer},   bytes, "Arg0 := turn string Arg1 into the corresponding byte array."}
 
-    , { 'DBG_LOC',             16#b1,  false,    true,   true,    ?GAS(0),       [a, a],       dbg_loc,           {string, integer},    none, "Debug Op: Execution location. Args = {file_name, line_num}" }
-    , { 'DBG_DEF',             16#b2,  false,    true,   true,    ?GAS(0),       [a, a],       dbg_def,               {string, any},    none, "Debug Op: Define a variable. Args = {var_name, register}" }
-    , { 'DBG_UNDEF',           16#b3,  false,    true,   true,    ?GAS(0),       [a, a],     dbg_undef,               {string, any},    none, "Debug Op: Undefine a variable. Args = {var_name, register}" }
-    , { 'DBG_CONTRACT',        16#b4,  false,    true,   true,    ?GAS(0),          [a],  dbg_contract,                    {string},    none, "Debug Op: Name the current contract. Args: {contract_name}"}
+    , { 'DBG_LOC',             16#b6,  false,    true,   true,    ?GAS(0),       [a, a],       dbg_loc,           {string, integer},    none, "Debug Op: Execution location. Args = {file_name, line_num}" }
+    , { 'DBG_DEF',             16#b7,  false,    true,   true,    ?GAS(0),       [a, a],       dbg_def,               {string, any},    none, "Debug Op: Define a variable. Args = {var_name, register}" }
+    , { 'DBG_UNDEF',           16#b8,  false,    true,   true,    ?GAS(0),       [a, a],     dbg_undef,               {string, any},    none, "Debug Op: Undefine a variable. Args = {var_name, register}" }
+    , { 'DBG_CONTRACT',        16#b9,  false,    true,   true,    ?GAS(0),          [a],  dbg_contract,                    {string},    none, "Debug Op: Name the current contract. Args: {contract_name}"}
 
     , { 'DEACTIVATE',          16#fa,  false,    true,   true,   ?GAS(10), [],           deactivate,                                  {},    none, "Mark the current contract for deactivation."}
     , { 'ABORT',               16#fb,   true,    true,   true,   ?GAS(10), [a],               abort,                            {string},    none, "Abort execution (dont use all gas) with error message in Arg0."}

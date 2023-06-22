@@ -32,6 +32,7 @@ check_numbering(N, [T|Rest]) ->
     OpCode = element(2, T),
     case OpCode of
         N -> check_numbering(N+1, Rest);
+        16#f0 -> check_numbering(16#f0+1, Rest);
         16#fa -> check_numbering(16#fa+1, Rest);
         _ when OpCode < N -> {duplicate_opcode, OpCode};
         _ when OpCode > N -> {missing_opcode, N}

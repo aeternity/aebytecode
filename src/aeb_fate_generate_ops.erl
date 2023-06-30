@@ -32,6 +32,7 @@ check_numbering(N, [T|Rest]) ->
     OpCode = element(2, T),
     case OpCode of
         N -> check_numbering(N+1, Rest);
+        16#f0 -> check_numbering(16#f0+1, Rest);
         16#fa -> check_numbering(16#fa+1, Rest);
         _ when OpCode < N -> {duplicate_opcode, OpCode};
         _ when OpCode > N -> {missing_opcode, N}
@@ -246,11 +247,12 @@ ops_defs() ->
     , { 'BYTES_TO_FIXED_SIZE', 16#b3,  false,    true,   true,   ?GAS(10),    [a, a, a], bytes_to_fixed_size,            {bytes, integer}, variant, "Arg0 := bytes_to_fixed_size(Arg1, Arg2), returns Some(Arg1') if byte_size(Arg1) == Arg2, None otherwise. The type of Arg1' is bytes(Arg2) but the value is unchanged"}
     , { 'INT_TO_BYTES',        16#b4,  false,    true,   true,   ?GAS(10),    [a, a, a],        int_to_bytes,          {integer, integer},   bytes, "Arg0 := turn integer Arg1 into a byte array (big endian) length Arg2 (truncating if not fit)."}
     , { 'STR_TO_BYTES',        16#b5,  false,    true,   true,   ?GAS(10),       [a, a],        str_to_bytes,                   {integer},   bytes, "Arg0 := turn string Arg1 into the corresponding byte array."}
+    , { 'NETWORK_ID',          16#b6,  false,    true,   true,   ?GAS(10),          [a],          network_id,                          {},  string, "Arg0 := The network_id of the chain."}
 
-    , { 'DBG_LOC',             16#b6,  false,    true,   true,    ?GAS(0),       [a, a],       dbg_loc,           {string, integer},    none, "Debug Op: Execution location. Args = {file_name, line_num}" }
-    , { 'DBG_DEF',             16#b7,  false,    true,   true,    ?GAS(0),       [a, a],       dbg_def,               {string, any},    none, "Debug Op: Define a variable. Args = {var_name, register}" }
-    , { 'DBG_UNDEF',           16#b8,  false,    true,   true,    ?GAS(0),       [a, a],     dbg_undef,               {string, any},    none, "Debug Op: Undefine a variable. Args = {var_name, register}" }
-    , { 'DBG_CONTRACT',        16#b9,  false,    true,   true,    ?GAS(0),          [a],  dbg_contract,                    {string},    none, "Debug Op: Name the current contract. Args: {contract_name}"}
+    , { 'DBG_LOC',             16#f0,  false,    true,   true,    ?GAS(0),  [a, a],       dbg_loc, {string, integer}, none, "Debug Op: Execution location. Args = {file_name, line_num}" }
+    , { 'DBG_DEF',             16#f1,  false,    true,   true,    ?GAS(0),  [a, a],       dbg_def,     {string, any}, none, "Debug Op: Define a variable. Args = {var_name, register}" }
+    , { 'DBG_UNDEF',           16#f2,  false,    true,   true,    ?GAS(0),  [a, a],     dbg_undef,     {string, any}, none, "Debug Op: Undefine a variable. Args = {var_name, register}" }
+    , { 'DBG_CONTRACT',        16#f3,  false,    true,   true,    ?GAS(0),     [a],  dbg_contract,          {string}, none, "Debug Op: Name the current contract. Args: {contract_name}"}
 
     , { 'DEACTIVATE',          16#fa,  false,    true,   true,   ?GAS(10), [],           deactivate,                                  {},    none, "Mark the current contract for deactivation."}
     , { 'ABORT',               16#fb,   true,    true,   true,   ?GAS(10), [a],               abort,                            {string},    none, "Abort execution (dont use all gas) with error message in Arg0."}

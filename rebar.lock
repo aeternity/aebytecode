@@ -1,7 +1,7 @@
 {"1.2.0",
 [{<<"aeserialization">>,
   {git,"https://github.com/aeternity/aeserialization.git",
-       {ref,"177bf604b2a05e940f92cf00e96e6e269e708245"}},
+       {ref,"b26e6d105424748ba1c27917267b7cff07f37802"}},
   0},
  {<<"base58">>,
   {git,"https://github.com/aeternity/erl-base58.git",
@@ -10,7 +10,7 @@
  {<<"eblake2">>,{pkg,<<"eblake2">>,<<"1.0.0">>},0},
  {<<"enacl">>,
   {git,"https://github.com/aeternity/enacl.git",
-       {ref,"793ddb502f7fe081302e1c42227dca70b09f8e17"}},
+       {ref,"4eb7ec70084ba7c87b1af8797c4c4e90c84f95a2"}},
   1},
  {<<"getopt">>,{pkg,<<"getopt">>,<<"1.0.1">>},0}]}.
 [
